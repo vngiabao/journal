@@ -1,0 +1,38 @@
+/* Project Reboot design tokens. Every colour, font, space and radius in styles.css references these by name.
+   Cozy companion to the personal website: warm paper, deep blue ink, honey gold, red-pen checks, sage for kept promises. */
+:root{
+ /* Violet Evergarden palette (shared family with Shiori): cool letter paper, Prussian blue, ribbon red, honey, violet, emerald */
+ /* Paper */
+ --paper:#edf1f7;--paper-deep:#e1e7f0;--sheet:#faf9f6;--sheet-2:#f3f5f9;--sheet-hover:#fdfcfa;
+ /* Ink */
+ --ink:#1f2a44;--ink-soft:#4a5470;--muted:#5b6377;--placeholder:#737b8f;
+ /* Prussian blue, the brand */
+ --blue:#23467a;--blue-hover:#1f2a44;--blue-deep:#172c49;--blue-deeper:#13243d;--blue-stage:#274769;--sky:#dfe8f3;--sky-2:#cfdcec;--cover-text:#f7f5f1;--cover-muted:#c3d2e6;--cover-hover:#27476999;--cover-line:#8298b2;
+ /* Honey and metal gold */
+ --gold:#c9a15a;--metal:#e2c07f;--gold-soft:#f1e3c2;--gold-wash:#f7efdc;--gold-text:#7f5d1b;
+ /* Violet: highlights, moments, seals */
+ --violet:#5a5490;--violet-wash:#e9e3ef;--violet-text:#4b4580;
+ /* Difficulty ramp from the board: outer ring easier, center hardest */
+ --level-1:#faf9f6;--level-2:#ebe6f2;--level-3:#f3e4c4;
+ /* Ribbon red */
+ --red:#a8323e;--red-wash:#f6e2e3;--red-hover:#8c2833;--red-line:#deb0b5;
+ /* Emerald */
+ --green:#1f6b57;--green-wash:#e1eee8;--green-line:#a9cdbf;
+ /* Lines and shadows (cool-tinted to the paper) */
+ --line:#dde3ec;--line-strong:#cbd4e1;--track:#dfe5ee;
+ --shadow-1:0 1px 2px #1f2a440d,0 2px 6px -2px #1f2a4414;
+ --shadow-2:0 1px 2px #1f2a4410,0 12px 28px -16px #1f2a4440;
+ --shadow-lift:0 2px 4px #1f2a4414,0 18px 34px -18px #1f2a4452;
+ --paper-0:#edf1f700;--paper-40:#edf1f766;--paper-92:#edf1f7eb;--night-35:#13243d59;--night-90:#13243de6;
+ --focus-halo:#23467a26;--scrim:#13243d66;--scrollbar:#c3cddb;
+ /* Type */
+ --sans:'Source Sans 3','Helvetica Neue',Arial,sans-serif;--serif:'Cormorant Garamond',Georgia,serif;--mono:'Courier Prime','Courier New',monospace;
+ /* Spacing scale: every padding, gap and margin uses one of these */
+ --s-1:4px;--s-2:8px;--s-3:12px;--s-4:16px;--s-5:20px;--s-6:24px;--s-7:32px;--s-8:40px;--s-9:48px;--s-10:64px;
+ /* Radius */
+ --r-chip:999px;--r-control:8px;--r-card:10px;--r-tile:8px;--r-small:6px;
+ --line-blue:#d6e0ee;--margin-red:#e7b9bd;--ink-pen:#1a2d4f;
+ /* Motion */
+ --ease:cubic-bezier(.23,1,.32,1);--ease-drawer:cubic-bezier(.32,.72,0,1);
+ font-family:var(--sans);color:var(--ink);background:var(--paper);font-synthesis:none;
+}

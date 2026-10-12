@@ -1,0 +1,42 @@
+// One icon family for the whole app: Phosphor at light weights, the same family Shiori uses. Components import names from here,
+// so swapping a glyph happens in one place. `strokeWidth` from older call sites is accepted and ignored.
+import type {ComponentType} from 'react';
+import * as P from '@phosphor-icons/react';
+
+type Props={size?:number;strokeWidth?:number;className?:string;weight?:P.IconWeight;'aria-hidden'?:boolean};
+const wrap=(Icon:P.Icon,weight:P.IconWeight='regular'):ComponentType<Props>=>({strokeWidth:_s,weight:w,...rest}:Props)=><Icon weight={w??weight} aria-hidden {...rest}/>;
+
+export const Sun=wrap(P.SunHorizon,'light');
+export const LayoutGrid=wrap(P.SquaresFour,'light');
+export const TrendingUp=wrap(P.TrendUp,'light');
+export const BookOpen=wrap(P.BookOpenText,'light');
+export const ChartNoAxesCombined=wrap(P.ChartLine,'light');
+export const SettingsIcon=wrap(P.GearSix,'light');
+export const ShieldCheck=wrap(P.ShieldCheck,'light');
+export const Check=wrap(P.Check,'bold');
+export const X=wrap(P.X,'bold');
+export const Menu=wrap(P.List,'regular');
+export const ArrowRight=wrap(P.ArrowRight,'regular');
+export const ArrowLeft=wrap(P.ArrowLeft,'regular');
+export const ChevronRight=wrap(P.CaretRight,'regular');
+export const ChevronDown=wrap(P.CaretDown,'regular');
+export const Plus=wrap(P.Plus,'regular');
+export const Minus=wrap(P.Minus,'regular');
+export const Undo2=wrap(P.ArrowCounterClockwise,'regular');
+export const Redo2=wrap(P.ArrowClockwise,'regular');
+export const RotateCcw=wrap(P.ArrowCounterClockwise,'regular');
+export const Pin=wrap(P.PushPin,'light');
+export const PenLine=wrap(P.PencilSimpleLine,'light');
+export const Search=wrap(P.MagnifyingGlass,'regular');
+export const Funnel=wrap(P.FunnelSimple,'regular');
+export const List=wrap(P.ListBullets,'regular');
+export const CalendarDays=wrap(P.CalendarDots,'light');
+export const Trophy=wrap(P.Trophy,'light');
+export const Target=wrap(P.Target,'light');
+export const Lightbulb=wrap(P.Lightbulb,'light');
+export const ImagePlus=wrap(P.ImageSquare,'light');
+export const Maximize2=wrap(P.ArrowsOut,'regular');
+export const Minimize2=wrap(P.ArrowsIn,'regular');
+export const Download=wrap(P.DownloadSimple,'regular');
+export const Upload=wrap(P.UploadSimple,'regular');
+export const Trash2=wrap(P.Trash,'light');

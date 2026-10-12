@@ -1,0 +1,6 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "reboot-dev", "runtimeExecutable": "npx", "runtimeArgs": ["vite", "--host", "127.0.0.1", "--port", "5181", "--strictPort"], "port": 5181, "autoPort": false }
+  ]
+}

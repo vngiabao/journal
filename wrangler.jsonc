@@ -1,0 +1,21 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "project-reboot",
+  "account_id": "c171df5a2c42c7c28825bc0d2e64698b",
+  "main": "worker/index.mjs",
+  "compatibility_date": "2026-10-11",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [{"pattern": "journal.gbaonvo.com", "custom_domain": true}],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+    "not_found_handling": "single-page-application"
+  },
+  "vars": {
+    "ACCESS_TEAM_DOMAIN": "astoryapp.cloudflareaccess.com",
+    "ACCESS_AUD": "adb8c959bd7634b1d02e72c60b5443372fec38045339fe33f6155873c6f0809e"
+  },
+  "observability": {"enabled": false}
+}

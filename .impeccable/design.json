@@ -1,0 +1,455 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-10T16:54:30.056Z",
+  "title": "Design System: Project Reboot",
+  "extensions": {
+    "colorMeta": {
+      "blue": {
+        "role": "primary",
+        "displayName": "Deep blue",
+        "tonalRamp": [
+          "oklch(15.00% 0.0928 257.75)",
+          "oklch(26.43% 0.0928 257.75)",
+          "oklch(37.86% 0.0928 257.75)",
+          "oklch(49.29% 0.0928 257.75)",
+          "oklch(60.71% 0.0928 257.75)",
+          "oklch(72.14% 0.0928 257.75)",
+          "oklch(83.57% 0.0928 257.75)",
+          "oklch(95.00% 0.0928 257.75)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "tonalRamp": [
+          "oklch(15.00% 0.0425 251.58)",
+          "oklch(26.43% 0.0425 251.58)",
+          "oklch(37.86% 0.0425 251.58)",
+          "oklch(49.29% 0.0425 251.58)",
+          "oklch(60.71% 0.0425 251.58)",
+          "oklch(72.14% 0.0425 251.58)",
+          "oklch(83.57% 0.0425 251.58)",
+          "oklch(95.00% 0.0425 251.58)"
+        ]
+      },
+      "cream": {
+        "role": "neutral",
+        "displayName": "Cream",
+        "tonalRamp": [
+          "oklch(15.00% 0.0143 84.58)",
+          "oklch(26.43% 0.0143 84.58)",
+          "oklch(37.86% 0.0143 84.58)",
+          "oklch(49.29% 0.0143 84.58)",
+          "oklch(60.71% 0.0143 84.58)",
+          "oklch(72.14% 0.0143 84.58)",
+          "oklch(83.57% 0.0143 84.58)",
+          "oklch(95.00% 0.0143 84.58)"
+        ]
+      },
+      "soft": {
+        "role": "neutral",
+        "displayName": "Soft",
+        "tonalRamp": [
+          "oklch(15.00% 0.0098 87.47)",
+          "oklch(26.43% 0.0098 87.47)",
+          "oklch(37.86% 0.0098 87.47)",
+          "oklch(49.29% 0.0098 87.47)",
+          "oklch(60.71% 0.0098 87.47)",
+          "oklch(72.14% 0.0098 87.47)",
+          "oklch(83.57% 0.0098 87.47)",
+          "oklch(95.00% 0.0098 87.47)"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "tonalRamp": [
+          "oklch(15.00% 0.0235 82.12)",
+          "oklch(26.43% 0.0235 82.12)",
+          "oklch(37.86% 0.0235 82.12)",
+          "oklch(49.29% 0.0235 82.12)",
+          "oklch(60.71% 0.0235 82.12)",
+          "oklch(72.14% 0.0235 82.12)",
+          "oklch(83.57% 0.0235 82.12)",
+          "oklch(95.00% 0.0235 82.12)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted",
+        "tonalRamp": [
+          "oklch(15.00% 0.0311 257.08)",
+          "oklch(26.43% 0.0311 257.08)",
+          "oklch(37.86% 0.0311 257.08)",
+          "oklch(49.29% 0.0311 257.08)",
+          "oklch(60.71% 0.0311 257.08)",
+          "oklch(72.14% 0.0311 257.08)",
+          "oklch(83.57% 0.0311 257.08)",
+          "oklch(95.00% 0.0311 257.08)"
+        ]
+      },
+      "maize": {
+        "role": "secondary",
+        "displayName": "Restrained maize",
+        "tonalRamp": [
+          "oklch(15.00% 0.1320 85.06)",
+          "oklch(26.43% 0.1320 85.06)",
+          "oklch(37.86% 0.1320 85.06)",
+          "oklch(49.29% 0.1320 85.06)",
+          "oklch(60.71% 0.1320 85.06)",
+          "oklch(72.14% 0.1320 85.06)",
+          "oklch(83.57% 0.1320 85.06)",
+          "oklch(95.00% 0.1320 85.06)"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Rule",
+        "tonalRamp": [
+          "oklch(15.00% 0.0082 98.89)",
+          "oklch(26.43% 0.0082 98.89)",
+          "oklch(37.86% 0.0082 98.89)",
+          "oklch(49.29% 0.0082 98.89)",
+          "oklch(60.71% 0.0082 98.89)",
+          "oklch(72.14% 0.0082 98.89)",
+          "oklch(83.57% 0.0082 98.89)",
+          "oklch(95.00% 0.0082 98.89)"
+        ]
+      },
+      "green": {
+        "role": "success",
+        "displayName": "Recorded success",
+        "tonalRamp": [
+          "oklch(15.00% 0.0640 165.61)",
+          "oklch(26.43% 0.0640 165.61)",
+          "oklch(37.86% 0.0640 165.61)",
+          "oklch(49.29% 0.0640 165.61)",
+          "oklch(60.71% 0.0640 165.61)",
+          "oklch(72.14% 0.0640 165.61)",
+          "oklch(83.57% 0.0640 165.61)",
+          "oklch(95.00% 0.0640 165.61)"
+        ]
+      },
+      "red": {
+        "role": "error",
+        "displayName": "Recorded failure",
+        "tonalRamp": [
+          "oklch(15.00% 0.1182 25.35)",
+          "oklch(26.43% 0.1182 25.35)",
+          "oklch(37.86% 0.1182 25.35)",
+          "oklch(49.29% 0.1182 25.35)",
+          "oklch(60.71% 0.1182 25.35)",
+          "oklch(72.14% 0.1182 25.35)",
+          "oklch(83.57% 0.1182 25.35)",
+          "oklch(95.00% 0.1182 25.35)"
+        ]
+      },
+      "blue-hover": {
+        "role": "primary",
+        "displayName": "Blue hover",
+        "tonalRamp": [
+          "oklch(15.00% 0.0961 251.71)",
+          "oklch(26.43% 0.0961 251.71)",
+          "oklch(37.86% 0.0961 251.71)",
+          "oklch(49.29% 0.0961 251.71)",
+          "oklch(60.71% 0.0961 251.71)",
+          "oklch(72.14% 0.0961 251.71)",
+          "oklch(83.57% 0.0961 251.71)",
+          "oklch(95.00% 0.0961 251.71)"
+        ]
+      },
+      "secondary-hover": {
+        "role": "neutral",
+        "displayName": "Secondary hover",
+        "tonalRamp": [
+          "oklch(15.00% 0.0107 106.60)",
+          "oklch(26.43% 0.0107 106.60)",
+          "oklch(37.86% 0.0107 106.60)",
+          "oklch(49.29% 0.0107 106.60)",
+          "oklch(60.71% 0.0107 106.60)",
+          "oklch(72.14% 0.0107 106.60)",
+          "oklch(83.57% 0.0107 106.60)",
+          "oklch(95.00% 0.0107 106.60)"
+        ]
+      },
+      "sidebar": {
+        "role": "neutral",
+        "displayName": "Sidebar",
+        "tonalRamp": [
+          "oklch(15.00% 0.0093 106.58)",
+          "oklch(26.43% 0.0093 106.58)",
+          "oklch(37.86% 0.0093 106.58)",
+          "oklch(49.29% 0.0093 106.58)",
+          "oklch(60.71% 0.0093 106.58)",
+          "oklch(72.14% 0.0093 106.58)",
+          "oklch(83.57% 0.0093 106.58)",
+          "oklch(95.00% 0.0093 106.58)"
+        ]
+      },
+      "segmented": {
+        "role": "neutral",
+        "displayName": "Segmented ground",
+        "tonalRamp": [
+          "oklch(15.00% 0.0094 99.99)",
+          "oklch(26.43% 0.0094 99.99)",
+          "oklch(37.86% 0.0094 99.99)",
+          "oklch(49.29% 0.0094 99.99)",
+          "oklch(60.71% 0.0094 99.99)",
+          "oklch(72.14% 0.0094 99.99)",
+          "oklch(83.57% 0.0094 99.99)",
+          "oklch(95.00% 0.0094 99.99)"
+        ]
+      },
+      "note": {
+        "role": "neutral",
+        "displayName": "Attention note",
+        "tonalRamp": [
+          "oklch(15.00% 0.0178 92.69)",
+          "oklch(26.43% 0.0178 92.69)",
+          "oklch(37.86% 0.0178 92.69)",
+          "oklch(49.29% 0.0178 92.69)",
+          "oklch(60.71% 0.0178 92.69)",
+          "oklch(72.14% 0.0178 92.69)",
+          "oklch(83.57% 0.0178 92.69)",
+          "oklch(95.00% 0.0178 92.69)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Editorial page headings."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section headings; contextual overrides remain in code."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Smaller reflective headings."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Dense interface records."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Visible field labels."
+      },
+      "small": {
+        "displayName": "Small",
+        "purpose": "Muted supporting explanations."
+      },
+      "journal": {
+        "displayName": "Journal",
+        "purpose": "Serif writing area."
+      }
+    },
+    "shadows": [
+      {
+        "name": "selected-segment",
+        "value": "0 1px 3px #091a2c14",
+        "purpose": "Subtle lift for a selected segment."
+      },
+      {
+        "name": "mobile-drawer",
+        "value": "12px 0 30px #091a2c12",
+        "purpose": "Separation under mobile navigation."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease",
+        "value": "cubic-bezier(.23,1,.32,1)",
+        "purpose": "Shared button and mobile drawer easing."
+      },
+      {
+        "name": "control-color",
+        "value": "160ms",
+        "purpose": "Button background and text transitions."
+      },
+      {
+        "name": "press",
+        "value": "100ms",
+        "purpose": "Enabled buttons scale to .98 while pressed."
+      },
+      {
+        "name": "mobile-drawer",
+        "value": "220ms",
+        "purpose": "Mobile sidebar translateX transition."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "none",
+        "purpose": "Animations and transitions disabled; scrolling auto."
+      },
+      {
+        "name": "chart-edit",
+        "value": "none",
+        "purpose": "No animation during direct Journey manipulation."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "wide-min",
+        "value": "1500px"
+      },
+      {
+        "name": "compact-desktop-max",
+        "value": "1200px"
+      },
+      {
+        "name": "tablet-max",
+        "value": "900px"
+      },
+      {
+        "name": "mobile-max",
+        "value": "650px"
+      }
+    ],
+    "provenance": {
+      "sourceFiles": [
+        "src/styles.css",
+        "src/App.tsx",
+        "src/Board.tsx",
+        "src/GoalControls.tsx",
+        "src/Journey.tsx",
+        "src/Journal.tsx",
+        "src/Settings.tsx"
+      ],
+      "visualAuthority": "Inherited sibling personal-site source and explicit user rules; no approved comp.",
+      "verification": "Source extraction only; does not certify browser or accessibility results.",
+      "tonalRampNote": "Synthesized OKLCH lightness ramps for panel previews; not additional application palette tokens."
+    }
+  },
+  "components": [
+    {
+      "name": "Primary button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Filled action for setup, saving, and export.",
+      "html": "<button class=\"ds-primary\">Save new version</button>",
+      "css": ".ds-primary{font-family:var(--sans,'Mona Sans','Helvetica Neue',Arial,sans-serif);font-size:13px;line-height:1.55;cursor:pointer;transition:background-color 160ms cubic-bezier(.23,1,.32,1),color 160ms cubic-bezier(.23,1,.32,1),transform 100ms cubic-bezier(.23,1,.32,1);min-height:44px;padding:10px 17px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;gap:9px;font-weight:550;white-space:nowrap;background:var(--blue,#0b2d5c);color:var(--cream,#f5f0e6);border:1px solid var(--blue,#0b2d5c)}.ds-primary:hover{background:#174777;}.ds-primary:focus-visible{outline:2px solid var(--maize,#c79a2b);outline-offset:4px;}.ds-primary:active:not(:disabled){transform:scale(.98)}.ds-primary:disabled{opacity:.45;cursor:default}@media(prefers-reduced-motion:reduce){.ds-primary{transition:none}}"
+    },
+    {
+      "name": "Secondary button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Outlined alternative action.",
+      "html": "<button class=\"ds-secondary\">Activity CSV</button>",
+      "css": ".ds-secondary{font-family:var(--sans,'Mona Sans','Helvetica Neue',Arial,sans-serif);font-size:13px;line-height:1.55;cursor:pointer;transition:background-color 160ms cubic-bezier(.23,1,.32,1),color 160ms cubic-bezier(.23,1,.32,1),transform 100ms cubic-bezier(.23,1,.32,1);min-height:44px;padding:10px 17px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;gap:9px;font-weight:550;white-space:nowrap;background:transparent;color:var(--blue,#0b2d5c);border:1px solid #b8bfc6}.ds-secondary:hover{background:#e9e9e1;}.ds-secondary:focus-visible{outline:2px solid var(--maize,#c79a2b);outline-offset:4px;}.ds-secondary:active:not(:disabled){transform:scale(.98)}.ds-secondary:disabled{opacity:.45;cursor:default}@media(prefers-reduced-motion:reduce){.ds-secondary{transition:none}}"
+    },
+    {
+      "name": "Icon button",
+      "kind": "button",
+      "refersTo": "button-icon",
+      "description": "Compact named action, 36px on desktop and 40px on mobile.",
+      "html": "<button class=\"ds-icon\" aria-label=\"Next period\"><svg aria-hidden=\"true\" viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12h14m-6-6 6 6-6 6\"/></svg></button>",
+      "css": ".ds-icon{font-family:var(--sans,'Mona Sans','Helvetica Neue',Arial,sans-serif);font-size:13px;line-height:1.55;cursor:pointer;transition:background-color 160ms cubic-bezier(.23,1,.32,1),color 160ms cubic-bezier(.23,1,.32,1),transform 100ms cubic-bezier(.23,1,.32,1);display:inline-flex;align-items:center;justify-content:center;width:36px;min-width:36px;height:36px;padding:0;border:0;border-radius:5px;background:transparent;color:var(--muted,#566273)}.ds-icon:hover{background:#e7e6df;color:var(--blue,#0b2d5c);}.ds-icon:focus-visible{outline:2px solid var(--maize,#c79a2b);outline-offset:4px;}.ds-icon:active:not(:disabled){transform:scale(.98)}.ds-icon:disabled{opacity:.45;cursor:default}@media(prefers-reduced-motion:reduce){.ds-icon{transition:none}}@media(max-width:650px){.ds-icon{width:40px;min-width:40px;height:40px}}"
+    },
+    {
+      "name": "Text button",
+      "kind": "button",
+      "refersTo": "button-text",
+      "description": "Quiet inline link-style action.",
+      "html": "<button class=\"ds-text\">Open Journey <svg aria-hidden=\"true\" viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12h14m-6-6 6 6-6 6\"/></svg></button>",
+      "css": ".ds-text{font-family:var(--sans,'Mona Sans','Helvetica Neue',Arial,sans-serif);font-size:13px;line-height:1.55;cursor:pointer;transition:background-color 160ms cubic-bezier(.23,1,.32,1),color 160ms cubic-bezier(.23,1,.32,1),transform 100ms cubic-bezier(.23,1,.32,1);display:inline-flex;align-items:center;gap:9px;border:0;background:transparent;color:var(--blue,#0b2d5c);padding:8px 0;min-height:40px;font-size:12px;font-weight:550;text-align:left}.ds-text:hover{color:#4473a0;}.ds-text:focus-visible{outline:2px solid var(--maize,#c79a2b);outline-offset:4px;}.ds-text:active:not(:disabled){transform:scale(.98)}.ds-text:disabled{opacity:.45;cursor:default}@media(prefers-reduced-motion:reduce){.ds-text{transition:none}}"
+    },
+    {
+      "name": "Labeled input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Soft field with rule border and explicit label.",
+      "html": "<label class=\"ds-label\">Calendar timezone<input class=\"ds-input\" value=\"America/New_York\"/></label>",
+      "css": ".ds-label{font-family:var(--sans,'Mona Sans','Helvetica Neue',Arial,sans-serif);display:flex;flex-direction:column;gap:7px;font-size:12px;color:var(--ink,#091a2c)}.ds-input{font-family:var(--sans,'Mona Sans','Helvetica Neue',Arial,sans-serif);font-size:13px;line-height:1.55;color:var(--ink,#091a2c);background:var(--soft,#faf7f0);border:1px solid var(--rule,#d8d7d1);border-radius:6px;min-height:40px;padding:8px 11px;max-width:100%;caret-color:var(--blue,#0b2d5c)}.ds-input:focus-visible{outline:2px solid var(--maize,#c79a2b);outline-offset:4px;}.ds-input::placeholder{color:#66717d;opacity:1}"
+    },
+    {
+      "name": "Current navigation",
+      "kind": "nav",
+      "refersTo": "navigation-current",
+      "description": "Selected route with thin icon and maize marker.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Main navigation\"><button class=\"ds-nav-item\" aria-current=\"page\"><svg aria-hidden=\"true\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><path d=\"m3 17 6-6 4 4 8-10M15 5h6v6\"/></svg>Journey<span class=\"ds-marker\"></span></button></nav>",
+      "css": ".ds-nav{padding:12px;background:var(--sidebar,#eeeee7);width:210px}.ds-nav-item{font-family:var(--sans,'Mona Sans','Helvetica Neue',Arial,sans-serif);font-size:13px;line-height:1.55;cursor:pointer;transition:background-color 160ms cubic-bezier(.23,1,.32,1),color 160ms cubic-bezier(.23,1,.32,1),transform 100ms cubic-bezier(.23,1,.32,1);display:flex;align-items:center;gap:13px;width:100%;min-height:45px;padding:11px 13px;border:0;border-radius:6px;background:var(--blue,#0b2d5c);color:var(--cream,#f5f0e6);text-align:left;font-size:12px}.ds-marker{margin-left:auto;width:4px;height:4px;border-radius:50%;background:var(--maize,#c79a2b)}.ds-nav-item:hover{background:var(--blue,#0b2d5c);}.ds-nav-item:focus-visible{outline:2px solid var(--maize,#c79a2b);outline-offset:4px;}.ds-nav-item:active:not(:disabled){transform:scale(.98)}.ds-nav-item:disabled{opacity:.45;cursor:default}@media(prefers-reduced-motion:reduce){.ds-nav-item{transition:none}}"
+    },
+    {
+      "name": "Segmented control",
+      "kind": "custom",
+      "refersTo": "segment-selected",
+      "description": "Grouped period choices with a soft selected segment.",
+      "html": "<div class=\"ds-segmented\"><button class=\"ds-segment\">7 days</button><button class=\"ds-segment ds-selected\">30 days</button><button class=\"ds-segment\">90 days</button></div>",
+      "css": ".ds-segmented{display:inline-flex;align-items:center;gap:3px;padding:4px;background:var(--segmented,#eae9e2);border-radius:7px;max-width:100%}.ds-segment{font-family:var(--sans,'Mona Sans','Helvetica Neue',Arial,sans-serif);font-size:13px;line-height:1.55;cursor:pointer;transition:background-color 160ms cubic-bezier(.23,1,.32,1),color 160ms cubic-bezier(.23,1,.32,1),transform 100ms cubic-bezier(.23,1,.32,1);display:flex;align-items:center;gap:7px;min-height:35px;border:0;border-radius:4px;padding:7px 12px;background:transparent;color:var(--muted,#566273);white-space:nowrap;font-size:12px}.ds-selected{background:var(--soft,#faf7f0);color:var(--blue,#0b2d5c);box-shadow:0 1px 3px #091a2c14}.ds-segment:hover{}.ds-segment:focus-visible{outline:2px solid var(--maize,#c79a2b);outline-offset:4px;}.ds-segment:active:not(:disabled){transform:scale(.98)}.ds-segment:disabled{opacity:.45;cursor:default}@media(prefers-reduced-motion:reduce){.ds-segment{transition:none}}@media(max-width:650px){.ds-segment{min-height:36px;font-size:10px;padding:8px 7px}}"
+    },
+    {
+      "name": "Status badges",
+      "kind": "chip",
+      "refersTo": "badge",
+      "description": "Compact text-backed state tint for success and failure.",
+      "html": "<span class=\"ds-badge ds-success\">success</span> <span class=\"ds-badge ds-failed\">failed</span>",
+      "css": ".ds-badge{font-family:var(--sans,'Mona Sans','Helvetica Neue',Arial,sans-serif);display:inline-flex;align-items:center;gap:5px;padding:3px 7px;background:#e8e7df;border-radius:4px;font-size:10px;line-height:1.55;white-space:nowrap}.ds-success{background:#e5ece4;color:var(--green,#326450)}.ds-failed{background:#f3e4df;color:var(--red,#a04843)}"
+    },
+    {
+      "name": "Attention note",
+      "kind": "card",
+      "refersTo": "attention-note",
+      "description": "Selective tonal container for contextual guidance.",
+      "html": "<aside class=\"ds-note\"><h3 class=\"ds-note-title\">Still within reach</h3><p class=\"ds-note-body\">No weekly commitments are active yet.</p></aside>",
+      "css": ".ds-note{padding:20px;background:var(--note,#ede9dc);border-radius:8px;max-width:320px}.ds-note-title{margin:0 0 9px;font-family:var(--serif,'Brygada 1918',Georgia,serif);font-size:19px;font-weight:400;letter-spacing:-.025em;line-height:1.15;color:var(--ink,#091a2c)}.ds-note-body{font-family:var(--sans,'Mona Sans','Helvetica Neue',Arial,sans-serif);margin:0;font-size:11px;line-height:1.55;color:#525d6a}"
+    },
+    {
+      "name": "Journey empty graph",
+      "kind": "custom",
+      "description": "Static appearance preview of the signature editor before any user activity.",
+      "html": "<figure class=\"ds-journey\"><svg class=\"ds-chart\" viewBox=\"0 0 600 260\" tabindex=\"0\" role=\"img\" aria-label=\"Journey empty-state appearance preview; no sample activity\"><g class=\"ds-chart-rule\"><path d=\"M20 35H580M20 78H580M20 121H580M20 164H580M20 207H580\"/></g><text x=\"20\" y=\"18\" class=\"ds-caption\">FORWARD</text><text x=\"20\" y=\"227\" class=\"ds-caption\">SETBACK</text><path d=\"M20 121H580\" class=\"ds-missing\"/><text x=\"300\" y=\"110\" text-anchor=\"middle\" class=\"ds-empty\">Your next chapter starts here.</text><text x=\"300\" y=\"139\" text-anchor=\"middle\" class=\"ds-caption\">SELECT A DAY, THEN PLACE YOUR FIRST POINT</text></svg><figcaption class=\"ds-legend\"><span class=\"ds-line\"></span>Recorded movement <span class=\"ds-line ds-line-missing\"></span>Not recorded · Subjective reflection</figcaption></figure>",
+      "css": ".ds-journey{margin:0;background:var(--cream,#f5f0e6)}.ds-chart{display:block;width:100%;cursor:crosshair}.ds-chart:focus-visible{outline:2px solid var(--maize,#c79a2b);outline-offset:4px;}.ds-chart-rule{fill:none;stroke:#d8dcd8;stroke-width:.7}.ds-caption{font-family:var(--sans,'Mona Sans','Helvetica Neue',Arial,sans-serif);font-size:10px;fill:var(--muted,#566273);letter-spacing:.04em}.ds-empty{font-family:var(--serif,'Brygada 1918',Georgia,serif);font-size:24px;fill:var(--blue,#0b2d5c)}.ds-missing{fill:none;stroke:var(--blue,#0b2d5c);stroke-width:2.5;stroke-dasharray:3 7;opacity:.32}.ds-legend{font-family:var(--sans,'Mona Sans','Helvetica Neue',Arial,sans-serif);display:flex;gap:7px;align-items:center;font-size:10px;color:var(--muted,#566273);padding:9px 0;flex-wrap:wrap}.ds-line{width:18px;border-top:2px solid var(--blue,#0b2d5c)}.ds-line-missing{border-top-style:dashed;opacity:.4}@media(max-width:650px){.ds-caption{font-size:9px}.ds-empty{font-size:22px}.ds-legend{font-size:8px}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Personal website companion",
+    "overview": "Project Reboot inherits its visual authority from the sibling personal website at `../Personal Website/Final Ver.`: cream ground, deep blue accents, dark ink, restrained maize details, and self-hosted Mona Sans paired with Brygada 1918. This record merges the provisional design decisions with `src/styles.css` and the React components. No approved visual comp was supplied; implementation follows explicit user visual rules and the personal website source.\n\nThe workspace favors quiet section rules, readable task rows, and editorial headings. Its signature is the jagged, directly editable Journey line, echoed by the ascending line mark in navigation. Color and shape communicate state with selective tonal containers. Motion supports immediate control feedback and the mobile drawer; the chart responds directly without animation.",
+    "keyCharacteristics": [
+      "Cream surfaces with deep blue controls and restrained maize markers.",
+      "Serif headings and reflection text, sans-serif controls and dense records.",
+      "Flat, ruled layouts with compact task rows and selective tonal panels.",
+      "A jagged Journey graph that exposes recorded, missing, neutral, and milestone states.",
+      "Responsive layouts and explicit keyboard editing alongside pointer input."
+    ],
+    "rules": [
+      {
+        "name": "The Restrained Accent Rule",
+        "body": "Use maize for small markers and interaction emphasis; preserve cream and blue as the dominant identity.",
+        "section": "colors"
+      },
+      {
+        "name": "The Role Pairing Rule",
+        "body": "Keep Brygada 1918 for headings and reflection; keep Mona Sans for controls, labels, numbers, and dense records.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Workspace Rule",
+        "body": "Prefer rules and tonal grouping; reserve shadows for the selected segment and mobile navigation.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Honest Line Rule",
+        "body": "Preserve the distinction between recorded and missing Journey days, and keep the curve directly controlled by the user rather than inferred from habit completion.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "**Do** preserve the inherited cream, blue, ink, and restrained maize palette.",
+      "**Do** use self-hosted Mona Sans for controls and Brygada 1918 for headings and reflection.",
+      "**Do** group daily work with precise rows, section rules, and selective tonal containers.",
+      "**Do** keep recorded, missing, neutral, future, and historical states visibly distinct.",
+      "**Do** retain pointer and keyboard Journey editing, visible focus, and reduced-motion behavior.",
+      "**Do** preserve English default goal labels and the available Vietnamese label choices."
+    ],
+    "donts": [
+      "**Don't** replace the personal website identity with a new palette or font pairing.",
+      "**Don't** fill the Journey chart with fabricated activity or smooth its jagged segments.",
+      "**Don't** present subjective Journey movement as automatically derived objective progress.",
+      "**Don't** replace the ruled workspace with a grid of decorative statistic cards.",
+      "**Don't** add animation during chart dragging or when reduced motion is requested.",
+      "**Don't** claim a universal 44px control minimum, 12px panel radius, or general panel entrance animation from the provisional record."
+    ]
+  }
+}
