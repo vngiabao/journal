@@ -2,6 +2,11 @@
 
 Production: https://journal.gbaonvo.com
 
+Source: https://github.com/vngiabao/journal (`main`). The October 12, 2026
+deployment captures the updated Bao companion, original artwork, to-do lists,
+new fonts/icons, and per-moment Journey labels. Cloudflare Worker version:
+`484d245e-bac2-4d68-b9c7-bd3aa073d83f` (application source commit `9a062f5`).
+
 Cloudflare account: `c171df5a2c42c7c28825bc0d2e64698b`.
 Worker: `project-reboot`. Zone: `gbaonvo.com`.
 
@@ -36,6 +41,10 @@ npm run deploy
 npm run test:access-live
 ```
 
+Push reviewed source changes with `git push origin main`, then deploy that
+checkout with `npm run deploy`. GitHub pushes do not automatically deploy;
+no GitHub/Cloudflare build connection or deployment secret has been added.
+
 Access policy changes use the signed-in Cloudflare dashboard. The Wrangler
 OAuth credential can deploy Workers but cannot edit Access policies. No extra
 API token is required for the completed deployment.
@@ -64,6 +73,7 @@ wrong issuer, expired token, invalid signature, forged headers and missing confi
 `npm run test:browser` tests app workflows in an isolated Edge profile on localhost.
 `npm run test:access-live` probes production pages, images, fonts, JS, CSS and
 account identity anonymously with forged headers; all must redirect to Access.
+It also checks every shipped Bao/chibi/scene asset and a bundled font.
 Cloudflare's policy tester confirms one existing user approved and two blocked.
 Live owner login was verified on October 11, 2026: the production board opens
 and Settings confirms `gbao.n.vo@gmail.com` through `/api/account`. A handler
