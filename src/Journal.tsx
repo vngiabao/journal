@@ -1,8 +1,8 @@
 import {useEffect,useLayoutEffect,useRef,useState} from 'react';
-import {Search,ArrowLeft,ArrowRight,ImagePlus,Check,Plus,Maximize2,Minimize2,X} from './icons';
+import {Search,ArrowLeft,ArrowRight,ChevronDown,ImagePlus,Check,Plus,Maximize2,Minimize2,X} from './icons';
 import type {State,Journal as Entry} from './model';
 import {putActivity,type Mutate} from './GoalControls';
-import {label,parse,iso,addDays} from './dates';
+import {label,parse,addDays,weekStart} from './dates';
 import {dayState} from './engine';
 import {Journey} from './Journey';
 import {ProofQuickAdd} from './Proof';
@@ -11,6 +11,7 @@ import {gsap,useGSAP,whenMotionOK} from './motion';
 
 const MOODS=['Great','Good','Okay','Low','Difficult'];
 const tone=(m?:string)=>m?`tone-${m.toLowerCase()}`:'';
+const shiftMonth=(ym:string,n:number)=>{const [y,m]=ym.split('-').map(Number),d=new Date(y,m-1+n,1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;};
 const KINDS:[Entry['kind'],string][]=[['daily','Daily'],['weekly','Weekly review'],['monthly','Monthly review']];
 const JOURNAL_GOAL='07';
 
@@ -27,13 +28,17 @@ export function Journal({state,mutate,now,reviewKind}:{state:State;mutate:Mutate
 
  const q=search.trim().toLowerCase();
  const filtered=state.journals.filter(j=>j.text.trim()&&(!q||j.text.toLowerCase().includes(q))&&(moodFilter==='All moods'||j.mood===moodFilter)).sort((a,b)=>b.date.localeCompare(a.date));
- const month=parse(date),first=new Date(month.getFullYear(),month.getMonth(),1,12),count=new Date(month.getFullYear(),month.getMonth()+1,0).getDate(),offset=(first.getDay()+6)%7;
  const prompts=reviewKind||kind!=='daily'?['What improved?','What did not work?',`What will I change next ${(reviewKind??kind)==='weekly'?'week':'month'}?`]:['What went well?','What did I struggle with?','What will I change tomorrow?','What am I proud of, even quietly?'];
  const words=text.trim().split(/\s+/).filter(Boolean).length;
  const journalGoal=state.goals.find(g=>g.id===JOURNAL_GOAL)!,counted=dayState(journalGoal,state.logs,date)==='success';
  const streakDays=(()=>{let n=0,d=now;if(!hasEntry(state,d))d=addDays(d,-1);while(hasEntry(state,d)){n++;d=addDays(d,-1);}return n;})();
- const ribbon=useRef<HTMLDivElement>(null);
- useEffect(()=>{const r=ribbon.current,b=r?.querySelector<HTMLElement>('[aria-pressed="true"]');if(r&&b)r.scrollTo({left:b.offsetLeft-r.clientWidth/2+b.offsetWidth/2,behavior:'smooth'});},[date]);
+ // The week you are in sits across the desk; the whole month opens from its name.
+ const [monthOpen,setMonthOpen]=useState(false),[view,setView]=useState(date.slice(0,7));
+ const ws=weekStart(date),week=Array.from({length:7},(_,i)=>addDays(ws,i));
+ const [vy,vm]=view.split('-').map(Number),vCount=new Date(vy,vm,0).getDate(),vOffset=(new Date(vy,vm-1,1).getDay()+6)%7;
+ const viewDays=Array.from({length:vCount},(_,i)=>`${view}-${String(i+1).padStart(2,'0')}`);
+ useEffect(()=>{if(!monthOpen)return;const key=(e:KeyboardEvent)=>{if(e.key==='Escape')setMonthOpen(false);};const down=(e:MouseEvent)=>{if(!(e.target instanceof Element&&e.target.closest('.month-pop,.month-toggle')))setMonthOpen(false);};
+  window.addEventListener('keydown',key);document.addEventListener('mousedown',down);return()=>{window.removeEventListener('keydown',key);document.removeEventListener('mousedown',down);};},[monthOpen]);
  const paper=useRef<HTMLDivElement>(null),aside=useRef<HTMLDivElement>(null),countBox=useRef<HTMLDivElement>(null),wasCounted=useRef({key:date+kind,counted});
  // Picking a day turns the page: the sheet settles, then "Dear me," and your signature are written in with the pen.
  useGSAP(()=>{const mm=whenMotionOK(()=>{const blank={clipPath:'inset(-30% 100% -30% 0)'},inked={clipPath:'inset(-30% 0% -30% 0)',ease:'pen',clearProps:'clipPath'};
@@ -41,7 +46,7 @@ export function Journal({state,mutate,now,reviewKind}:{state:State;mutate:Mutate
    .fromTo('.salutation',blank,{...inked,duration:.8},'-=.15').fromTo('.signoff span',blank,{...inked,duration:.7},'-=.35');
  });return()=>mm.revert();},{dependencies:[date,kind],scope:paper});
  // A new month lays its days out one by one.
- useGSAP(()=>{const mm=whenMotionOK(()=>{gsap.from('.calendar button',{opacity:0,scale:.7,duration:.3,stagger:.008,ease:'back.out(2)',clearProps:'opacity,transform'});});return()=>mm.revert();},{dependencies:[date.slice(0,7)],scope:aside});
+ useGSAP(()=>{const mm=whenMotionOK(()=>{gsap.from('.week-days button',{opacity:0,y:8,duration:.32,stagger:.03,ease:'power2.out',clearProps:'opacity,transform'});});return()=>mm.revert();},{dependencies:[ws],scope:aside});
  // Counting the entry toward your goal presses a small wax seal onto it.
  useGSAP(()=>{const prev=wasCounted.current;wasCounted.current={key:date+kind,counted};if(!counted||prev.counted||prev.key!==date+kind)return;
   const mm=whenMotionOK(()=>{gsap.timeline().from('.count-seal',{scale:2.4,rotation:-40,opacity:0,duration:.42,ease:'stamp'}).fromTo(countBox.current,{x:0},{keyframes:{x:[0,-4,3,-2,0]},duration:.3,ease:'none'},'-=.08');});return()=>mm.revert();},{dependencies:[counted,date,kind],scope:countBox});
@@ -53,20 +58,28 @@ export function Journal({state,mutate,now,reviewKind}:{state:State;mutate:Mutate
  const moodOf=(d:string)=>state.journals.find(j=>j.date===d&&j.kind==='daily'&&j.text.trim())?.mood;
 
  // The writing room: a lamp-lit desk at night. The page is the only bright thing on it.
- // A ribbon of the month's days runs along the top of the desk; past pages are laid out below.
+ // This week runs along the top of the desk, the month one tap away; past pages are laid out below.
  return <>
   <div className="page-heading journal-head"><h1>{reviewKind?`${reviewKind==='weekly'?'Weekly':'Monthly'} reflection`:'A little room to reflect'}<span className="title-period">.</span></h1><p>{reviewKind?'Look at what happened, honestly, then give the next stretch one clear intention.':'Write it the way you would to a friend. Private, on this device.'}</p></div>
   <section className="writing-room" aria-label="Journal">
-   <div ref={aside} className="date-ribbon">
-    <div className="ribbon-head">
-     <button className="icon-button" aria-label="Previous month" onClick={()=>{const d=parse(date);d.setDate(1);d.setMonth(d.getMonth()-1);setDate(iso(d));}}><ArrowLeft size={16}/></button>
-     <strong>{label(date,{month:'long',year:'numeric'})}</strong>
-     <button className="icon-button" aria-label="Next month" disabled={date.slice(0,7)>=now.slice(0,7)} onClick={()=>{const d=parse(date);d.setDate(1);d.setMonth(d.getMonth()+1);const n=iso(d);setDate(n>now?now:n);}}><ArrowRight size={16}/></button>
+   <div ref={aside} className="date-strip">
+    <div className="strip-head">
+     <button type="button" className="month-toggle" aria-expanded={monthOpen} aria-haspopup="dialog" onClick={()=>{setView(date.slice(0,7));setMonthOpen(!monthOpen);}}>{label(date,{month:'long',year:'numeric'})}<ChevronDown size={18}/></button>
      <span className="journal-streak">{streakDays?<><b><Count value={streakDays}/></b> {streakDays===1?'day':'days'} written in a row</>:'Write today to start a run.'}</span>
-     {date!==now&&<button className="text-button ribbon-today" onClick={()=>setDate(now)}>Back to today</button>}
+     {date!==now&&<button type="button" className="today-chip" aria-label="Go to today’s page" onClick={()=>setDate(now)}>Today</button>}
     </div>
-    <div ref={ribbon} className="calendar ribbon-days">{Array.from({length:count},(_,i)=>{const d=iso(new Date(month.getFullYear(),month.getMonth(),i+1,12)),has=hasEntry(state,d),m=moodOf(d);
-     return <button key={d} disabled={d>now} className={`${date===d?'selected':''} ${has?'has-entry':''} ${d===now?'is-today':''}`} aria-label={`${label(d,{weekday:'long',month:'long',day:'numeric'})}${has?`, has an entry${m?`, felt ${m.toLowerCase()}`:''}`:''}`} aria-pressed={date===d} onClick={()=>setDate(d)}><small aria-hidden="true">{label(d,{weekday:'narrow'})}</small><b>{i+1}</b><i className={`ink-drop-dot ${tone(m)}`} aria-hidden="true"/></button>;})}</div>
+    <div className="week-row">
+     <button type="button" className="icon-button week-nav" aria-label="Previous week" onClick={()=>setDate(addDays(date,-7))}><ArrowLeft size={18}/></button>
+     <div className="week-days">{week.map(d=>{const has=hasEntry(state,d),m=moodOf(d);
+      return <button key={d} type="button" disabled={d>now} aria-pressed={date===d} className={`${date===d?'selected':''} ${d===now?'is-today':''} ${has?'has-entry':''} ${tone(m)}`} aria-label={`${label(d,{weekday:'long',month:'long',day:'numeric'})}${d===now?', today':''}${has?`, has an entry${m?`, felt ${m.toLowerCase()}`:''}`:''}`} onClick={()=>setDate(d)}><small aria-hidden="true">{label(d,{weekday:'short'})}</small><b>{parse(d).getDate()}</b><i className="ink-drop-dot" aria-hidden="true"/></button>;})}</div>
+     <button type="button" className="icon-button week-nav" aria-label="Next week" disabled={ws>=weekStart(now)} onClick={()=>{const n=addDays(date,7);setDate(n>now?now:n);}}><ArrowRight size={18}/></button>
+    </div>
+    {monthOpen&&<div className="month-pop" role="dialog" aria-label="Choose a day">
+     <div className="month-pop-head"><button type="button" className="icon-button" aria-label="Previous month" onClick={()=>setView(shiftMonth(view,-1))}><ArrowLeft size={16}/></button><strong>{label(`${view}-01`,{month:'long',year:'numeric'})}</strong><button type="button" className="icon-button" aria-label="Next month" disabled={view>=now.slice(0,7)} onClick={()=>setView(shiftMonth(view,1))}><ArrowRight size={16}/></button></div>
+     <div className="month-grid">{['M','T','W','T','F','S','S'].map((d,i)=><span key={i} aria-hidden="true">{d}</span>)}{Array.from({length:vOffset},(_,i)=><span key={`gap-${i}`} aria-hidden="true"/>)}
+      {viewDays.map((d,i)=>{const has=hasEntry(state,d),m=moodOf(d);return <button key={d} type="button" disabled={d>now} aria-pressed={date===d} className={`${has?'has-entry':''} ${tone(m)} ${date===d?'selected':''} ${d===now?'is-today':''}`} aria-label={`${label(d,{month:'long',day:'numeric'})}${has?', has an entry':''}`} onClick={()=>{setDate(d);setMonthOpen(false);}}>{i+1}</button>;})}</div>
+     <div className="month-legend">{MOODS.map(m=><span key={m} className={tone(m)}><i className="ink-drop-dot" aria-hidden="true"/>{m}</span>)}</div>
+    </div>}
    </div>
 
    {!reviewKind&&<div className="room-tabs kind-switch">{KINDS.map(([k,n])=><button key={k} aria-pressed={kind===k} className={kind===k?'selected':''} onClick={()=>setKind(k)}>{n}</button>)}</div>}

@@ -83,7 +83,7 @@ The installed app keeps its own data, separate from Safari and from your compute
 - Tapping a square opens a drawer with its status, pin and full history: a side panel on a computer, a bottom sheet on a phone.
 
 **Journal.** The journal is a writing room, a lamp-lit desk at night where the page is the only bright thing:
-- A ribbon of the month's days runs across the top. Today is ringed in gold, and each day you wrote is marked with its mood colour.
+- This week runs across the top: the selected day on a white disc, today ringed in gold, and each written day marked with its mood colour. Tap the month name for a month panel where written days are tinted by mood.
 - The page is a single heavy sheet with paper grain and a large date masthead.
 - Moods are colour swatches.
 - Prompts appear only while the page is empty.
