@@ -88,6 +88,7 @@ The installed app keeps its own data, separate from Safari and from your compute
 - Moods are colour swatches.
 - Prompts appear only while the page is empty.
 - "Count it" is a wax seal.
+- Inside, the pages are printed: double gold frames with corner ornaments, running heads, page numbers, fine ruling for writing, today's morning line as an epigraph, and a blind-embossed Reboot mark.
 - Past pages are laid out below as cards, with search.
 
 ## Pocket pups and small delights

@@ -55,6 +55,8 @@ export function Journal({state,mutate,now,reviewKind}:{state:State;mutate:Mutate
  const uncountEntry=()=>mutate(s=>{s.logs=s.logs.filter(l=>!(l.goalId===JOURNAL_GOAL&&l.run===journalGoal.run&&l.date===date&&!l.title&&!l.stage));},`unrecord goal ${JOURNAL_GOAL}`);
  const attach=async(e:React.ChangeEvent<HTMLInputElement>)=>{const f=e.target.files?.[0];if(!f)return;if(!['image/png','image/jpeg','image/webp'].includes(f.type)){setError('Choose a PNG, JPG, or WebP photo.');return;}if(f.size>3*1024*1024){setError('Choose a photo smaller than 3 MB.');return;}const reader=new FileReader();reader.onload=()=>update({attachments:[...(entry?.attachments??[]),{name:f.name,data:String(reader.result)}]});reader.readAsDataURL(f);e.target.value='';setError('');};
 
+ // Today's line from the morning (the latest one on or before this day) opens the page as an epigraph.
+ const epigraph=[...(state.quotes??[])].filter(q=>q.date<=date).sort((a,b)=>b.date.localeCompare(a.date))[0]?.text;
  const entryNo=state.journals.filter(j=>j.kind==='daily'&&j.text.trim()&&j.date<date).length+1;
  const moodOf=(d:string)=>state.journals.find(j=>j.date===d&&j.kind==='daily'&&j.text.trim())?.mood;
 
@@ -87,7 +89,7 @@ export function Journal({state,mutate,now,reviewKind}:{state:State;mutate:Mutate
    <div className="book">
     <article ref={paper} className="book-spread">
      <section className="book-page verso" aria-label="About this entry">
-      <p className="folio-top"><span>Project Reboot</span><span>{kind==='daily'?`Entry No. ${entryNo}`:`${kind[0].toUpperCase()}${kind.slice(1)} review`}</span></p>
+      <p className="folio-top"><span>The Reboot Journal</span><span>{kind==='daily'?`Entry No. ${entryNo}`:`${kind[0].toUpperCase()}${kind.slice(1)} review`}</span></p>
       <header className="masthead">
        <span className="masthead-day" aria-hidden="true">{parse(date).getDate()}</span>
        <div className="masthead-text"><h2>{label(date,{weekday:'long'})}</h2><p>{date===now?'Today · ':''}{label(date,{month:'long',year:'numeric'})}</p></div>
@@ -99,6 +101,7 @@ export function Journal({state,mutate,now,reviewKind}:{state:State;mutate:Mutate
        <button className="icon-button" aria-label={focus?'Leave focus mode':'Focus mode'} title={focus?'Leave focus (Esc)':'Focus mode'} onClick={()=>setFocus(!focus)}>{focus?<Minimize2 size={17}/>:<Maximize2 size={17}/>}</button>
       </div>
       <p className="ornament" aria-hidden="true"><span>✦</span></p>
+      <blockquote className="epigraph"><p>{epigraph??'Progress isn’t linear. Keep showing up.'}</p><cite>{epigraph?'Today’s line':'A reminder'}</cite></blockquote>
       <div className="mood-picker" role="radiogroup" aria-label="How are you feeling?"><span>Today felt</span>{MOODS.map(m=>{const on=entry?.mood===m;return <button key={m} role="radio" aria-checked={on} className={`${tone(m)} ${on?'selected':''}`} onClick={()=>update({mood:on?'':m})}><i className="mood-swatch" aria-hidden="true"/>{m}</button>;})}</div>
       <div className="prompt-list"><span>{reviewKind||kind!=='daily'?'Questions for this stretch':'Questions for tonight'}</span><ol>{prompts.map(p=><li key={p}><button onClick={()=>insertPrompt(p)}>{p}</button></li>)}</ol></div>
       <footer className="verso-foot">
@@ -107,12 +110,18 @@ export function Journal({state,mutate,now,reviewKind}:{state:State;mutate:Mutate
         ?<><span className="count-seal" aria-hidden="true"><Check size={20} weight="bold"/></span><div><strong>Counted toward “Write a journal”</strong><button className="text-button" onClick={uncountEntry}>Undo</button></div></>
         :<><button className="seal-button" disabled={!words} onClick={countEntry}><span className="seal-ghost" aria-hidden="true"><Check size={18}/></span>Count it</button><small>{journalGoal.status==='active'?'Toward your five days a week.':'Kept on record, even before the goal is active.'}</small></>}</div>}
       </footer>
+      <p className="page-no" aria-hidden="true">{entryNo*2-1}</p>
+      <span className="page-frame" aria-hidden="true"/>
      </section>
      <section className="book-page recto">
+      <p className="running-head" aria-hidden="true"><span>{label(date,{weekday:'long'})}</span><i>✦</i><span>{parse(date).getDate()} {label(date,{month:'long',year:'numeric'})}</span></p>
       <p className="salutation" aria-hidden="true">Dear me,</p>
       <textarea ref={area} className="writing-area" aria-label="Journal entry" value={text} onChange={e=>update({text:e.target.value})} placeholder="Start with one honest sentence…"/>
       <p className="signoff" aria-hidden="true">Yours,<span>{state.settings.name?.trim()||'me'}</span></p>
       <p className="folio"><span>{words} {words===1?'word':'words'}</span><span aria-hidden="true">·</span><span>{entry?'Saved':'Nothing written yet'}</span></p>
+      <p className="page-no" aria-hidden="true">{entryNo*2}</p>
+      <span className="watermark" aria-hidden="true"/>
+      <span className="page-frame" aria-hidden="true"/>
      </section>
     </article>
     <span className="book-ribbon" aria-hidden="true"/>
