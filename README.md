@@ -82,11 +82,13 @@ The installed app keeps its own data, separate from Safari and from your compute
 - Active squares fill with ink as they progress, and finished ones carry a wax seal.
 - Tapping a square opens a drawer with its status, pin and full history: a side panel on a computer, a bottom sheet on a phone.
 
-**Journal.** The journal is a notebook lying open on a desk at dusk:
-- Daily, weekly and monthly are paper tabs.
-- Your mood is circled in pencil.
-- "Count it" is a wax seal you press onto the page.
-- Past pages sit to the side.
+**Journal.** The journal is a writing room, a lamp-lit desk at night where the page is the only bright thing:
+- A ribbon of the month's days runs across the top. Today is ringed in gold, and each day you wrote is marked with its mood colour.
+- The page is a single heavy sheet with paper grain and a large date masthead.
+- Moods are colour swatches.
+- Prompts appear only while the page is empty.
+- "Count it" is a wax seal.
+- Past pages are laid out below as cards, with search.
 
 ## Pocket pups and small delights
 
