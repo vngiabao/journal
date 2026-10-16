@@ -26,7 +26,7 @@
  --paper-0:#edf1f700;--paper-40:#edf1f766;--paper-92:#edf1f7eb;--night-35:#13243d59;--night-90:#13243de6;
  --focus-halo:#23467a26;--scrim:#13243d66;--scrollbar:#c3cddb;
  /* Type */
- --sans:'Source Sans 3','Helvetica Neue',Arial,sans-serif;--serif:'Cormorant Garamond',Georgia,serif;--mono:'Courier Prime','Courier New',monospace;
+ --sans:'Source Sans 3','Helvetica Neue',Arial,sans-serif;--serif:'Cormorant Garamond',Georgia,serif;--mono:'Courier Prime','Courier New',monospace;--hand:'Caveat','Segoe Print',cursive;
  /* Spacing scale: every padding, gap and margin uses one of these */
  --s-1:4px;--s-2:8px;--s-3:12px;--s-4:16px;--s-5:20px;--s-6:24px;--s-7:32px;--s-8:40px;--s-9:48px;--s-10:64px;
  /* Radius */

@@ -40,3 +40,7 @@ export const Minimize2=wrap(P.ArrowsIn,'regular');
 export const Download=wrap(P.DownloadSimple,'regular');
 export const Upload=wrap(P.UploadSimple,'regular');
 export const Trash2=wrap(P.Trash,'light');
+export const ChevronUp=wrap(P.CaretUp,'bold');
+export const ChevronsUp=wrap(P.CaretDoubleUp,'bold');
+export const ChevronsDown=wrap(P.CaretDoubleDown,'bold');
+export const Steady=wrap(P.Minus,'bold');

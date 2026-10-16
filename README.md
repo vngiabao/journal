@@ -27,7 +27,7 @@ Use the tracker table, original-position classic board, or weekly matrix. Pin go
 
 ## Journal as home base
 
-Today includes a to-do list for today and tomorrow. Writing tomorrow's list counts toward the nightly to-do commitment; unfinished items can be carried forward. Bao's mood responds to recorded promises and Journey moments. Original scene headers and chibi reactions accompany the pages. Runtime artwork lives in `public/art`; editable originals, generation prompts, and earlier variants are preserved in `art-src`.
+Today opens with Today's list, a featured card under the greeting. Above today's list sits one line to start the day, such as a quote; it stays up until you write a new one, and past lines are kept by date. The first item you add each day counts toward the daily to-do commitment; unfinished items can be moved to tomorrow. Bao's mood responds to recorded promises and Journey moments. Original scene headers and chibi reactions accompany the pages. Runtime artwork lives in `public/art`; editable originals, generation prompts, and earlier variants are preserved in `art-src`.
 
 Focus mode (expand icon, Esc to leave) hides everything but the page. Each daily entry can mark the day on your Journey line, add proof, and, with one explicit click, count toward "Write a journal". Typing is coalesced: one history record and one database write per burst instead of per keystroke.
 
@@ -43,7 +43,7 @@ Focus mode (expand icon, Esc to leave) hides everything but the page. Each daily
 
 ## Journey
 
-The Journey line is one continuous path through every moment you marked. A day can hold several moments ("Add another moment"), each its own dot with its own note; the day's total is the sum. Notes collect in the Journey log below the chart, newest first. Select a date by clicking the chart or a date label, then click vertically to place its endpoint. Drag an existing point to adjust it. Use left/right arrows to select dates and up/down arrows to adjust; Enter records the current endpoint, Escape cancels a drag. A neutral-day button records zero movement explicitly. The line joins the days you marked; days without a mark have no dot. Name a day with a moment tag from the growth illustration (Doubt, Burnout, Small win, Restart, Breakthrough) to label it on the line; the line ends in an arrow at your latest mark. While dragging, a word ("A small step forward", "A hard day") describes the movement relative to the visible scale; there is still no number. Today and the journal include a compact editable line for marking the day in one click.
+Log a Journey moment by picking how it moved you (Big setback, Setback, Steady, Step forward, Big step), adding what happened and an optional label, then Add to my line. Every moment has Edit and Delete, and a deleted moment can be restored with Undo. The chart is drawn like a sketchbook (rough.js pencil lines, hatched shading, a highlighter on today, Caveat handwriting). Today gets most of the width: tap anywhere in today's column to place a moment right there (higher for a good moment, lower for a hard one; left to right is the time of day), drag before letting go to adjust, then add an optional note in the card beside it. Past days only take room when they hold a mark; quiet stretches fold into a small squiggle. Clicking a past day selects it for the form below; dragging a dot or using the arrow keys fine-tunes it. The Journey line is one continuous path through every moment you marked. A day can hold several moments ("Add another moment"), each its own dot with its own note; the day's total is the sum. Notes collect in the Journey log below the chart, newest first. Select a date by clicking the chart or a date label, then click vertically to place its endpoint. Drag an existing point to adjust it. Use left/right arrows to select dates and up/down arrows to adjust; Enter records the current endpoint, Escape cancels a drag. A neutral-day button records zero movement explicitly. The line joins the days you marked; days without a mark have no dot. Name a day with a moment tag from the growth illustration (Doubt, Burnout, Small win, Restart, Breakthrough) to label it on the line; the line ends in an arrow at your latest mark. While dragging, a word ("A small step forward", "A hard day") describes the movement relative to the visible scale; there is still no number. Today and the journal include a compact editable line for marking the day in one click.
 
 The stored value is a signed daily movement. Editing an earlier point retains later movements and shifts later cumulative endpoints. The vertical scale stays fixed during dragging. Undo/redo applies to graph edits within the current Journey session. Notes, significant-moment markers, zoom, and period navigation are available. Future dates are excluded. Journey never changes objective habits automatically.
 
@@ -64,3 +64,51 @@ Data stays in IndexedDB for the current browser profile and origin. The hosted w
 Verified workflows: first launch and activation, partial checklists, daily completion, weekly quotas and strict limits, effective rules, restarts, actual measurements, completed-book counts, distinct cities, investor and YC conditions, Journey mouse/drag/keyboard/touch edits, historical recalculation, undo/redo, refresh persistence, journals, JSON export/validation/restore, and responsive layouts at 1440, 768, and 390 pixels.
 
 Visual QA evidence is generated locally in `.impeccable/review` and excluded from Git. Emil Kowalski, Impeccable, Taste, and Hallmark informed earlier design work; the current design tokens live in `src/tokens.css`. `DESIGN.md` records the evolution and approved artwork direction.
+
+## Install on iPhone
+
+Project Reboot is an installable web app (no App Store, no Apple Developer account, no Mac needed).
+
+1. Deploy (`npm run deploy`), then open https://journal.gbaonvo.com in **Safari** on the iPhone and sign in.
+2. Tap **Share → Add to Home Screen**, keep the name "Reboot", tap **Add**.
+3. Open it from the Home Screen. It runs full screen, works offline, and updates itself when a new version is deployed.
+
+The installed app keeps its own data, separate from Safari and from your computer. To bring existing entries over, use **Settings → Full JSON backup** on the computer, send the file to the phone, then **Settings → Restore from a JSON backup** in the installed app. Deleting the Home Screen app deletes its data, so back up first.
+
+## Board and Journal
+
+**Reboot Board.** The board is one printed bingo card with REBOOT across the top:
+- Its rings show as paper tints: outer ring easier, middle ring harder, centre four hardest.
+- Active squares fill with ink as they progress, and finished ones carry a wax seal.
+- Tapping a square opens a drawer with its status, pin and full history: a side panel on a computer, a bottom sheet on a phone.
+
+**Journal.** The journal is a notebook lying open on a desk at dusk:
+- Daily, weekly and monthly are paper tabs.
+- Your mood is circled in pencil.
+- "Count it" is a wax seal you press onto the page.
+- Past pages sit to the side.
+
+## Pocket pups and small delights
+
+On a computer, a chibi Shiba and Samoyed live on the bottom edge of the page (`src/Pet.tsx`, art in `public/art/dog/`). You can pick one, both or none in Settings.
+- They trot after you, and run over when you tap empty space, leaving paw prints and sniffing the spot.
+- They cover their eyes while you write ("Not peeking. Promise.") and peek out when you finish.
+- They tilt their heads while you type.
+- They jump for a kept promise and stand up for a finished goal.
+- Tap one and it reminds you of a real entry from your proof file.
+- They lie down when you step away and curl up asleep after a few minutes.
+
+They ignore the pointer, so they never block a click. They are hidden on phones and with Reduce Motion. Swap poses through the `STILL` map in `src/Pet.tsx`.
+
+Elsewhere (`src/delight.ts`):
+- Keeping a promise or ticking a to-do stamps "KEPT" in red ink where you pressed.
+- Primary buttons lean toward the pointer, and board squares tilt like cards.
+- The journal shows a fountain-pen cursor and your Journey line a pencil.
+- Hovering the logo redraws it.
+- Type "reboot" anywhere outside a text box for a surprise.
+
+## Motion
+
+Animations use GSAP (all plugins are free and ship in the `gsap` package), set up in `src/motion.ts`. The Journey line and today's highlighter draw themselves in (DrawSVG); a mark tapped into today pops in; the Today greeting writes itself in letter by letter on the first visit of the day (SplitText); checked to-dos glide to the bottom (Flip) and finishing the list bursts gold confetti; completing a board goal stamps its wax seal; chibi Bao toasts bounce in with squash and stretch.
+
+Across the app: each page title rises word by word and its content settles in, while sections further down reveal as you scroll (ScrollTrigger; mark a list with `data-stagger` to stagger its items, a bar with `data-grow` to grow it, or a block with `data-own-motion` to opt out). The sidebar marker slides between pages (Flip). The Reboot Board deals its 36 squares in from the outer ring to the hard centre, then presses earned seals and draws bingo lines; opening a goal unfolds its detail. In the Journal, picking a day turns the page and writes "Dear me," and your signature in with the pen, and counting an entry presses a wax seal. Review numbers count up (`src/Count.tsx`) and the period comparison draws its bars. Everything runs through `gsap.matchMedia()`, so with Reduce Motion on the UI simply appears.

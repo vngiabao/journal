@@ -19,16 +19,17 @@ export function companionFor(state:State,now:string):{mood:Mood;line:string}{
  const name=state.settings.name?.trim(),daily=state.goals.filter(g=>g.status==='active'&&g.type==='daily'),kept=daily.filter(g=>dayState(g,state.logs,now)==='success').length;
  const recent=state.journey.filter(m=>m.date>=addDays(now,-2)&&m.date<=now).sort((a,b)=>b.date.localeCompare(a.date))[0];
  const hard=recent&&(recent.delta<0||dayMoments(recent).some(x=>x.tag&&HARD.has(x.tag)));
- const hour=new Date().getHours(),plannedTomorrow=(state.todos??[]).some(t=>t.date===addDays(now,1));
+ const hour=new Date().getHours(),wroteToday=state.journals.some(j=>j.date===now&&j.kind==='daily'&&j.text.trim());
  if(daily.length&&kept===daily.length)return {mood:'cheer',line:`Every promise kept today${name?`, ${name}`:''}! I’ll carry this one to the archive myself.`};
  if(hard)return {mood:'comfort',line:'Hard days are part of the road too. One small promise today is plenty.'};
- if(hour>=19&&!plannedTomorrow)return {mood:'write',line:'Before bed, a few lines for tomorrow’s list? I’ll keep them safe overnight.'};
+ if(hour>=19&&!wroteToday)return {mood:'write',line:'Before bed, a few lines in the journal? I’ll keep them safe for future you.'};
  const left=daily.length-kept;
  return {mood:'wave',line:left?`${hour<12?'Good morning':'Welcome back'}${name?`, ${name}`:''}! ${left} ${left===1?'promise is':'promises are'} waiting for you today.`:'A letter for you: today is a fresh page. Pick one promise to keep.'};
 }
 
-export function Companion({mood,line,compact=false}:{mood:Mood;line:string;compact?:boolean}){
- return <figure className={`companion mood-${mood} ${compact?'compact':''}`}><blockquote className="speech">{line}<cite>Bao</cite></blockquote><img src={`/art/bao-${mood}.webp`} alt="" loading="lazy"/></figure>;
+// `bubble` replaces the spoken line with richer content, such as your identity sentence on Today.
+export function Companion({mood,line,compact=false,bubble}:{mood:Mood;line:string;compact?:boolean;bubble?:ReactNode}){
+ return <figure className={`companion mood-${mood} ${compact?'compact':''}`}>{bubble?<div className="speech feature">{bubble}</div>:<blockquote className="speech">{line}<cite>Bao</cite></blockquote>}<img src={`/art/bao-${mood}.webp`} alt="" loading="lazy"/></figure>;
 }
 
 // The chibi Bao: small, friendly reactions for everyday moments.
