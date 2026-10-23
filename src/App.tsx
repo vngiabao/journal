@@ -1,5 +1,5 @@
 import {useEffect,useLayoutEffect,useRef,useState} from 'react';
-import {Sun,LayoutGrid,TrendingUp,BookOpen,ChartNoAxesCombined,SettingsIcon,Check,Menu,X,ShieldCheck} from './icons';
+import {Sun,LayoutGrid,TrendingUp,BookOpen,SettingsIcon,Check,ShieldCheck} from './icons';
 import type {State} from './model';
 import {uid} from './model';
 import {loadState,saveState} from './storage';
@@ -18,8 +18,12 @@ import {burst,inkStamp,installHoverPhysics} from './delight';
 import {remindersOf,dueReminder,isDue,notify} from './reminders';
 import {gsap,useGSAP,motionOK,whenMotionOK,SplitText,Flip,ScrollTrigger} from './motion';
 
-const nav=[['Today',Sun],['Reboot Board',LayoutGrid],['Journey',TrendingUp],['Journal',BookOpen],['Review',ChartNoAxesCombined]] as const;
-const PAGES=new Set<string>([...nav.map(n=>n[0]),'Settings']);
+// Four places, the same on every screen: Today, Journal, Progress (your line and the review) and the Board. Settings sits beside them.
+// Each entry: the page it opens, its label, its short label for the phone's tab bar, and its icon.
+const nav=[['Today','Today','Today',Sun],['Journal','Journal','Journal',BookOpen],['Journey','Progress','Progress',TrendingUp],['Reboot Board','Reboot Board','Board',LayoutGrid]] as const;
+const PAGES=new Set<string>(['Today','Reboot Board','Journey','Journal','Review','Settings']);
+const navKey=(page:string)=>page==='Review'?'Journey':page;
+const pageName=(page:string)=>page==='Journey'||page==='Review'?'Progress':page;
 const pageFromHash=()=>{try{const p=decodeURIComponent(location.hash.slice(1));return PAGES.has(p)?p:'Today';}catch{return 'Today';}};
 // Consecutive edits to the same thing (typing a journal entry) merge into one history record.
 const COALESCE_MS=90_000;
@@ -62,15 +66,7 @@ export default function App(){
     const bars=grow(above);if(bars.length)tl.from(bars,{scaleX:0,transformOrigin:'0 50%',duration:.8,stagger:.05,clearProps:'transform'},.6);
     if(split)tl.add(()=>split.revert());
    }
-   if(!below.length)return;
-   gsap.set(below,{opacity:0,y:28});let pending=below.length;
-   ScrollTrigger.batch(below,{start:'top 96%',once:true,onEnter:batch=>{pending-=batch.length;
-    gsap.to(batch,{opacity:1,y:0,duration:.7,ease:'power3.out',stagger:.1,overwrite:true,clearProps:'opacity,transform'});
-    const items=inner(batch);if(items.length)gsap.from(items,{opacity:0,y:12,duration:.45,stagger:.035,delay:.2,ease:'power2.out',clearProps:'opacity,transform'});
-    const bars=grow(batch);if(bars.length)gsap.from(bars,{scaleX:0,transformOrigin:'0 50%',duration:.8,stagger:.05,delay:.3,ease:'power3.out',clearProps:'transform'});
-    if(pending<=0)ro?.disconnect();}});
-   // Content that grows or shrinks (a journal entry, an opened goal) moves what is below it; keep the triggers honest.
-   ro=new ResizeObserver(()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>ScrollTrigger.refresh());});ro.observe(root);
+
   });
   return()=>{cancelAnimationFrame(raf);ro?.disconnect();mm.revert();};
  },{dependencies:[page,loaded],revertOnUpdate:true});
@@ -102,7 +98,7 @@ export default function App(){
   if(frogEaten){setCheer({pose:'bingo',text:'Frog eaten. Everything else today is downhill.',key:Date.now()});return;}
   const kept=b.logs.some(l=>l.date===day&&l.state==='success'&&a.logs.find(x=>x.id===l.id)?.state!=='success');
   if(!finished&&!kept)return;
-  const p=lastPress.current;if(Date.now()-p.at<1500)inkStamp(p.x,p.y,finished?'Done':'Kept');
+  const p=lastPress.current;if(Date.now()-p.at<1500)inkStamp(Math.min(p.x+110,window.innerWidth-70),p.y,finished?'Done':'Kept');
   setCheer(finished?{pose:'bingo',text:'Goal complete! That’s a stamp on the board.',key:Date.now()}:{pose:'check',text:'Kept. One more promise on the record.',key:Date.now()});
   clearTimeout(cheerTimer.current);
  }
@@ -116,20 +112,21 @@ export default function App(){
    <button className="brand" onClick={()=>go('Today')} onMouseEnter={e=>{if(motionOK())gsap.fromTo(e.currentTarget.querySelectorAll('path'),{drawSVG:'0%'},{drawSVG:'100%',duration:.7,ease:'pen',stagger:.2,overwrite:true});}}><svg viewBox="0 0 32 30" aria-hidden="true"><path d="M2 27 L8 16 L13 20 L18 8 L23 12 L30 2" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinejoin="round" strokeLinecap="round"/><path d="M23.5 2 H30 V8.5" fill="none" stroke="var(--metal)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/></svg><span>Project<br/><b>Reboot</b></span></button>
    <p className="sidebar-caption">Make room for who you’re becoming.</p>
    <Chibi pose="avatar" className="sidebar-chibi"/>
-   <nav aria-label="Main navigation">{nav.map(([name,Icon])=><button key={name} className={page===name?'current':''} onClick={()=>go(name)} aria-current={page===name?'page':undefined}>{page===name&&<span className="nav-ink" data-flip-id="nav-ink" aria-hidden="true"/>}<Icon size={18} strokeWidth={1.5}/>{name}</button>)}</nav>
-   <div className="sidebar-bottom"><p>Progress isn’t linear.<br/><em>Keep showing up.</em></p><span className={saved==='Not saved'?'error sidebar-status':'sidebar-status'} role="status"><Check size={13}/>{saved}</span><button className={page==='Settings'?'current':''} onClick={()=>go('Settings')} aria-current={page==='Settings'?'page':undefined}><SettingsIcon size={17} strokeWidth={1.5}/>Settings & data</button><span className="sidebar-private"><ShieldCheck size={14}/>Private on this device</span></div>
+   <nav aria-label="Main navigation">{[...nav,['Settings','Settings','Settings',SettingsIcon] as const].map(([key,name,,Icon])=>{const on=navKey(page)===key;return <button key={key} className={`${on?'current':''} ${key==='Settings'?'nav-settings':''}`} onClick={()=>go(key)} aria-current={on?'page':undefined}>{on&&<span className="nav-ink" data-flip-id="nav-ink" aria-hidden="true"/>}<Icon size={18} strokeWidth={1.5}/>{name}</button>;})}</nav>
+   <div className="sidebar-bottom"><p>Progress isn’t linear.<br/><em>Keep showing up.</em></p><span className={saved==='Not saved'?'error sidebar-status':'sidebar-status'} role="status"><Check size={13}/>{saved}</span><span className="sidebar-private"><ShieldCheck size={14}/>Private on this device</span></div>
   </aside>
   {pet&&<PocketPets choice={petChoice} state={state} now={now} cheer={cheer} onCheerDone={()=>setCheer(null)}/>}
   {cheer&&!pet&&<CheerToast key={cheer.key} pose={cheer.pose} text={cheer.text} onDone={()=>setCheer(null)}/>}
-  {mobile&&<button className="scrim" aria-label="Close navigation" onClick={()=>setMobile(false)}/>}
   <div className="main-shell">
-   <header className="topbar"><button className="icon-button mobile-menu" aria-label={mobile?'Close navigation':'Open navigation'} aria-expanded={mobile} onClick={()=>setMobile(!mobile)}>{mobile?<X size={20}/>:<Menu size={20}/>}</button><span className="crumb"><span className="crumb-prefix">Personal workspace <span className="top-divider">/</span> </span><strong>{page}</strong></span><div className="topbar-end"><span className={saved==='Not saved'?'error saved-status':'saved-status'} aria-hidden="true"><Check size={13}/><span>{saved==='Saved on this device'?'Saved':saved}</span></span></div></header>
+   <header className="topbar"><span className="crumb"><span className="crumb-prefix">Personal workspace <span className="top-divider">/</span> </span><strong>{pageName(page)}</strong></span><div className="topbar-end"><span className={saved==='Not saved'?'error saved-status':'saved-status'} aria-hidden="true"><Check size={13}/><span>{saved==='Saved on this device'?'Saved':saved}</span></span><button className={`icon-button topbar-settings ${page==='Settings'?'current':''}`} aria-label="Open settings" onClick={()=>go('Settings')}><SettingsIcon size={20}/></button></div></header>
+   <nav className="tabbar" aria-label="Sections">{nav.map(([key,,short,Icon])=>{const on=navKey(page)===key;return <button key={key} className={on?'current':''} aria-current={on?'page':undefined} onClick={()=>go(key)}><Icon size={22} strokeWidth={1.5}/><span>{short}</span></button>;})}</nav>
    <main id="main" key={page} ref={mainRef} className={page==='Today'?'page-enter':undefined}>
     {error&&<div className="error-banner" role="alert">{error}<button onClick={()=>setError('')}>Dismiss</button></div>}
     {page==='Reboot Board'?<Board state={state} mutate={mutate} now={now}/>
-    :page==='Journey'?<><div className="page-heading scene-hero" style={{['--scene' as string]:'url(/art/scene-journey.webp)'}}><h1>The journey<span className="title-period">.</span></h1><p>Doubt, burnout, small wins, restarts, breakthroughs. The line is uneven on purpose.</p></div><Journey state={state} mutate={mutate} now={now}/></>
+    :page==='Journey'||page==='Review'?<><div className="page-heading"><h1>Progress<span className="title-period">.</span></h1><p>{page==='Journey'?'Doubt, small wins, restarts, breakthroughs. The line is uneven on purpose.':'Consistency, effort, results, and how it felt. None of it is a score.'}</p></div>
+     <div className="segmented progress-tabs" role="tablist" aria-label="Progress views">{([['Journey','Your line'],['Review','Review']] as const).map(([k,n])=><button key={k} role="tab" aria-selected={page===k} className={page===k?'selected':''} onClick={()=>go(k)}>{n}</button>)}</div>
+     {page==='Journey'?<Journey state={state} mutate={mutate} now={now}/>:<Review state={state} mutate={mutate} now={now}/>}</>
     :page==='Journal'?<Journal state={state} mutate={mutate} now={now}/>
-    :page==='Review'?<Review state={state} mutate={mutate} now={now}/>
     :page==='Settings'?<Settings state={state} mutate={mutate} replace={persist} now={now}/>
     :<Today state={state} mutate={mutate} now={now} go={go}/>}
     <footer className="page-footer"><span>Project Reboot</span><span>A personal commitment. An ongoing story.</span></footer>
@@ -149,7 +146,7 @@ function CheerToast({pose,text,onDone}:{pose:ChibiPose;text:string;onDone:()=>vo
    .to(img,{scaleY:1,scaleX:1,duration:.5,ease:'elastic.out(1,.35)'})
    .from(bubble,{opacity:0,x:16,scale:.9,transformOrigin:'100% 100%',duration:.35,ease:'back.out(2)'},'-=.55')
    .to(img,{y:big?-26:-14,duration:.22,ease:'power2.out',yoyo:true,repeat:big?3:1},'-=.1')
-   .to(el.current,{y:30,opacity:0,duration:.35,ease:'power2.in',delay:big?1.6:.9});
+   .to(el.current,{y:30,opacity:0,duration:.3,ease:'power2.in',delay:big?1.1:.5});
  },{scope:el});
  return <div ref={el} className={`chibi-toast is-${pose}`} role="status"><Chibi pose={pose}/><p>{text}</p></div>;
 }

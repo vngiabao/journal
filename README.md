@@ -75,6 +75,23 @@ Project Reboot is an installable web app (no App Store, no Apple Developer accou
 
 The installed app keeps its own data, separate from Safari and from your computer. To bring existing entries over, use **Settings → Full JSON backup** on the computer, send the file to the phone, then **Settings → Restore from a JSON backup** in the installed app. Deleting the Home Screen app deletes its data, so back up first.
 
+## How the app is organised
+
+Four places, the same on every screen: **Today, Journal, Progress** (your Journey line and the Review, as two tabs) and the **Reboot Board**. Settings sits beside them. On a phone these are a bottom tab bar, with Settings behind the gear in the top bar; there is no hidden menu.
+
+**Today** is one screen of things to act on:
+- A short header: your identity sentence and your real counts.
+- **Do** (left on wide screens):
+  - Your frog and today's tasks. You see the next three; the rest and the finished ones fold away.
+  - One list of promises, with streaks, a flag when today keeps a streak going, and weekly counts underneath.
+- **Check in** (right):
+  - "How was today?" One tap sets the journal mood and marks the same day on your Journey line (`src/mood.ts`).
+  - One line, saved as the journal entry.
+  - One win or shot taken.
+  - In the evening: carry unfinished tasks to tomorrow and choose tomorrow's frog.
+
+The big chart, the board's centre goals and the review live in Progress and the Board, one tap away. Writing anything in the journal counts toward "Write a journal" automatically.
+
 ## Board and Journal
 
 **Reboot Board.** The board is one printed bingo card with REBOOT across the top:

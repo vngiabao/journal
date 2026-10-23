@@ -1522,3 +1522,118 @@ body.focus-writing .recto{border-radius:4px;padding-left:var(--s-8);background:u
 .tl-score .frog-streak{grid-column:2;align-items:center}
 @media(max-width:600px){.tl-score .frog-streak{grid-column:1}}
 .dog-bond img{height:94px}
+
+/* ===== Easy to use: one-screen Today, four places, a phone tab bar ===== */
+/* Sidebar: Settings is a normal place in the list; the sidebar scrolls if the window is short. */
+.sidebar{overflow-y:auto;overscroll-behavior:contain}
+.sidebar nav .nav-settings{margin-top:var(--s-3);border-top:1px solid #ffffff1f;border-radius:0 0 var(--r-chip) var(--r-chip);padding-top:var(--s-3)}
+.sidebar nav .nav-settings.current{border-top-color:transparent;border-radius:var(--r-chip)}
+.sidebar-chibi{height:72px}
+/* Today's header: one line of greeting, your sentence, your counts. */
+.reboot-hero.today-head{gap:var(--s-3);margin:0 0 var(--s-5);padding:var(--s-6) var(--s-7) var(--s-5);min-height:0}
+.today-head .rh-becoming{max-width:26ch;font-size:clamp(28px,3vw,40px);line-height:1.12}
+.today-head .rh-evidence{gap:var(--s-2) var(--s-6);margin-top:var(--s-1)}
+.today-head .rh-evidence>div{display:flex;align-items:baseline;gap:6px}
+.today-head .rh-evidence strong{font-size:26px}
+.today-head .rh-evidence span{max-width:none;font-size:13px}
+.today-head .rh-evidence-empty{margin:0;font-size:14px;color:var(--muted)}
+.reboot-hero.today-head .rh-figure{height:clamp(110px,10vw,150px)}
+.today-head>*:not(.rh-figure){max-width:calc(100% - clamp(110px,10vw,150px) * 1.8)}
+/* Do on the left, check in on the right. One column on smaller screens. */
+.today-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(300px,1fr);gap:var(--s-5);align-items:start}
+.today-do{display:flex;flex-direction:column;gap:var(--s-5);min-width:0}
+.today-checkin{position:sticky;top:var(--s-6);min-width:0}
+@media(max-width:1180px){.today-grid{grid-template-columns:minmax(0,1fr)}.today-checkin{position:static}}
+.today-do .today-list{margin:0}
+/* The to-do card, lighter: a slim header, the next few tasks, the rest folded. */
+.today-list .tl-head{padding:var(--s-5) var(--s-6) var(--s-4)}
+.today-list .tl-head h2{font-size:30px}
+.today-list .tl-chibi{height:92px;margin-bottom:calc(-1 * var(--s-4))}
+.today-list .day-quote blockquote{font-size:18px}
+.today-list .tl-score strong{font-size:42px}
+.today-list .tl-body{padding:var(--s-4) var(--s-6) var(--s-5)}
+.list-folds{display:flex;flex-wrap:wrap;gap:var(--s-2) var(--s-5);margin:var(--s-2) 0 0}
+.list-folds .text-button{min-height:40px}
+.today-list .todo-hint{margin:var(--s-3) 0 0;font-size:13px}
+/* Picking the frog: tap one of your tasks. */
+.frog-pick{align-items:flex-start}
+.frog-pick p{margin:0 0 var(--s-2)}
+.frog-choices{display:flex;flex-wrap:wrap;gap:var(--s-2)}
+.frog-choice{min-height:40px;padding:6px 14px;border:1px solid #b9d1aa;border-radius:999px;background:var(--sheet);font:400 16px/1.2 var(--serif);color:var(--ink);text-align:left}
+@media(hover:hover){.frog-choice:hover{border-color:#4d7a4f;background:#eef6e6}}
+.frog-eyebrow{font:500 14px/1.4 var(--sans);letter-spacing:0;text-transform:none}
+/* Priority: the chip opens a labelled menu. */
+.prio-wrap{position:relative;flex:none}
+.prio-chip.prio-none{width:auto;min-width:30px;padding:0 6px;font-size:11px;letter-spacing:.02em}
+.prio-menu{position:absolute;z-index:20;top:calc(100% + 6px);left:0;display:flex;flex-direction:column;min-width:170px;padding:6px;border:1px solid var(--line);border-radius:12px;background:var(--sheet);box-shadow:var(--shadow-2)}
+.prio-menu button{display:flex;align-items:center;gap:var(--s-3);min-height:40px;padding:4px 8px;border:0;border-radius:8px;background:transparent;font-size:14px;color:var(--ink);text-align:left}
+.prio-menu button[aria-checked="true"]{background:var(--sheet-2);font-weight:600}
+@media(hover:hover){.prio-menu button:hover{background:var(--sheet-2)}}
+.prio-menu .prio-chip{width:24px;height:24px;font-size:12px}
+.prio-menu .prio-clear{color:var(--muted)}
+/* Promises: one list for every habit, with weekly counts underneath. */
+.promises{padding:var(--s-5) var(--s-6);background:var(--sheet);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow-1)}
+.promises .section-title{margin-bottom:var(--s-2)}
+.promises h2{font-size:26px}
+.promise-list{margin:0;padding:0;list-style:none}
+.promise{display:flex;align-items:center;justify-content:space-between;gap:var(--s-3);min-height:60px;padding:var(--s-2) 0;border-bottom:1px solid var(--line)}
+.promise:last-child{border-bottom:0}
+.promise-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.promise-text strong{display:flex;align-items:center;gap:6px;font:500 18px/1.3 var(--serif);color:var(--ink)}
+.promise-text small{font-size:13px;color:var(--muted)}
+.promise-pin{color:var(--gold-text);flex:none}
+.promise-flag{margin-left:var(--s-2);font-weight:600;color:var(--gold-text)}
+.promise.success .promise-text strong{color:var(--ink-soft)}
+.promise-sub{margin:var(--s-4) 0 0;font:600 12px/1 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.promises .section-link{margin-top:var(--s-3)}
+.promises .numeric-control{flex:none}
+.promises .checklist{flex-wrap:wrap;justify-content:flex-end}
+/* Check in: how the day felt, one line, one win, closing the day. */
+.checkin{display:flex;flex-direction:column;gap:var(--s-4);padding:var(--s-5) var(--s-6) var(--s-6);background:var(--sheet);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow-1)}
+.checkin h2{font-size:26px}
+.mood-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.mood-pick{display:flex;flex-direction:column;align-items:center;gap:6px;min-height:68px;padding:var(--s-2) 2px;border:1px solid var(--line);border-radius:14px;background:var(--sheet-2);font-size:13px;color:var(--ink-soft)}
+.mood-pick .mood-swatch{width:22px;height:22px;border-radius:50%;background:var(--tone);box-shadow:inset 0 -2px 3px #0000002e,inset 0 2px 2px #ffffff59}
+@media(hover:hover){.mood-pick:hover{border-color:var(--line-strong);color:var(--ink)}}
+.mood-pick.selected{border-color:var(--ink-pen);background:var(--sheet);color:var(--ink);font-weight:600;box-shadow:0 0 0 1px var(--ink-pen)}
+.checkin-note,.checkin-wrote{margin:calc(-1 * var(--s-2)) 0 0;font-size:14px;color:var(--ink-soft)}
+.checkin-line{display:flex;flex-direction:column;gap:6px}
+.checkin-line>span,.checkin-proof>span{font-size:14px;font-weight:600;color:var(--ink)}
+.checkin-line textarea{min-height:64px;resize:vertical;font:400 17px/1.45 var(--serif)}
+.checkin-line small{font-size:12px;color:var(--muted)}
+.checkin-proof{display:flex;flex-direction:column;gap:6px}
+.checkin .recall{margin:0}
+.close-day{display:flex;flex-direction:column;align-items:flex-start;gap:var(--s-3);padding-top:var(--s-4);border-top:1px dashed var(--line-strong)}
+.close-day h3{margin:0;font:500 20px/1.2 var(--serif)}
+.close-day .tomorrow-frog{width:100%;margin:0}
+/* Progress: your line and the review, as two tabs of one place. */
+.progress-tabs{margin:calc(-1 * var(--s-4)) 0 var(--s-5)}
+/* The phone: a tab bar at the bottom, settings behind the gear, no drawer. */
+.tabbar,.topbar-settings{display:none}
+@media(max-width:650px){
+ .sidebar,.scrim{display:none}
+ .topbar-settings{display:inline-flex;margin-left:var(--s-2)}
+ .topbar-settings.current{color:var(--blue)}
+ .tabbar{position:fixed;z-index:40;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:6px max(6px,env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left));background:var(--sheet);border-top:1px solid var(--line);box-shadow:0 -6px 20px -12px #1f2a4440}
+ .tabbar button{display:flex;flex-direction:column;align-items:center;gap:3px;min-height:52px;padding:4px 0;border:0;border-radius:12px;background:transparent;color:var(--muted);font-size:11.5px;font-weight:550}
+ .tabbar button svg{color:inherit}
+ .tabbar button.current{color:var(--blue-deep);background:var(--sheet-2)}
+ main{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+ .chibi-toast{bottom:calc(80px + env(safe-area-inset-bottom))}
+ .reboot-hero.today-head{padding:var(--s-5) var(--s-4) var(--s-4);margin-bottom:var(--s-4)}
+ .reboot-hero.today-head .rh-figure{display:none}
+ .today-head>*:not(.rh-figure){max-width:none}
+ .today-head .rh-becoming{font-size:26px}
+ .today-head .rh-evidence{gap:var(--s-1) var(--s-4)}
+ .today-head .rh-evidence strong{font-size:22px}
+ .today-grid,.today-do{gap:var(--s-4)}
+ .today-list .tl-head{padding:var(--s-4)}
+ .today-list .tl-body{padding:var(--s-3) var(--s-4) var(--s-4)}
+ .promises,.checkin{padding:var(--s-4)}
+ .promise{flex-wrap:wrap}
+ .mood-pick{min-height:62px;font-size:12px}
+ .prio-chip,.todo-list .icon-button,.frog-slices .icon-button{min-width:44px;min-height:44px}
+}
+@media(max-width:650px){.today-list .tl-chibi{display:none}.today-list .tl-score{grid-template-columns:1fr}.today-list .tl-head h2{font-size:26px}.today-list .day-quote blockquote{font-size:16px}.promise{flex-wrap:nowrap}.promise:has(.checklist,.numeric-control,.record-form,.milestone-control){flex-wrap:wrap}.promise .inline-actions .check-action{padding-inline:6px}}
+.today-list .tl-title .dateline{display:none}
+@media(max-width:650px){.today-list .tl-head{position:relative;padding-right:104px}.today-list .tl-score{position:absolute;top:var(--s-4);right:var(--s-4);row-gap:6px}.today-list .tl-score strong{font-size:30px}.today-list .tl-score span{font-size:18px}.today-list .tl-score small{display:none}.today-list .tl-score i{width:72px}.today-head .rh-becoming{font-size:24px}.today-list .frog-streak{display:none}}

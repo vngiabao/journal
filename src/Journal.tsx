@@ -1,12 +1,11 @@
 import {useEffect,useLayoutEffect,useRef,useState} from 'react';
 import {Search,ArrowLeft,ArrowRight,ChevronDown,ImagePlus,Check,Plus,Maximize2,Minimize2,X} from './icons';
 import type {State,Journal as Entry} from './model';
-import {putActivity,type Mutate} from './GoalControls';
+import type {Mutate} from './GoalControls';
 import {label,parse,addDays,weekStart} from './dates';
 import {dayState} from './engine';
-import {Journey} from './Journey';
-import {ProofQuickAdd} from './Proof';
 import {Count} from './Count';
+import {applyMood,setEntryText} from './mood';
 import {gsap,useGSAP,whenMotionOK} from './motion';
 
 const MOODS=['Great','Good','Okay','Low','Difficult'];
@@ -51,8 +50,6 @@ export function Journal({state,mutate,now,reviewKind}:{state:State;mutate:Mutate
  useGSAP(()=>{const prev=wasCounted.current;wasCounted.current={key:date+kind,counted};if(!counted||prev.counted||prev.key!==date+kind)return;
   const mm=whenMotionOK(()=>{gsap.timeline().from('.count-seal',{scale:2.4,rotation:-40,opacity:0,duration:.42,ease:'stamp'}).fromTo(countBox.current,{x:0},{keyframes:{x:[0,-4,3,-2,0]},duration:.3,ease:'none'},'-=.08');});return()=>mm.revert();},{dependencies:[counted,date,kind],scope:countBox});
 
- const countEntry=()=>mutate(s=>putActivity(s,s.goals.find(g=>g.id===JOURNAL_GOAL)!,date,{state:'success'}),`goal ${JOURNAL_GOAL}, ${date}`);
- const uncountEntry=()=>mutate(s=>{s.logs=s.logs.filter(l=>!(l.goalId===JOURNAL_GOAL&&l.run===journalGoal.run&&l.date===date&&!l.title&&!l.stage));},`unrecord goal ${JOURNAL_GOAL}`);
  const attach=async(e:React.ChangeEvent<HTMLInputElement>)=>{const f=e.target.files?.[0];if(!f)return;if(!['image/png','image/jpeg','image/webp'].includes(f.type)){setError('Choose a PNG, JPG, or WebP photo.');return;}if(f.size>3*1024*1024){setError('Choose a photo smaller than 3 MB.');return;}const reader=new FileReader();reader.onload=()=>update({attachments:[...(entry?.attachments??[]),{name:f.name,data:String(reader.result)}]});reader.readAsDataURL(f);e.target.value='';setError('');};
 
  // Today's line from the morning (the latest one on or before this day) opens the page as an epigraph.
@@ -102,13 +99,11 @@ export function Journal({state,mutate,now,reviewKind}:{state:State;mutate:Mutate
       </div>
       <p className="ornament" aria-hidden="true"><span>✦</span></p>
       <blockquote className="epigraph"><p>{epigraph??'Progress isn’t linear. Keep showing up.'}</p><cite>{epigraph?'Today’s line':'A reminder'}</cite></blockquote>
-      <div className="mood-picker" role="radiogroup" aria-label="How are you feeling?"><span>Today felt</span>{MOODS.map(m=>{const on=entry?.mood===m;return <button key={m} role="radio" aria-checked={on} className={`${tone(m)} ${on?'selected':''}`} onClick={()=>update({mood:on?'':m})}><i className="mood-swatch" aria-hidden="true"/>{m}</button>;})}</div>
+      <div className="mood-picker" role="radiogroup" aria-label="How are you feeling?"><span>Today felt</span>{MOODS.map(m=>{const on=entry?.mood===m;return <button key={m} role="radio" aria-checked={on} className={`${tone(m)} ${on?'selected':''}`} onClick={()=>{if(kind==='daily')mutate(s=>applyMood(s,date,on?'':m),'check-in mood');else update({mood:on?'':m});}}><i className="mood-swatch" aria-hidden="true"/>{m}</button>;})}</div>
       <div className="prompt-list"><span>{reviewKind||kind!=='daily'?'Questions for this stretch':'Questions for tonight'}</span><ol>{prompts.map(p=><li key={p}><button onClick={()=>insertPrompt(p)}>{p}</button></li>)}</ol></div>
       <footer className="verso-foot">
        <label className="attachment-control"><ImagePlus size={15}/><span>Attach a photo</span><small>PNG, JPG or WebP, up to 3 MB</small><input className="visually-hidden" type="file" accept="image/png,image/jpeg,image/webp" onChange={attach}/></label>
-       {kind==='daily'&&<div ref={countBox} className={`journal-count ${counted?'counted':''}`}>{counted
-        ?<><span className="count-seal" aria-hidden="true"><Check size={20} weight="bold"/></span><div><strong>Counted toward “Write a journal”</strong><button className="text-button" onClick={uncountEntry}>Undo</button></div></>
-        :<><button className="seal-button" disabled={!words} onClick={countEntry}><span className="seal-ghost" aria-hidden="true"><Check size={18}/></span>Count it</button><small>{journalGoal.status==='active'?'Toward your five days a week.':'Kept on record, even before the goal is active.'}</small></>}</div>}
+       {kind==='daily'&&<div ref={countBox} className={`journal-count ${counted?'counted':''}`}>{counted?<><span className="count-seal" aria-hidden="true"><Check size={20} weight="bold"/></span><strong>Counted toward “Write a journal”</strong></>:<small>Writing a line here counts toward “Write a journal”.</small>}</div>}
       </footer>
       <p className="page-no" aria-hidden="true">{entryNo*2-1}</p>
       <span className="page-frame" aria-hidden="true"/>
@@ -116,7 +111,7 @@ export function Journal({state,mutate,now,reviewKind}:{state:State;mutate:Mutate
      <section className="book-page recto">
       <p className="running-head" aria-hidden="true"><span>{label(date,{weekday:'long'})}</span><i>✦</i><span>{parse(date).getDate()} {label(date,{month:'long',year:'numeric'})}</span></p>
       <p className="salutation" aria-hidden="true">Dear me,</p>
-      <textarea ref={area} className="writing-area" aria-label="Journal entry" value={text} onChange={e=>update({text:e.target.value})} placeholder="Start with one honest sentence…"/>
+      <textarea ref={area} className="writing-area" aria-label="Journal entry" value={text} onChange={e=>{const v=e.target.value;if(kind==='daily')mutate(s=>setEntryText(s,date,v),`journal daily ${date}`);else update({text:v});}} placeholder="Start with one honest sentence…"/>
       <p className="signoff" aria-hidden="true">Yours,<span>{state.settings.name?.trim()||'me'}</span></p>
       <p className="folio"><span>{words} {words===1?'word':'words'}</span><span aria-hidden="true">·</span><span>{entry?'Saved':'Nothing written yet'}</span></p>
       <p className="page-no" aria-hidden="true">{entryNo*2}</p>
@@ -132,8 +127,6 @@ export function Journal({state,mutate,now,reviewKind}:{state:State;mutate:Mutate
 
   <div className="journal-below">
    <details className="link-goals"><summary>Link goals or milestones{entry?.goals.length?` (${entry.goals.length})`:''}</summary><div>{state.goals.map(g=><label key={g.id} className="checkbox-label"><input type="checkbox" checked={entry?.goals.includes(g.id)??false} onChange={()=>update({goals:entry?.goals.includes(g.id)?entry.goals.filter(id=>id!==g.id):[...(entry?.goals??[]),g.id]})}/>{g.en}</label>)}</div></details>
-   {kind==='daily'&&<><div className="journal-block"><div className="section-title"><div><h2>Proof from {date===now?'today':'this day'}</h2><p>One win, one shot taken, or one lesson. This is what you will reread on hard days.</p></div></div><ProofQuickAdd state={state} mutate={mutate} date={date}/></div>
-   <div className="journal-block"><Journey key={date} state={state} mutate={mutate} now={now} mode="inline" days={14} focus={date} title={date===now?'How did today move you?':'How did this day move you?'} subtitle="Mark it on your line. Higher for a step forward, lower for a setback."/></div></>}
    <section className="past-pages">
     <div className="past-head"><h2>Past pages</h2>
      <label className="search"><Search size={15}/><input aria-label="Search journal" placeholder="Search your entries" value={search} onChange={e=>setSearch(e.target.value)}/>{search&&<button className="icon-button" aria-label="Clear search" onClick={()=>setSearch('')}><X size={14}/></button>}</label>

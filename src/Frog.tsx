@@ -22,9 +22,17 @@ const FROG={sit:'/art/frog/frog-sit.webp',nervous:'/art/frog/frog-nervous.webp',
 export function FrogGlyph({className=''}:{className?:string}){return <img className={`frog-glyph ${className}`} src={FROG.sit} alt=""/>;}
 const timeOf=(iso?:string)=>iso?new Date(iso).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):'';
 
+const SHORT:Record<Priority,string>={A:'Must do',B:'Should do',C:'Nice to do',D:'Hand it off',E:'Drop it'};
+// The priority letter opens a small labelled menu: no letters to memorise.
 export function PriorityChip({t,onSet}:{t:Todo;onSet:(p?:Priority)=>void}){
- const next=()=>{const i=t.priority?PRIORITIES.indexOf(t.priority):-1;onSet(i===PRIORITIES.length-1?undefined:PRIORITIES[i+1]);};
- return <button type="button" className={`prio-chip ${t.priority?`prio-${t.priority}`:'prio-none'}`} onClick={next} aria-label={t.priority?`Priority ${t.priority}: ${PRIORITY_NAME[t.priority]} Tap to change.`:`Give “${t.text}” a priority`} title={t.priority?PRIORITY_NAME[t.priority]:'A, B, C, D or E'}>{t.priority??'·'}</button>;
+ const [open,setOpen]=useState(false),ref=useRef<HTMLSpanElement>(null);
+ useEffect(()=>{if(!open)return;const down=(e:MouseEvent)=>{if(!ref.current?.contains(e.target as Node))setOpen(false);};const key=(e:KeyboardEvent)=>{if(e.key==='Escape')setOpen(false);};
+  document.addEventListener('mousedown',down);window.addEventListener('keydown',key);return()=>{document.removeEventListener('mousedown',down);window.removeEventListener('keydown',key);};},[open]);
+ const pick=(p?:Priority)=>{onSet(p);setOpen(false);};
+ return <span ref={ref} className="prio-wrap">
+  <button type="button" className={`prio-chip ${t.priority?`prio-${t.priority}`:'prio-none'}`} aria-haspopup="menu" aria-expanded={open} aria-label={t.priority?`Priority ${t.priority}, ${SHORT[t.priority].toLowerCase()}. Change it`:`Set a priority for “${t.text}”`} title={t.priority?PRIORITY_NAME[t.priority]:'Set a priority'} onClick={()=>setOpen(!open)}>{t.priority??'A–E'}</button>
+  {open&&<span className="prio-menu" role="menu">{PRIORITIES.map(p=><button key={p} type="button" role="menuitemradio" aria-checked={t.priority===p} onClick={()=>pick(p)}><b className={`prio-chip prio-${p}`} aria-hidden="true">{p}</b>{SHORT[p]}</button>)}{t.priority&&<button type="button" role="menuitem" className="prio-clear" onClick={()=>pick(undefined)}>No priority</button>}</span>}
+ </span>;
 }
 
 // The frog, featured above the list. Afternoon makes it nervous; eating it sends it leaping off.
@@ -32,7 +40,7 @@ export function FrogCard({frog,mutate,now,onFocus}:{frog:Todo;mutate:Mutate;now:
  const box=useRef<HTMLElement>(null),wasDone=useRef(frog.done),[slice,setSlice]=useState('');
  const late=!frog.done&&frog.date===now&&new Date().getHours()>=12,slices=frog.slices??[],sliced=slices.filter(s=>s.done).length;
  const edit=(fn:(t:Todo)=>void,what:string)=>mutate(s=>{const t=(s.todos??[]).find(x=>x.id===frog.id);if(t)fn(t);},what);
- const eat=(e?:React.MouseEvent)=>{if(!frog.done&&e){inkStamp(e.clientX||innerWidth/2,e.clientY||innerHeight/2,'Eaten');}edit(t=>{t.done=!t.done;t.doneAt=t.done?new Date().toISOString():undefined;},'frog eaten');};
+ const eat=(e?:React.MouseEvent<HTMLElement>)=>{if(!frog.done&&e){const r=e.currentTarget.getBoundingClientRect();inkStamp(Math.min(r.right-70,innerWidth-70),r.top+r.height/2,'Eaten');}edit(t=>{t.done=!t.done;t.doneAt=t.done?new Date().toISOString():undefined;},'frog eaten');};
  useGSAP(()=>{const was=wasDone.current;wasDone.current=frog.done;if(!frog.done||was)return;const mm=whenMotionOK(()=>{gsap.timeline().fromTo('.frog-art',{y:0,rotation:0},{keyframes:{y:[0,-70,-20,0],rotation:[0,-12,6,0]},duration:.9,ease:'power2.out'}).from('.frog-eyebrow',{opacity:0,y:6,duration:.3},'-=.4');});return()=>mm.revert();},{dependencies:[frog.done],scope:box});
  return <section ref={box} className={`frog-card ${frog.done?'eaten':''} ${late?'late':''}`} aria-label="Today’s frog">
   <img className="frog-art" src={frog.done?FROG.leap:late?FROG.nervous:FROG.sit} alt=""/>
@@ -50,11 +58,11 @@ export function FrogCard({frog,mutate,now,onFocus}:{frog:Todo;mutate:Mutate;now:
 }
 
 // Plan tomorrow tonight: one task, not a whole list. At midnight it becomes the day's frog.
-export function TomorrowFrog({state,mutate,now}:{state:State;mutate:Mutate;now:string}){
+export function TomorrowFrog({state,mutate,now,always=false}:{state:State;mutate:Mutate;now:string;always?:boolean}){
  const tomorrow=addDays(now,1),set=frogOf(state,tomorrow),[text,setText]=useState(''),[open,setOpen]=useState(false);
  const evening=new Date().getHours()>=17;
  if(set&&!open)return <p className="tomorrow-frog is-set"><FrogGlyph/><span>Tomorrow’s frog: <b>{set.text}</b></span><button className="text-button" onClick={()=>{setText(set.text);setOpen(true);}}>Change</button></p>;
- if(!evening&&!open)return null;
+ if(!evening&&!open&&!always)return null;
  return <form className="tomorrow-frog" onSubmit={e=>{e.preventDefault();const v=text.trim();mutate(s=>{const list=(s.todos??[]).filter(t=>!(t.date===tomorrow&&t.frog&&!v));const ex=list.find(t=>t.date===tomorrow&&t.frog);if(v){if(ex)ex.text=v;else list.push({id:uid(),date:tomorrow,text:v,done:false,frog:true,priority:'A',createdAt:new Date().toISOString()});}s.todos=list;},'tomorrow frog');setOpen(false);setText('');}}>
   <FrogGlyph/><label><span>Before bed: choose tomorrow’s frog</span><input aria-label="Tomorrow’s frog" value={text} maxLength={140} placeholder="The one task you’ll do first tomorrow" onChange={e=>setText(e.target.value)}/></label><button className="button secondary" disabled={!text.trim()&&!set}>{set&&!text.trim()?'Clear':'Set'}</button>
  </form>;

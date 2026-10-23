@@ -8,7 +8,7 @@ import {putActivity,type Mutate} from './GoalControls';
 import {addDays,label} from './dates';
 import {dayState} from './engine';
 import {Chibi} from './Art';
-import {FrogCard,FrogFocus,FrogGlyph,PriorityChip,TomorrowFrog,frogStats,priorityRank} from './Frog';
+import {FrogCard,FrogFocus,FrogGlyph,PriorityChip,frogStats,priorityRank} from './Frog';
 import type {Priority} from './model';
 
 // Goal 6.5 on the board: write a to-do list every day.
@@ -18,6 +18,9 @@ export const TODO_GOAL='35';
 export function TodayList({state,mutate,now}:{state:State;mutate:Mutate;now:string}){
  const todays=(state.todos??[]).filter(t=>t.date===now),done=todays.filter(t=>t.done).length,unfinished=todays.length-done;
  const frog=todays.find(t=>t.frog),rest=todays.filter(t=>!t.frog),ordered=[...rest].sort((a,b)=>priorityRank(a)-priorityRank(b));
+ const undone=ordered.filter(t=>!t.done),finished=ordered.filter(t=>t.done),[showAll,setShowAll]=useState(false),[showDone,setShowDone]=useState(false);
+ // The next three tasks are what you see; the rest of today and what's finished fold away until asked for.
+ const visible=[...(showAll||undone.length<=4?undone:undone.slice(0,3)),...(showDone?finished:[])],hidden=undone.length-(showAll||undone.length<=4?undone.length:3);
  const fs=frogStats(state.todos??[],now),[focus,setFocus]=useState(false),[nudge,setNudge]=useState(''),nudgeTimer=useRef(0);
  const goal=state.goals.find(g=>g.id===TODO_GOAL)!,counted=dayState(goal,state.logs,now)==='success';
  function add(text:string){mutate(s=>{s.todos=[...(s.todos??[]),{id:uid(),date:now,text,done:false,createdAt:new Date().toISOString()}];
@@ -27,7 +30,7 @@ export function TodayList({state,mutate,now}:{state:State;mutate:Mutate;now:stri
  const card=useRef<HTMLElement>(null),flip=useRef<{state:Flip.FlipState;id:string}|null>(null),prevAll=useRef(todays.length>0&&!unfinished);
  // Capture the list before a check, so the item can glide to its new place after React re-renders.
  const toggle=(id:string,e?:React.MouseEvent<HTMLElement>)=>{const item=todays.find(x=>x.id===id);
-  if(item&&!item.done&&(item.priority==='B'||item.priority==='C')){const waiting=frog&&!frog.done?'Your frog':todays.some(x=>!x.done&&x.priority==='A'&&x.id!==id)?'An A task':'';if(waiting){setNudge(`${waiting} is still waiting. Done is done, but next time, A before ${item.priority}.`);clearTimeout(nudgeTimer.current);nudgeTimer.current=window.setTimeout(()=>setNudge(''),6000);}}if(item&&!item.done&&e){const r=e.currentTarget.querySelector('.check-box')?.getBoundingClientRect();inkStamp(e.clientX||((r?.left??0)+60),e.clientY||(r?.top??0)+(r?.height??0)/2);}if(motionOK()&&card.current)flip.current={state:Flip.getState(card.current.querySelectorAll('.todo-list li')),id};mutate(s=>{const t=(s.todos??[]).find(x=>x.id===id);if(t){t.done=!t.done;t.doneAt=t.done?new Date().toISOString():undefined;}},'todo check');};
+  if(item&&!item.done&&(item.priority==='B'||item.priority==='C')){const waiting=frog&&!frog.done?'Your frog':todays.some(x=>!x.done&&x.priority==='A'&&x.id!==id)?'An A task':'';if(waiting){setNudge(`${waiting} is still waiting. Done is done, but next time, A before ${item.priority}.`);clearTimeout(nudgeTimer.current);nudgeTimer.current=window.setTimeout(()=>setNudge(''),6000);}}if(item&&!item.done&&e){const r=(e.currentTarget.closest('li')??e.currentTarget).getBoundingClientRect();inkStamp(r.right-78,r.top+r.height/2);}if(motionOK()&&card.current)flip.current={state:Flip.getState(card.current.querySelectorAll('.todo-list li')),id};mutate(s=>{const t=(s.todos??[]).find(x=>x.id===id);if(t){t.done=!t.done;t.doneAt=t.done?new Date().toISOString():undefined;}},'todo check');};
  const setPriority=(id:string,p?:Priority)=>mutate(s=>{const t=(s.todos??[]).find(x=>x.id===id);if(t)t.priority=p;},'todo priority');
  const makeFrog=(id:string)=>mutate(s=>{for(const t of s.todos??[])if(t.date===now)t.frog=t.id===id?true:false;const t=(s.todos??[]).find(x=>x.id===id);if(t)t.priority='A';},'frog chosen');
  const {contextSafe}=useGSAP({scope:card});
@@ -43,7 +46,6 @@ export function TodayList({state,mutate,now}:{state:State;mutate:Mutate;now:stri
   const score=card.current.querySelector('.tl-score strong');if(score)gsap.fromTo(score,{yPercent:-45,opacity:0},{yPercent:0,opacity:1,duration:.4,ease:'back.out(2)'});
  });
  const remove=(id:string)=>mutate(s=>{s.todos=(s.todos??[]).filter(x=>x.id!==id);},'todo remove');
- const carry=()=>mutate(s=>{const tomorrow=addDays(now,1);for(const t of s.todos??[])if(t.date===now&&!t.done)t.date=tomorrow;},'todo carry over');
  return <section ref={card} className="today-list" aria-labelledby="today-list-title">
   <header className="tl-head">
    <div className="tl-title">
@@ -59,19 +61,19 @@ export function TodayList({state,mutate,now}:{state:State;mutate:Mutate;now:stri
    </div>
   </header>
   <div className="tl-body">
-   {frog?<FrogCard frog={frog} mutate={mutate} now={now} onFocus={()=>setFocus(true)}/>:rest.some(x=>!x.done)?<p className="frog-pick"><FrogGlyph/><span><b>Which one is your frog?</b> The task you’d most like to put off. Tap its frog to eat it first.</span></p>:null}
+   {frog?<FrogCard frog={frog} mutate={mutate} now={now} onFocus={()=>setFocus(true)}/>:rest.some(x=>!x.done)?<div className="frog-pick"><FrogGlyph/><div><p><b>Pick today’s frog.</b> The task you’d most like to put off. You’ll do it first.</p><div className="frog-choices">{rest.filter(x=>!x.done&&x.priority!=='D'&&x.priority!=='E').map(x=><button key={x.id} type="button" className="frog-choice" aria-label={`Make “${x.text}” my frog`} onClick={()=>makeFrog(x.id)}>{x.text}</button>)}</div></div></div>:null}
    <AddTodo label="Add something for today" placeholder={todays.length?'Add something for today':'Start with your frog: the task you’d most like to put off'} onAdd={add}/>
    {nudge&&<p className="abc-nudge" role="status">{nudge}</p>}
-   {ordered.length?<ul className="todo-list big">{ordered.map(t=><TodoItem key={t.id} t={t} onToggle={toggle} onRemove={remove} onPriority={p=>setPriority(t.id,p)} onFrog={frog?undefined:()=>makeFrog(t.id)}/>)}</ul>:!frog&&<p className="tl-empty">Nothing on the list yet. What would make today a good day?</p>}
+   {ordered.length?<><ul className="todo-list big">{visible.map(t=><TodoItem key={t.id} t={t} onToggle={toggle} onRemove={remove} onPriority={p=>setPriority(t.id,p)}/>)}</ul>
+   {(hidden>0||finished.length>0)&&<div className="list-folds">{hidden>0&&<button type="button" className="text-button" onClick={()=>setShowAll(true)}>Also today ({hidden})</button>}{showAll&&undone.length>4&&<button type="button" className="text-button" onClick={()=>setShowAll(false)}>Show fewer</button>}{finished.length>0&&<button type="button" className="text-button" aria-expanded={showDone} onClick={()=>setShowDone(!showDone)}>{showDone?'Hide done':`Done (${finished.length})`}</button>}</div>}</>:!frog&&<p className="tl-empty">Nothing on the list yet. What would make today a good day?</p>}
    {focus&&frog&&<FrogFocus frog={frog} mutate={mutate} onClose={()=>setFocus(false)}/>}
-   <div className="tl-foot"><p className="todo-hint">{counted?<><Check size={14}/>Counted toward “Daily to-do list for 90 days”.</>:'Your first item today counts toward “Daily to-do list for 90 days”.'}</p>{unfinished>0&&<button className="text-button" onClick={carry}>Move {unfinished} unfinished to tomorrow <ArrowRight size={15}/></button>}</div>
-   <TomorrowFrog state={state} mutate={mutate} now={now}/>
+   <p className="todo-hint">{counted?<><Check size={14}/>Counted toward “Daily to-do list for 90 days”.</>:'Your first item today counts toward “Daily to-do list for 90 days”.'}</p>
   </div>
  </section>;
 }
 
-function TodoItem({t,onToggle,onRemove,onPriority,onFrog}:{t:NonNullable<State['todos']>[number];onToggle:(id:string,e?:React.MouseEvent<HTMLElement>)=>void;onRemove:(id:string)=>void;onPriority:(p?:Priority)=>void;onFrog?:()=>void}){
- return <li className={`${t.done?'done':''} ${t.priority?`is-${t.priority}`:''}`} data-flip-id={t.id}>{!t.done&&<PriorityChip t={t} onSet={onPriority}/>}<button className={`check-action ${t.done?'checked':''}`} aria-pressed={t.done} onClick={e=>onToggle(t.id,e)}><span className="check-box">{t.done&&<Check size={16}/>}</span><span className="todo-text">{t.text}{t.priority==='D'&&<small className="todo-tag">hand it off</small>}{t.priority==='E'&&<small className="todo-tag">let it go</small>}</span></button>{onFrog&&!t.done&&t.priority!=='D'&&t.priority!=='E'&&<button className="icon-button frog-btn" aria-label={`Make “${t.text}” my frog`} title="Make this my frog" onClick={onFrog}><FrogGlyph/></button>}<button className="icon-button" aria-label={`Remove “${t.text}”`} onClick={()=>onRemove(t.id)}><X size={14}/></button></li>;
+function TodoItem({t,onToggle,onRemove,onPriority}:{t:NonNullable<State['todos']>[number];onToggle:(id:string,e?:React.MouseEvent<HTMLElement>)=>void;onRemove:(id:string)=>void;onPriority:(p?:Priority)=>void}){
+ return <li className={`${t.done?'done':''} ${t.priority?`is-${t.priority}`:''}`} data-flip-id={t.id}>{!t.done&&<PriorityChip t={t} onSet={onPriority}/>}<button className={`check-action ${t.done?'checked':''}`} aria-pressed={t.done} onClick={e=>onToggle(t.id,e)}><span className="check-box">{t.done&&<Check size={16}/>}</span><span className="todo-text">{t.text}{t.priority==='D'&&<small className="todo-tag">hand it off</small>}{t.priority==='E'&&<small className="todo-tag">let it go</small>}</span></button><button className="icon-button" aria-label={`Remove “${t.text}”`} onClick={()=>onRemove(t.id)}><X size={14}/></button></li>;
 }
 
 function AddTodo({label,placeholder,onAdd}:{label:string;placeholder:string;onAdd:(t:string)=>void}){
