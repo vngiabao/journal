@@ -6,13 +6,13 @@ import {putActivity} from './GoalControls';
 const ex=(name:string,dose:string)=>({name,dose});
 // The plan as first set up. Monday first.
 export const DEFAULT_PLAN:TrainingDay[]=[
- {kind:'sport',title:'Soccer',exercises:[ex('Soccer','90 minutes'),ex('Recovery / mobility','5–10 min')]},
- {kind:'gym',title:'Push · Chest + Triceps',exercises:[ex('Precor chest press','3 × 8–12'),ex('Seated DB shoulder press','3 × 8–12'),ex('DB lateral raise','3 × 12–15'),ex('DB overhead triceps extension','3 × 10–12'),ex('Lying DB triceps extension','2 × 10–12')]},
- {kind:'gym',title:'Pull · Back + Biceps',exercises:[ex('Precor lat pulldown','3 × 8–12'),ex('Seated row','3 × 10–12'),ex('DB reverse fly','2 × 12–15'),ex('DB biceps curl','3 × 8–12'),ex('DB hammer curl','2 × 10–12')]},
- {kind:'sport',title:'Soccer',exercises:[ex('Soccer','90 minutes'),ex('Recovery / mobility','5–10 min')]},
- {kind:'gym',title:'Back + Chest + Arms',exercises:[ex('Precor lat pulldown','3 × 10–12'),ex('Precor seated row','2 × 10–12'),ex('Precor chest press','3 × 8–12'),ex('DB concentration curl','3 × 10–12'),ex('DB hammer curl','2 × 10–12'),ex('DB overhead triceps extension','3 × 10–12'),ex('DB triceps kickback','2 × 12–15')]},
- {kind:'gym',title:'Athletic Legs + Core',exercises:[ex('DB goblet squat','3 × 8–10'),ex('DB Romanian deadlift','3 × 8–10'),ex('Glute bridge','3 × 12'),ex('Calf raise','2 × 15'),ex('Dead bug','3 × 10/side'),ex('Side plank','2 × 30 sec/side')]},
- {kind:'rest',title:'Rest',exercises:[ex('Rest','Full day'),ex('Easy walking','Optional')]},
+ {kind:'sport',title:'Soccer',exercises:[ex('Soccer','90 min'),ex('Light mobility','5–10 min')]},
+ {kind:'gym',title:'Push · Chest, Shoulders, Triceps',exercises:[ex('Precor chest press','3 × 8–12'),ex('DB floor press','2 × 10–12'),ex('Seated DB shoulder press','3 × 8–12'),ex('DB lateral raise','3 × 12–15'),ex('Overhead DB triceps extension','3 × 10–15')]},
+ {kind:'gym',title:'Pull · Back, Biceps',exercises:[ex('Precor lat pulldown','3 × 8–12'),ex('Seated row or supported DB row','3 × 8–12'),ex('Seated DB reverse fly','2 × 12–15'),ex('Seated DB biceps curl','3 × 8–12'),ex('DB hammer curl','2 × 10–12')]},
+ {kind:'sport',title:'Soccer',exercises:[ex('Soccer','90 min'),ex('Light mobility','5–10 min')]},
+ {kind:'gym',title:'Upper · Chest, Back, Arms',exercises:[ex('Precor lat pulldown','3 × 10–12'),ex('Seated row or supported DB row','2 × 10–12'),ex('Precor chest press','3 × 8–12'),ex('DB lateral raise','2 × 12–15'),ex('DB concentration curl','3 × 10–12/arm'),ex('Overhead DB triceps extension','3 × 10–15'),ex('Lying DB triceps extension','2 × 10–12')]},
+ {kind:'gym',title:'Athletic Legs + Core',exercises:[ex('Goblet squat','3 × 8–10'),ex('DB Romanian deadlift','3 × 8–10'),ex('Glute bridge','3 × 12–15'),ex('Calf raises','2 × 12–15'),ex('Dead bug','3 × 10/side'),ex('Side plank','2 × 30 sec/side')]},
+ {kind:'rest',title:'Rest',exercises:[ex('Full rest','')]},
 ];
 export const WEEKDAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 export const planOf=(s:State)=>s.training?.days??DEFAULT_PLAN;
