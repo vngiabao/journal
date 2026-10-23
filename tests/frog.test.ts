@@ -52,18 +52,18 @@ describe('Frog reminders',()=>{
 
 describe('Training plan',()=>{
  it('reads one exercise per line with its sets and reps',()=>{
-  expect(parseLines('Goblet squat 3 × 10–12\nSoccer 90 min\nPlank 3 x 30–45 sec\nStretch')).toEqual([{name:'Goblet squat',dose:'3 × 10–12'},{name:'Soccer',dose:'90 min'},{name:'Plank',dose:'3 × 30–45 sec'},{name:'Stretch',dose:''}]);
+  expect(parseLines('Goblet squat 3 × 10–12\nSoccer 90 min\nPlank 3 x 30–45 sec\nStretch\n• Side plank: 2 × 30 sec/side\nEasy walking: Optional')).toEqual([{name:'Goblet squat',dose:'3 × 10–12'},{name:'Soccer',dose:'90 min'},{name:'Plank',dose:'3 × 30–45 sec'},{name:'Stretch',dose:''},{name:'Side plank',dose:'2 × 30 sec/side'},{name:'Easy walking',dose:'Optional'}]);
  });
  it('shows the weekday’s plan and counts a finished gym day toward the gym goal',()=>{
-  const s=seed('2026-10-01');expect(dayPlan(s,'2026-10-23').title).toBe('Upper + Arms');expect(dayPlan(s,'2026-10-25').kind).toBe('rest');
+  const s=seed('2026-10-01');expect(dayPlan(s,'2026-10-23').title).toBe('Back + Chest + Arms');expect(dayPlan(s,'2026-10-25').kind).toBe('rest');
   const g=gymGoal(s)!;expect(g).toBeTruthy();
-  toggleExercise(s,'2026-10-23','Back machine');expect(finished(s,'2026-10-23')).toBe(false);expect(s.logs.some(l=>l.goalId===g.id)).toBe(false);
+  toggleExercise(s,'2026-10-23','Precor lat pulldown');expect(finished(s,'2026-10-23')).toBe(false);expect(s.logs.some(l=>l.goalId===g.id)).toBe(false);
   setAll(s,'2026-10-23',true);expect(finished(s,'2026-10-23')).toBe(true);expect(s.logs.filter(l=>l.goalId===g.id&&l.date==='2026-10-23'&&l.state==='success')).toHaveLength(1);
   setAll(s,'2026-10-23',false);expect(s.logs.some(l=>l.goalId===g.id&&l.date==='2026-10-23')).toBe(false);
   expect(DEFAULT_PLAN.filter(d=>d.kind==='gym')).toHaveLength(4);
  });
  it('accepts a plan in a backup and rejects a broken one',()=>{
-  const s=seed('2026-10-01');s.training={days:structuredClone(DEFAULT_PLAN)};s.workouts=[{date:'2026-10-23',done:['Back machine']}];
+  const s=seed('2026-10-01');s.training={days:structuredClone(DEFAULT_PLAN)};s.workouts=[{date:'2026-10-23',done:['Precor lat pulldown']}];
   expect(()=>validateImport(structuredClone(s))).not.toThrow();
   const bad=structuredClone(s);bad.training!.days.pop();expect(()=>validateImport(bad)).toThrow();
  });

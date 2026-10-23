@@ -18,7 +18,7 @@ export function TrainingCard({state,mutate,now}:{state:State;mutate:Mutate;now:s
    <div><p className="training-day">{WEEKDAYS[weekdayIndex(now)]}{day.kind==='gym'?' · Gym':day.kind==='sport'?' · Sport':''}</p><h2 id="training-title">{day.kind==='rest'?'Rest day':day.title}</h2></div>
    {isTrainingDay(day)&&<span className="training-count">{complete?'Done':`${count} of ${day.exercises.length}`}</span>}
   </div>
-  {day.kind==='rest'?<p className="training-rest">Recovery counts. Sleep well, walk a little, and come back stronger tomorrow.</p>
+  {day.kind==='rest'?<><p className="training-rest">Recovery counts. Sleep well, and come back stronger tomorrow.</p>{day.exercises.some(e=>e.dose)&&<ul className="rest-list">{day.exercises.map(e=><li key={e.name}><span>{e.name}</span>{e.dose&&<span className="exercise-dose">{e.dose}</span>}</li>)}</ul>}</>
   :<><ul className="exercise-list">{day.exercises.map(x=>{const on=done.has(x.name);return <li key={x.name} className={on?'done':''}><button type="button" className={`check-action ${on?'checked':''}`} aria-pressed={on} onClick={e=>tick(x.name,e)}><span className="check-box">{on&&<Check size={14}/>}</span><span className="exercise-name">{x.name}</span>{x.dose&&<span className="exercise-dose">{x.dose}</span>}</button></li>;})}</ul>
    {day.exercises.length>1&&<button type="button" className={complete?'text-button':'button secondary training-all'} onClick={()=>mutate(s=>setAll(s,now,!complete),'workout')}>{complete?'Undo workout':day.kind==='gym'?'Mark the whole workout done':'Mark done'}</button>}
    {day.kind==='gym'&&<p className="training-note">Finishing it counts toward “Gym 4+ times a week”.</p>}</>}
@@ -40,11 +40,11 @@ function PlanEditor({plan,onSave,onClose}:{plan:TrainingDay[];onSave:(d:Training
   <aside className="goal-drawer plan-editor" role="dialog" aria-modal="true" aria-labelledby="plan-title">
    <header className="drawer-head"><span className="drawer-eyebrow">Weekly training plan</span><button className="icon-button" aria-label="Close" onClick={onClose}><X size={18}/></button></header>
    <h2 id="plan-title">Your week</h2>
-   <p className="muted">One exercise per line, with sets and reps at the end, like “Goblet squat 3 × 10–12” or “Soccer 90 min”.</p>
+   <p className="muted">One exercise per line, like “Goblet squat: 3 × 8–10” or “Soccer: 90 minutes”.</p>
    {days.map((d,i)=><fieldset key={i} className="plan-day"><legend>{WEEKDAYS[i]}</legend>
     <div className="plan-row"><label>Name<input value={d.title} maxLength={40} onChange={e=>set(i,{title:e.target.value})}/></label>
      <label>Type<select value={d.kind} onChange={e=>set(i,{kind:e.target.value as TrainingDay['kind']})}><option value="gym">Gym</option><option value="sport">Sport</option><option value="rest">Rest</option></select></label></div>
-    {d.kind!=='rest'&&<label className="plan-lines">Exercises<textarea rows={Math.max(2,d.text.split('\n').length)} value={d.text} onChange={e=>set(i,{text:e.target.value})}/></label>}
+    <label className="plan-lines">Exercises<textarea rows={Math.max(2,d.text.split('\n').length)} value={d.text} onChange={e=>set(i,{text:e.target.value})}/></label>
    </fieldset>)}
    <div className="plan-actions"><button type="button" className="button" onClick={()=>onSave(days.map(d=>({kind:d.kind,title:d.title.trim()||'Training',exercises:d.kind==='rest'?[{name:'Recovery',dose:''}]:parseLines(d.text)})))}>Save plan</button>
     <button type="button" className="text-button" onClick={()=>setDays(DEFAULT_PLAN.map(d=>({kind:d.kind,title:d.title,text:formatLines(d)})))}>Reset to my original plan</button></div>

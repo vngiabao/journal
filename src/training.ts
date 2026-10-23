@@ -6,13 +6,13 @@ import {putActivity} from './GoalControls';
 const ex=(name:string,dose:string)=>({name,dose});
 // The plan as first set up. Monday first.
 export const DEFAULT_PLAN:TrainingDay[]=[
- {kind:'sport',title:'Soccer',exercises:[ex('Soccer','90 min')]},
- {kind:'gym',title:'Push',exercises:[ex('Dumbbell floor press','3 × 8–12'),ex('Seated shoulder press','3 × 8–12'),ex('Dumbbell lateral raises','3 × 12–15'),ex('Overhead dumbbell triceps extension','3 × 10–12'),ex('Lying dumbbell triceps extension','2 × 10–12')]},
- {kind:'gym',title:'Pull',exercises:[ex('Back machine / lat pulldown','3 × 8–12'),ex('One-arm dumbbell row','3 × 10–12'),ex('Dumbbell reverse fly','2 × 12–15'),ex('Dumbbell biceps curl','3 × 8–12'),ex('Hammer curl','2 × 10–12')]},
- {kind:'sport',title:'Soccer',exercises:[ex('Soccer','90 min')]},
- {kind:'gym',title:'Upper + Arms',exercises:[ex('Back machine','3 × 10–12'),ex('Dumbbell floor press','3 × 10–12'),ex('Concentration curl','3 × 10–12'),ex('Hammer curl','2 × 10–12'),ex('Overhead triceps extension','3 × 10–12'),ex('Dumbbell triceps kickback','2 × 12–15')]},
- {kind:'gym',title:'Legs + Abs',exercises:[ex('Goblet squat','3 × 10–12'),ex('Dumbbell Romanian deadlift','3 × 10'),ex('Glute bridge','3 × 12–15'),ex('Dead bug','3 × 10/side'),ex('Plank','3 × 30–45 sec')]},
- {kind:'rest',title:'Rest',exercises:[ex('Recovery','')]},
+ {kind:'sport',title:'Soccer',exercises:[ex('Soccer','90 minutes'),ex('Recovery / mobility','5–10 min')]},
+ {kind:'gym',title:'Push · Chest + Triceps',exercises:[ex('Precor chest press','3 × 8–12'),ex('Seated DB shoulder press','3 × 8–12'),ex('DB lateral raise','3 × 12–15'),ex('DB overhead triceps extension','3 × 10–12'),ex('Lying DB triceps extension','2 × 10–12')]},
+ {kind:'gym',title:'Pull · Back + Biceps',exercises:[ex('Precor lat pulldown','3 × 8–12'),ex('Seated row','3 × 10–12'),ex('DB reverse fly','2 × 12–15'),ex('DB biceps curl','3 × 8–12'),ex('DB hammer curl','2 × 10–12')]},
+ {kind:'sport',title:'Soccer',exercises:[ex('Soccer','90 minutes'),ex('Recovery / mobility','5–10 min')]},
+ {kind:'gym',title:'Back + Chest + Arms',exercises:[ex('Precor lat pulldown','3 × 10–12'),ex('Precor seated row','2 × 10–12'),ex('Precor chest press','3 × 8–12'),ex('DB concentration curl','3 × 10–12'),ex('DB hammer curl','2 × 10–12'),ex('DB overhead triceps extension','3 × 10–12'),ex('DB triceps kickback','2 × 12–15')]},
+ {kind:'gym',title:'Athletic Legs + Core',exercises:[ex('DB goblet squat','3 × 8–10'),ex('DB Romanian deadlift','3 × 8–10'),ex('Glute bridge','3 × 12'),ex('Calf raise','2 × 15'),ex('Dead bug','3 × 10/side'),ex('Side plank','2 × 30 sec/side')]},
+ {kind:'rest',title:'Rest',exercises:[ex('Rest','Full day'),ex('Easy walking','Optional')]},
 ];
 export const WEEKDAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
 export const planOf=(s:State)=>s.training?.days??DEFAULT_PLAN;
@@ -26,8 +26,8 @@ export const gymGoal=(s:State)=>s.goals.find(g=>g.type==='weekly-frequency'&&/\b
 
 // One exercise per line: "Goblet squat 3 × 10–12", "Soccer 90 min", "Plank 3 × 30–45 sec".
 const DOSE=/\s+(?:[-–—]\s*)?((?:\d+\s*[×x]\s*\S+.*)|(?:\d+\s*(?:min|mins|minutes|sec|secs|seconds)\b.*))$/i;
-export function parseLines(text:string){return text.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const m=l.match(DOSE);return m?{name:l.slice(0,m.index).replace(/[-–—]\s*$/,'').trim(),dose:m[1].replace(/\s*x\s*/i,' × ').trim()}:{name:l,dose:''};});}
-export const formatLines=(d:TrainingDay)=>d.exercises.map(e=>e.dose?`${e.name} ${e.dose}`:e.name).join('\n');
+export function parseLines(text:string){return text.split('\n').map(l=>l.trim().replace(/^[•·*-]\s*/,'')).filter(Boolean).map(l=>{const c=l.lastIndexOf(':');if(c>0&&c<l.length-1)return {name:l.slice(0,c).trim(),dose:l.slice(c+1).trim().replace(/(\d)\s*x\s*(\d)/i,'$1 × $2')};const m=l.match(DOSE);return m?{name:l.slice(0,m.index).replace(/[-–—]\s*$/,'').trim(),dose:m[1].replace(/\s*x\s*/i,' × ').trim()}:{name:l,dose:''};});}
+export const formatLines=(d:TrainingDay)=>d.exercises.map(e=>e.dose?`${e.name}: ${e.dose}`:e.name).join('\n');
 
 function syncGoal(s:State,date:string){
  const d=dayPlan(s,date),g=gymGoal(s);if(!g||d.kind!=='gym')return;
