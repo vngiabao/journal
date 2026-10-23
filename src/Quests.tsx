@@ -5,7 +5,7 @@ import {useEffect,useRef} from 'react';
 import {createPortal} from 'react-dom';
 import type {State} from './model';
 import {Check,ArrowRight,X} from './icons';
-import {tourSeen,startTour} from './Tour';
+import {tourSeen,startTour,TOUR_NAMES,type TourId} from './Tour';
 import {CHECK_IN} from './mood';
 import {gsap,useGSAP,whenMotionOK} from './motion';
 
@@ -26,6 +26,8 @@ export function quests(s:State,bondAround:boolean):Quest[]{
   {id:'promise',title:'Keep a promise',how:'Tap “Mark done” on one of your promises.',page:'Today',target:'.promises',done:s.logs.some(l=>l.state==='success')},
   {id:'checkin',title:'Check in on your day',how:'One tap on “How was today?” It also marks your Journey line.',page:'Today',target:'.checkin .mood-row',done:s.journals.some(j=>!!j.mood)||s.journey.some(d=>(d.moments??[]).some(m=>m.tag===CHECK_IN))},
   {id:'journal',title:'Write in your journal',how:'A line on Today’s check-in, or a full page in Journal.',page:'Journal',target:'.book .writing-area, .writing-room',done:s.journals.some(j=>!!j.text.trim())},
+  {id:'weekly',title:'Write a weekly review',how:'Once a week, a page with three questions: what improved, what didn’t, what you’ll change.',page:'Journal',target:'.room-tabs',done:s.journals.some(j=>j.kind==='weekly'&&!!j.text.trim())},
+  {id:'monthly',title:'Write a monthly review',how:'The same, for the whole month. Find it in Journal → Monthly review.',page:'Journal',target:'.room-tabs',done:s.journals.some(j=>j.kind==='monthly'&&!!j.text.trim())},
   {id:'progress',title:'Look at your progress',how:'Your Journey line and the weekly review.',page:'Journey',target:'.progress-tabs',done:flag(FLAGS.progress)},
   {id:'tomorrow',title:'Plan tomorrow’s frog',how:'In the evening, choose tomorrow’s frog under “Close the day”.',page:'Today',target:'.close-day, .checkin',done:frogs.some(t=>t.date>t.createdAt.slice(0,10))},
   {id:'reminders',title:'Set your frog reminders',how:'Add the morning and evening reminders to your calendar.',page:'Settings',target:'.reminders',done:flag(FLAGS.calendar)||!!s.settings.reminders?.notify},
@@ -35,7 +37,8 @@ export function quests(s:State,bondAround:boolean):Quest[]{
 
 // Open the page and point at the spot: it scrolls into view and pulses for a moment.
 export function showMe(q:Quest,go:(p:string)=>void){
- if(q.id==='tour'){startTour();return;}
+ if(q.id==='tour'){startTour('today');return;}
+ if(q.id==='weekly'||q.id==='monthly')try{sessionStorage.setItem('reboot-journal-kind',q.id);}catch{/* fine */}
  go(q.page);
  window.setTimeout(()=>{const el=q.target?q.target.split(',').map(x=>document.querySelector(x.trim())).find(Boolean):null;if(!el)return;
   el.scrollIntoView({block:'center',behavior:'smooth'});el.classList.remove('quest-pulse');void (el as HTMLElement).offsetWidth;el.classList.add('quest-pulse');window.setTimeout(()=>el.classList.remove('quest-pulse'),2400);},380);
@@ -79,7 +82,7 @@ export function GuideSetting({state}:{state:State}){
  const list=quests(state,usePocketPets()!=='off'),done=list.filter(x=>x.done).length;
  return <section className="settings-section guide"><h2>Guide</h2>
   <p className="muted">A one-minute walk through Today, and a checklist of everything Reboot can do. You can also press ? anywhere.</p>
-  <button type="button" className="button" onClick={startTour}>Take the tour</button>
+  <div className="guide-tours">{(Object.keys(TOUR_NAMES) as TourId[]).map(id=><button key={id} type="button" className={id==='today'?'button':'button secondary'} onClick={()=>startTour(id)}>{id==='today'?'Take the tour':`Tour: ${TOUR_NAMES[id]}`}</button>)}</div>
   <h3 className="guide-sub">Getting started · {done} of {list.length}</h3>
   <QuestList list={list} go={p=>{location.hash=encodeURIComponent(p);}}/>
  </section>;

@@ -18,20 +18,21 @@ export const TODO_GOAL='35';
 export function TodayList({state,mutate,now}:{state:State;mutate:Mutate;now:string}){
  const todays=(state.todos??[]).filter(t=>t.date===now),done=todays.filter(t=>t.done).length,unfinished=todays.length-done;
  const frog=todays.find(t=>t.frog),rest=todays.filter(t=>!t.frog),ordered=[...rest].sort((a,b)=>priorityRank(a)-priorityRank(b));
- const undone=ordered.filter(t=>!t.done),finished=ordered.filter(t=>t.done),[showAll,setShowAll]=useState(false),[showDone,setShowDone]=useState(false);
- // The next three tasks are what you see; the rest of today and what's finished fold away until asked for.
- const visible=[...(showAll||undone.length<=4?undone:undone.slice(0,3)),...(showDone?finished:[])],hidden=undone.length-(showAll||undone.length<=4?undone.length:3);
+ const undone=ordered.filter(t=>!t.done),finished=ordered.filter(t=>t.done),[showAll,setShowAll]=useState(false);
+ // The next three tasks are what you see, then everything you've finished; the rest of today folds away until asked for.
+ const visible=[...(showAll||undone.length<=4?undone:undone.slice(0,3)),...finished],hidden=undone.length-(showAll||undone.length<=4?undone.length:3);
  const fs=frogStats(state.todos??[],now),[focus,setFocus]=useState(false),[nudge,setNudge]=useState(''),nudgeTimer=useRef(0);
  const goal=state.goals.find(g=>g.id===TODO_GOAL)!,counted=dayState(goal,state.logs,now)==='success';
  function add(text:string){mutate(s=>{s.todos=[...(s.todos??[]),{id:uid(),date:now,text,done:false,createdAt:new Date().toISOString()}];
   // Writing the day's list is the habit itself, so the first line counts for today.
   const g=s.goals.find(x=>x.id===TODO_GOAL)!;if(dayState(g,s.logs,now)!=='success')putActivity(s,g,now,{state:'success',note:'Wrote today’s to-do list'});
  },`todo ${now}`);}
- const card=useRef<HTMLElement>(null),flip=useRef<{state:Flip.FlipState;id:string}|null>(null),prevAll=useRef(todays.length>0&&!unfinished);
+ const card=useRef<HTMLElement>(null),flip=useRef<{state:Flip.FlipState;id:string;kind?:'priority'}|null>(null),prevAll=useRef(todays.length>0&&!unfinished);
  // Capture the list before a check, so the item can glide to its new place after React re-renders.
  const toggle=(id:string,e?:React.MouseEvent<HTMLElement>)=>{const item=todays.find(x=>x.id===id);
   if(item&&!item.done&&(item.priority==='B'||item.priority==='C')){const waiting=frog&&!frog.done?'Your frog':todays.some(x=>!x.done&&x.priority==='A'&&x.id!==id)?'An A task':'';if(waiting){setNudge(`${waiting} is still waiting. Done is done, but next time, A before ${item.priority}.`);clearTimeout(nudgeTimer.current);nudgeTimer.current=window.setTimeout(()=>setNudge(''),6000);}}if(item&&!item.done&&e){const r=(e.currentTarget.closest('li')??e.currentTarget).getBoundingClientRect();inkStamp(r.right-78,r.top+r.height/2);}if(motionOK()&&card.current)flip.current={state:Flip.getState(card.current.querySelectorAll('.todo-list li')),id};mutate(s=>{const t=(s.todos??[]).find(x=>x.id===id);if(t){t.done=!t.done;t.doneAt=t.done?new Date().toISOString():undefined;}},'todo check');};
- const setPriority=(id:string,p?:Priority)=>mutate(s=>{const t=(s.todos??[]).find(x=>x.id===id);if(t)t.priority=p;},'todo priority');
+ // Labelling a task re-sorts the list A to E; the task glides to its new place so you can see it move.
+ const setPriority=(id:string,p?:Priority)=>{if(motionOK()&&card.current)flip.current={state:Flip.getState(card.current.querySelectorAll('.todo-list li')),id,kind:'priority'};mutate(s=>{const t=(s.todos??[]).find(x=>x.id===id);if(t)t.priority=p;},'todo priority');};
  const makeFrog=(id:string)=>mutate(s=>{for(const t of s.todos??[])if(t.date===now)t.frog=t.id===id?true:false;const t=(s.todos??[]).find(x=>x.id===id);if(t)t.priority='A';},'frog chosen');
  const {contextSafe}=useGSAP({scope:card});
  // A clean sweep: gold paper bursts out of the score.
@@ -42,7 +43,8 @@ export function TodayList({state,mutate,now}:{state:State;mutate:Mutate;now:stri
  useLayoutEffect(()=>{const all=todays.length>0&&!unfinished;if(all&&!prevAll.current&&motionOK())burst();prevAll.current=all;},[todays.length,unfinished]);
  useLayoutEffect(()=>{const f=flip.current;if(!f||!card.current)return;flip.current=null;
   Flip.from(f.state,{duration:.5,ease:'power2.inOut',nested:true,targets:card.current.querySelectorAll('.todo-list li')});
-  const box=card.current.querySelector(`[data-flip-id="${f.id}"] .check-box`);if(box)gsap.fromTo(box,{scale:.5},{scale:1,duration:.45,ease:'back.out(3)'});
+  const box=card.current.querySelector(`[data-flip-id="${f.id}"] ${f.kind==='priority'?'.prio-chip':'.check-box'}`);if(box)gsap.fromTo(box,{scale:.5},{scale:1,duration:.45,ease:'back.out(3)'});
+  if(f.kind==='priority')return;
   const score=card.current.querySelector('.tl-score strong');if(score)gsap.fromTo(score,{yPercent:-45,opacity:0},{yPercent:0,opacity:1,duration:.4,ease:'back.out(2)'});
  });
  const remove=(id:string)=>mutate(s=>{s.todos=(s.todos??[]).filter(x=>x.id!==id);},'todo remove');
@@ -56,6 +58,7 @@ export function TodayList({state,mutate,now}:{state:State;mutate:Mutate;now:stri
    <div className="tl-score">
     <Chibi pose={todays.length&&!unfinished?'check':'think'} className="tl-chibi"/>
     <p><strong>{done}</strong><span>/{todays.length}</span><small>{todays.length&&!unfinished?'all done':'done'}</small></p>
+    {todays.length>0&&<p className="tl-breakdown">{frog?`Frog + ${rest.length} ${rest.length===1?'task':'tasks'}`:`${todays.length} ${todays.length===1?'task':'tasks'}`}{unfinished?` · ${unfinished} to go`:''}</p>}
     <i aria-hidden="true"><b style={{transform:`scaleX(${todays.length?done/todays.length:0})`}}/></i>
     {fs.eaten>0&&<p className="frog-streak"><FrogGlyph/>{fs.streak>1?`${fs.streak}-day frog streak`:`${fs.eaten} ${fs.eaten===1?'frog':'frogs'} eaten`}{fs.early>0&&<small>{fs.early} before noon</small>}</p>}
    </div>
@@ -64,8 +67,8 @@ export function TodayList({state,mutate,now}:{state:State;mutate:Mutate;now:stri
    {frog?<FrogCard frog={frog} mutate={mutate} now={now} onFocus={()=>setFocus(true)}/>:rest.some(x=>!x.done)?<div className="frog-pick"><FrogGlyph/><div><p><b>Pick today’s frog.</b> The task you’d most like to put off. You’ll do it first.</p><div className="frog-choices">{rest.filter(x=>!x.done&&x.priority!=='D'&&x.priority!=='E').map(x=><button key={x.id} type="button" className="frog-choice" aria-label={`Make “${x.text}” my frog`} onClick={()=>makeFrog(x.id)}>{x.text}</button>)}</div></div></div>:null}
    <AddTodo label="Add something for today" placeholder={todays.length?'Add something for today':'Start with your frog: the task you’d most like to put off'} onAdd={add}/>
    {nudge&&<p className="abc-nudge" role="status">{nudge}</p>}
-   {ordered.length?<><ul className="todo-list big">{visible.map(t=><TodoItem key={t.id} t={t} onToggle={toggle} onRemove={remove} onPriority={p=>setPriority(t.id,p)}/>)}</ul>
-   {(hidden>0||finished.length>0)&&<div className="list-folds">{hidden>0&&<button type="button" className="text-button" onClick={()=>setShowAll(true)}>Also today ({hidden})</button>}{showAll&&undone.length>4&&<button type="button" className="text-button" onClick={()=>setShowAll(false)}>Show fewer</button>}{finished.length>0&&<button type="button" className="text-button" aria-expanded={showDone} onClick={()=>setShowDone(!showDone)}>{showDone?'Hide done':`Done (${finished.length})`}</button>}</div>}</>:!frog&&<p className="tl-empty">Nothing on the list yet. What would make today a good day?</p>}
+   {ordered.length?<>{rest.some(x=>x.priority&&!x.done)&&<p className="sort-note">Sorted by priority, A to E</p>}<ul className="todo-list big">{visible.map(t=><TodoItem key={t.id} t={t} onToggle={toggle} onRemove={remove} onPriority={p=>setPriority(t.id,p)}/>)}</ul>
+   {(hidden>0||(showAll&&undone.length>4))&&<div className="list-folds">{hidden>0&&<button type="button" className="text-button" onClick={()=>setShowAll(true)}>Also today ({hidden})</button>}{showAll&&undone.length>4&&<button type="button" className="text-button" onClick={()=>setShowAll(false)}>Show fewer</button>}</div>}</>:!frog&&<p className="tl-empty">Nothing on the list yet. What would make today a good day?</p>}
    {focus&&frog&&<FrogFocus frog={frog} mutate={mutate} onClose={()=>setFocus(false)}/>}
    <p className="todo-hint">{counted?<><Check size={14}/>Counted toward “Daily to-do list for 90 days”.</>:'Your first item today counts toward “Daily to-do list for 90 days”.'}</p>
   </div>

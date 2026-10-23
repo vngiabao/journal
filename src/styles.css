@@ -1682,3 +1682,34 @@ body.touring .pocket-pet .pb-bubble{display:none}
 .quest-pulse{animation:quest-pulse 1.2s var(--ease) 2;border-radius:12px}
 @keyframes quest-pulse{0%,100%{box-shadow:0 0 0 0 #c9a15a00}40%{box-shadow:0 0 0 6px #c9a15a88}}
 @media(prefers-reduced-motion:reduce){.quest-pulse{animation:none;outline:3px solid var(--gold);outline-offset:3px}}
+
+/* The priority menu floats above the page; the list says how it is sorted */
+.prio-menu{z-index:96}
+.sort-note{margin:var(--s-1) 0 0;font-size:12.5px;color:var(--muted)}
+
+.guide-tours{display:flex;flex-wrap:wrap;gap:var(--s-2)}
+
+/* Today's routine: the daily steps, ticked off automatically */
+.routine{padding:var(--s-4) var(--s-5);background:var(--sheet);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow-1)}
+.routine-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--s-2) var(--s-4)}
+.routine-toggle{display:flex;align-items:center;gap:var(--s-2);padding:0;border:0;background:transparent;color:var(--ink)}
+.routine-toggle h2{margin:0;font:500 22px/1.2 var(--serif)}
+.routine-toggle svg{color:var(--muted);transition:transform .2s var(--ease)}
+.routine-toggle[aria-expanded="true"] svg{transform:rotate(180deg)}
+.routine-count{font:600 12.5px/1 var(--sans);color:var(--gold-text);font-variant-numeric:tabular-nums}
+.routine-next{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-1) var(--s-3);margin:0;font-size:14px;color:var(--ink-soft)}
+.routine-next b{color:var(--ink)}
+.routine-meter{height:5px;margin-top:var(--s-3);border-radius:3px;background:var(--line);overflow:hidden}
+.routine-meter em{display:block;height:100%;background:var(--gold);transform-origin:left;transition:transform .5s var(--ease)}
+.routine.complete .routine-meter em{background:var(--green)}
+.routine-list{margin:var(--s-3) 0 0;padding:0;list-style:none}
+.routine-list li{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:var(--s-2);min-height:44px;border-bottom:1px solid var(--line)}
+.routine-list li:last-child{border-bottom:0}
+.routine-title{font:400 17px/1.3 var(--serif);color:var(--ink)}
+.routine-list li.done .routine-title{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--green)}
+.routine-list .quest-check{width:22px;height:22px}
+.routine-list li.done .quest-check{border-color:var(--green);background:var(--green)}
+@media(max-width:650px){.routine{padding:var(--s-3) var(--s-4)}.routine-toggle h2{font-size:19px}}
+
+.today-list .tl-breakdown{grid-column:2;margin:0;font-size:12.5px;color:var(--cover-muted)}
+@media(max-width:650px){.today-list .tl-breakdown{grid-column:1;font-size:11.5px}}

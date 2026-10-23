@@ -16,7 +16,7 @@ import {Chibi,type ChibiPose} from './Art';
 import {PocketPets,usePocketPets} from './Pet';
 import {burst,inkStamp,installHoverPhysics} from './delight';
 import {remindersOf,dueReminder,isDue,notify} from './reminders';
-import {Tour,tourSeen,startTour} from './Tour';
+import {Tour,tourSeen,startTour,TOUR_FOR_PAGE,type TourId} from './Tour';
 import {quests,QuestMeter,QuestPanel} from './Quests';
 import {FLAGS,markFlag} from './flags';
 import {gsap,useGSAP,motionOK,whenMotionOK,SplitText,Flip,ScrollTrigger} from './motion';
@@ -48,11 +48,14 @@ export default function App(){
    const msg=dueReminder(kind,s,day);if(msg)void notify(msg.title,msg.body,`frog-${kind}`);}};
   check();const id=window.setInterval(check,30_000);return()=>clearInterval(id);},[]);
  // The guided tour: once by itself on Today, and again whenever asked (Settings, the sidebar link, or the ? key).
- const [touring,setTouring]=useState(false),[questsOpen,setQuestsOpen]=useState(false);
+ const [touring,setTouring]=useState<TourId|null>(null),[questsOpen,setQuestsOpen]=useState(false);
  useEffect(()=>{const open=()=>setQuestsOpen(true);window.addEventListener('reboot-quests',open);return()=>window.removeEventListener('reboot-quests',open);},[]);
  useEffect(()=>{if(page==='Journey'||page==='Review')markFlag(FLAGS.progress);},[page]);
- useEffect(()=>{if(!state||touring||tourSeen()||page!=='Today'||!stateRef.current?.settings.onboarded)return;const t=window.setTimeout(()=>setTouring(true),700);return()=>clearTimeout(t);},[!!state,page]);
- useEffect(()=>{const open=()=>{go('Today');window.setTimeout(()=>setTouring(true),350);};const key=(e:KeyboardEvent)=>{const t=e.target instanceof Element?e.target:null;if(e.key==='?'&&!t?.closest('input,textarea,select,[contenteditable="true"]'))open();};
+ // Each page's tour runs the first time you open that page (Today's once your board is set up).
+ useEffect(()=>{const id=TOUR_FOR_PAGE[page];if(!state||touring||!id||tourSeen(id)||(id==='today'&&!stateRef.current?.settings.onboarded))return;const t=window.setTimeout(()=>setTouring(id),800);return()=>clearTimeout(t);},[!!state,page]);
+ const pageRef=useRef(page);pageRef.current=page;
+ useEffect(()=>{const open=(e?:Event)=>{const asked=(e as CustomEvent|undefined)?.detail as TourId|undefined,here=TOUR_FOR_PAGE[pageRef.current],id=asked??here??'today';const target=Object.keys(TOUR_FOR_PAGE).find(p=>TOUR_FOR_PAGE[p]===id)!;if(target!==pageRef.current)go(target);window.setTimeout(()=>setTouring(id),target!==pageRef.current?450:50);};
+  const key=(e:KeyboardEvent)=>{const t=e.target instanceof Element?e.target:null;if(e.key==='?'&&!t?.closest('input,textarea,select,[contenteditable="true"]'))open();};
   window.addEventListener('reboot-tour',open);window.addEventListener('keydown',key);return()=>{window.removeEventListener('reboot-tour',open);window.removeEventListener('keydown',key);};},[]);
  const mainRef=useRef<HTMLElement>(null),navInk=useRef<ReturnType<typeof Flip.getState>|null>(null),loaded=!!state;
  // The current-page marker in the sidebar slides to its new place instead of jumping.
@@ -123,10 +126,10 @@ export default function App(){
    <p className="sidebar-caption">Make room for who you’re becoming.</p>
    <Chibi pose="avatar" className="sidebar-chibi"/>
    <nav aria-label="Main navigation">{[...nav,['Settings','Settings','Settings',SettingsIcon] as const].map(([key,name,,Icon])=>{const on=navKey(page)===key;return <button key={key} className={`${on?'current':''} ${key==='Settings'?'nav-settings':''}`} onClick={()=>go(key)} aria-current={on?'page':undefined}>{on&&<span className="nav-ink" data-flip-id="nav-ink" aria-hidden="true"/>}<Icon size={18} strokeWidth={1.5}/>{name}</button>;})}</nav>
-   <div className="sidebar-bottom"><p>Progress isn’t linear.<br/><em>Keep showing up.</em></p><span className={saved==='Not saved'?'error sidebar-status':'sidebar-status'} role="status"><Check size={13}/>{saved}</span><QuestMeter list={quests(state,pet)} onOpen={()=>setQuestsOpen(true)}/><button type="button" className="text-button sidebar-tour" onClick={startTour}>Show me around</button><span className="sidebar-private"><ShieldCheck size={14}/>Private on this device</span></div>
+   <div className="sidebar-bottom"><p>Progress isn’t linear.<br/><em>Keep showing up.</em></p><span className={saved==='Not saved'?'error sidebar-status':'sidebar-status'} role="status"><Check size={13}/>{saved}</span><QuestMeter list={quests(state,pet)} onOpen={()=>setQuestsOpen(true)}/><button type="button" className="text-button sidebar-tour" onClick={()=>startTour()}>Show me around</button><span className="sidebar-private"><ShieldCheck size={14}/>Private on this device</span></div>
   </aside>
   {pet&&<PocketPets choice={petChoice} state={state} now={now} cheer={cheer} onCheerDone={()=>setCheer(null)}/>}
-  {touring&&<Tour onClose={()=>setTouring(false)}/>}
+  {touring&&<Tour key={touring} which={touring} onClose={()=>setTouring(null)}/>}
   {questsOpen&&<QuestPanel list={quests(state,pet)} go={go} onClose={()=>setQuestsOpen(false)}/>}
   {cheer&&!pet&&<CheerToast key={cheer.key} pose={cheer.pose} text={cheer.text} onDone={()=>setCheer(null)}/>}
   <div className="main-shell">

@@ -92,9 +92,13 @@ Four places, the same on every screen: **Today, Journal, Progress** (your Journe
 
 The big chart, the board's centre goals and the review live in Progress and the Board, one tap away. Writing anything in the journal counts toward "Write a journal" automatically.
 
-## Guided tour
+## Guided tours and today's routine
 
-A one-minute walkthrough of Today (`src/Tour.tsx`). It spotlights each part of the screen in turn: who you're becoming, the frog, tasks and priorities, promises, the check-in, the four places, Settings and reminders, and Bond. It runs once by itself. To replay it, press **?**, click "Show me around" in the sidebar, or use Settings → Take the tour.
+**Today's routine** (`src/Routine.tsx`) sits at the top of Today: pick the frog, label tasks A–E, eat the frog, keep your promises, check in, write a line, choose tomorrow's frog. On Friday to Sunday it adds the weekly review, and near the end of the month the monthly review. Steps tick themselves off, and "Show me" points at each.
+
+Each page has a short tour (`src/Tour.tsx`): Today, Journal (with weekly and monthly reviews), your line, Review, and the Board. Each runs the first time you open its page; ? or "Show me around" replays the one you're on, and Settings → Guide lists them all.
+
+The Today tour is a one-minute walkthrough. It spotlights each part of the screen in turn: who you're becoming, the frog, tasks and priorities, promises, the check-in, the four places, Settings and reminders, and Bond. It runs once by itself. To replay it, press **?**, click "Show me around" in the sidebar, or use Settings → Take the tour.
 
 ## Getting started checklist
 

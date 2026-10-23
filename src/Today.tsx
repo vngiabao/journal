@@ -8,6 +8,7 @@ import {goalName} from './Board';
 import {GoalControls,type Mutate} from './GoalControls';
 import {TodayList} from './Todo';
 import {CheckIn} from './CheckIn';
+import {Routine} from './Routine';
 import {quests,QuestMeter,openQuests} from './Quests';
 import {usePocketPets} from './Pet';
 
@@ -36,6 +37,7 @@ export function Today({state,mutate,now,go}:{state:State;mutate:Mutate;now:strin
   <QuestMeter className="quest-row" list={quests(state,bond)} onOpen={openQuests}/>
   <div className="today-grid">
    <div className="today-do">
+    <Routine state={state} now={now} go={go}/>
     <TodayList state={state} mutate={mutate} now={now}/>
     <Promises state={state} mutate={mutate} now={now} go={go} active={active}/>
    </div>

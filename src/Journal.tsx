@@ -16,7 +16,7 @@ const JOURNAL_GOAL='07';
 
 export function Journal({state,mutate,now,reviewKind}:{state:State;mutate:Mutate;now:string;reviewKind?:'weekly'|'monthly'}){
  const [date,setDate]=useState(()=>{const d=sessionStorage.getItem('reboot-journal-date');sessionStorage.removeItem('reboot-journal-date');return d&&d<=now?d:now;});
- const [search,setSearch]=useState(''),[moodFilter,setMoodFilter]=useState('All moods'),[error,setError]=useState(''),[kind,setKind]=useState<Entry['kind']>(reviewKind??'daily'),[focus,setFocus]=useState(false);
+ const [search,setSearch]=useState(''),[moodFilter,setMoodFilter]=useState('All moods'),[error,setError]=useState(''),[kind,setKind]=useState<Entry['kind']>(()=>{if(reviewKind)return reviewKind;let k:string|null=null;try{k=sessionStorage.getItem('reboot-journal-kind');sessionStorage.removeItem('reboot-journal-kind');}catch{/* fine */}return k==='weekly'||k==='monthly'?k:'daily';}),[focus,setFocus]=useState(false);
  const entry=state.journals.find(j=>j.date===date&&j.kind===kind),text=entry?.text??'';
  const area=useRef<HTMLTextAreaElement>(null);
  useLayoutEffect(()=>{const a=area.current;if(!a)return;a.style.height='auto';a.style.height=`${Math.max(a.scrollHeight,focus?520:360)}px`;},[text,focus,date,kind]);
