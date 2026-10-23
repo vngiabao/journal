@@ -66,6 +66,3 @@ export function Tour({onClose}:{onClose:()=>void}){
  </div>,document.body);
 }
 
-export function TourSetting(){
- return <section className="settings-section"><h2>Guide</h2><p className="muted">A one-minute walk through Today: your frog, tasks, promises, the check-in, and where everything lives. You can also press ? anywhere.</p><button type="button" className="button" onClick={startTour}>Take the tour</button></section>;
-}

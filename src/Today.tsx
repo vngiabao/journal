@@ -8,12 +8,14 @@ import {goalName} from './Board';
 import {GoalControls,type Mutate} from './GoalControls';
 import {TodayList} from './Todo';
 import {CheckIn} from './CheckIn';
+import {quests,QuestMeter,openQuests} from './Quests';
+import {usePocketPets} from './Pet';
 
 // Today is one screen of things to act on: a short header, then "Do" (your frog, your tasks, your promises)
 // beside "Check in" (how the day felt, one line, one win, closing the day). Charts and the board live one tap away.
 export function Today({state,mutate,now,go}:{state:State;mutate:Mutate;now:string;go:(p:string)=>void}){
  const active=state.goals.filter(g=>g.status==='active').sort((a,b)=>Number(b.pinned)-Number(a.pinned)||a.priority-b.priority);
- const daily=active.filter(g=>g.type==='daily'),hero=useRef<HTMLElement>(null);
+ const daily=active.filter(g=>g.type==='daily'),hero=useRef<HTMLElement>(null),bond=usePocketPets()!=='off';
  // On the first visit of the day the statement rises in and the evidence counts up. Nothing else moves.
  useGSAP((_,contextSafe)=>{const mm=whenMotionOK(()=>{
   const key=`reboot-greeted-${now}`;let seen=false;try{seen=!!sessionStorage.getItem(key);sessionStorage.setItem(key,'1');}catch{/* private mode: greet anyway */}
@@ -31,6 +33,7 @@ export function Today({state,mutate,now,go}:{state:State;mutate:Mutate;now:strin
    <Identity state={state} mutate={mutate}/>
    <Evidence state={state} now={now} daily={daily}/>
   </header>
+  <QuestMeter className="quest-row" list={quests(state,bond)} onOpen={openQuests}/>
   <div className="today-grid">
    <div className="today-do">
     <TodayList state={state} mutate={mutate} now={now}/>

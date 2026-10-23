@@ -1657,3 +1657,28 @@ body.focus-writing .recto{border-radius:4px;padding-left:var(--s-8);background:u
 .sidebar-tour{align-self:flex-start;color:var(--metal)!important;font-size:13px;padding:0;min-height:32px}
 body.touring .pocket-pet .pb-bubble{display:none}
 @media(prefers-reduced-motion:reduce){.tour-spot{transition:none}}
+
+/* Getting started: a checklist that ticks itself off */
+.quest-meter{display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px var(--s-2);width:100%;padding:var(--s-3);border:1px solid #ffffff26;border-radius:12px;background:#ffffff0f;color:var(--cover-text);text-align:left;font-size:13px}
+.quest-meter b{font:600 13px/1 var(--sans);color:var(--metal);font-variant-numeric:tabular-nums}
+.quest-meter i{grid-column:1/-1;display:block;height:4px;border-radius:2px;background:#ffffff26;overflow:hidden}
+.quest-meter em{display:block;height:100%;background:var(--metal);transform-origin:left;transition:transform .5s var(--ease)}
+@media(hover:hover){.quest-meter:hover{background:#ffffff1c}}
+.quest-row{display:none}
+@media(max-width:650px){.quest-row{display:grid;margin:0 0 var(--s-4);border-color:var(--line);background:var(--sheet);color:var(--ink);box-shadow:var(--shadow-1)}.quest-row b{color:var(--gold-text)}.quest-row i{background:var(--line)}.quest-row em{background:var(--gold)}}
+.quest-progress{height:6px;margin:var(--s-2) 0 var(--s-3);border-radius:3px;background:var(--line);overflow:hidden}
+.quest-progress em{display:block;height:100%;background:var(--gold);transform-origin:left}
+.quest-list{margin:0;padding:0;list-style:none}
+.quest-list li{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:var(--s-3);padding:var(--s-3) 0;border-bottom:1px solid var(--line)}
+.quest-list li:last-child{border-bottom:0}
+.quest-check{display:grid;place-items:center;width:24px;height:24px;border:2px solid var(--line-strong);border-radius:50%;color:var(--sheet)}
+.quest-list li.done .quest-check{border-color:var(--green);background:var(--green)}
+.quest-list strong{display:block;font:500 17px/1.3 var(--serif);color:var(--ink)}
+.quest-list small{display:block;margin-top:2px;font-size:13px;line-height:1.4;color:var(--muted)}
+.quest-list li.done strong{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--green)}
+.quest-list li.done small{display:none}
+.quest-list .text-button{white-space:nowrap}
+.guide .guide-sub{margin:var(--s-5) 0 var(--s-1);font-size:15px}
+.quest-pulse{animation:quest-pulse 1.2s var(--ease) 2;border-radius:12px}
+@keyframes quest-pulse{0%,100%{box-shadow:0 0 0 0 #c9a15a00}40%{box-shadow:0 0 0 6px #c9a15a88}}
+@media(prefers-reduced-motion:reduce){.quest-pulse{animation:none;outline:3px solid var(--gold);outline-offset:3px}}

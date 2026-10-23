@@ -16,6 +16,7 @@ import {inkStamp} from './delight';
 import {download} from './storage';
 import {remindersOf,remindersIcs,askPermission,notificationsSupported,notify} from './reminders';
 import {PRIORITIES,PRIORITY_NAME,frogOf} from './frog-rules';
+import {FLAGS,markFlag} from './flags';
 export {frogOf,frogStats,priorityRank} from './frog-rules';
 
 const FROG={sit:'/art/frog/frog-sit.webp',nervous:'/art/frog/frog-nervous.webp',leap:'/art/frog/frog-leap.webp'};
@@ -103,7 +104,7 @@ export function ReminderSettings({state,mutate,now}:{state:State;mutate:Mutate;n
   <p className="muted">A morning nudge to eat your frog first, and an evening nudge to choose tomorrow’s. The morning one stays quiet once your frog is eaten.</p>
   <div className="reminder-times"><label>Eat your frog<input type="time" value={r.morning} onChange={e=>e.target.value&&set({morning:e.target.value})}/></label><label>Choose tomorrow’s frog<input type="time" value={r.evening} onChange={e=>e.target.value&&set({evening:e.target.value})}/></label></div>
   <div className="reminder-ways">
-   <div><h3><CalendarPlus size={18}/>On your phone, even when Reboot is closed</h3><p className="muted">Adds two daily alarms to your calendar. On iPhone, open the file and tap Add All. Download it again after changing the times.</p><button className="button" onClick={()=>download('reboot-frog-reminders.ics',remindersIcs(r,now),'text/calendar')}><CalendarPlus size={16}/>Add to my calendar</button></div>
+   <div><h3><CalendarPlus size={18}/>On your phone, even when Reboot is closed</h3><p className="muted">Adds two daily alarms to your calendar. On iPhone, open the file and tap Add All. Download it again after changing the times.</p><button className="button" onClick={()=>{download('reboot-frog-reminders.ics',remindersIcs(r,now),'text/calendar');markFlag(FLAGS.calendar);}}><CalendarPlus size={16}/>Add to my calendar</button></div>
    <div><h3><Bell size={18}/>While Reboot is open</h3><p className="muted">{perm==='unsupported'?'This browser can’t show notifications.':perm==='denied'?'Notifications are blocked for this site. Allow them in your browser settings to use this.':'A notification at each time, if Reboot is open on this device.'}</p>
     <label className="checkbox-label"><input type="checkbox" disabled={perm==='unsupported'||perm==='denied'} checked={r.notify&&perm==='granted'} onChange={async e=>{if(e.target.checked){const p=await askPermission();setPerm(p);set({notify:p==='granted'});}else set({notify:false});}}/>Notify me on this device</label>
     {r.notify&&perm==='granted'&&<button className="text-button" onClick={async()=>{const ok=await notify('Eat your frog first','This is how your reminder will look.','frog-test');setSent(ok?'Sent. Check your notifications.':'Could not show a notification here.');}}>Send a test</button>}{sent&&<p className="muted" role="status">{sent}</p>}</div>

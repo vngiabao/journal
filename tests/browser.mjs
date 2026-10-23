@@ -67,5 +67,11 @@ const touchContext=await await (async()=>{const c=await browser.newContext({view
 assert.deepEqual(errors,[]);await page.setViewportSize({width:1440,height:1000});await nav('Settings');await page.getByRole('button',{name:'Take the tour',exact:true}).click();await page.getByRole('dialog',{name:'Welcome to Reboot'}).waitFor();
 for(let n=0;n<20;n++){const done=page.locator('.tour-card').getByRole('button',{name:'Done',exact:true});if(await done.isVisible().catch(()=>false)){await done.click();break;}await page.locator('.tour-card').getByRole('button',{name:/^(Start|Next)/}).click();}
 await page.locator('.tour-root').waitFor({state:'detached'});assert.equal(await page.evaluate(()=>localStorage.getItem('reboot-tour-v1')),'done','finishing the tour remembers it');
+// Getting started: the checklist opens from the sidebar, ticks itself off, and "Show me" goes to the right place.
+await nav('Today');await page.getByRole('button',{name:/^Getting started: \d+ of \d+ done/}).click();const panel=page.getByRole('dialog',{name:'Getting started'});await panel.waitFor();
+assert(await panel.locator('li.done').filter({hasText:'Take the tour'}).count()===1,'the finished tour is ticked');
+assert(await panel.locator('li.done').filter({hasText:'Look at your progress'}).count()===1,'visiting Progress ticks it');
+await panel.getByRole('button',{name:'Show me: Set your frog reminders',exact:true}).click();await page.locator('.reminders').waitFor();
+await page.getByRole('button',{name:'Add to my calendar',exact:true}).click();await page.reload();await page.locator('.guide .quest-list li.done').filter({hasText:'Set your frog reminders'}).waitFor();
 console.log('PASS: first launch, journey moments and log, three statuses with bingo check, identity, proof file, journal goal count, edit coalescing, moment tags, activation, partial checklist, daily completion, journey mouse/drag/keyboard/touch/undo/redo, history recalculation, persistence, journal, books, measurements, backup export/validation/restore, and responsive overflow.');
 await browser.close();

@@ -96,6 +96,23 @@ The big chart, the board's centre goals and the review live in Progress and the 
 
 A one-minute walkthrough of Today (`src/Tour.tsx`). It spotlights each part of the screen in turn: who you're becoming, the frog, tasks and priorities, promises, the check-in, the four places, Settings and reminders, and Bond. It runs once by itself. To replay it, press **?**, click "Show me around" in the sidebar, or use Settings → Take the tour.
 
+## Getting started checklist
+
+A checklist of everything Reboot can do (`src/Quests.tsx`). Each item ticks itself off when you actually do it:
+- take the tour;
+- write your sentence;
+- pick, slice and eat a frog;
+- organize with A–E;
+- keep a promise;
+- check in;
+- write in the journal;
+- look at your progress;
+- plan tomorrow's frog;
+- set reminders;
+- meet Bond.
+
+"Show me" opens the right page and points at the spot. On desktop it's in the sidebar as "Getting started n/12"; on a phone it's a row under Today's header; it's always in Settings → Guide. The sidebar and phone rows disappear once everything is done.
+
 ## Board and Journal
 
 **Reboot Board.** The board is one printed bingo card with REBOOT across the top:

@@ -17,6 +17,8 @@ import {PocketPets,usePocketPets} from './Pet';
 import {burst,inkStamp,installHoverPhysics} from './delight';
 import {remindersOf,dueReminder,isDue,notify} from './reminders';
 import {Tour,tourSeen,startTour} from './Tour';
+import {quests,QuestMeter,QuestPanel} from './Quests';
+import {FLAGS,markFlag} from './flags';
 import {gsap,useGSAP,motionOK,whenMotionOK,SplitText,Flip,ScrollTrigger} from './motion';
 
 // Four places, the same on every screen: Today, Journal, Progress (your line and the review) and the Board. Settings sits beside them.
@@ -46,7 +48,9 @@ export default function App(){
    const msg=dueReminder(kind,s,day);if(msg)void notify(msg.title,msg.body,`frog-${kind}`);}};
   check();const id=window.setInterval(check,30_000);return()=>clearInterval(id);},[]);
  // The guided tour: once by itself on Today, and again whenever asked (Settings, the sidebar link, or the ? key).
- const [touring,setTouring]=useState(false);
+ const [touring,setTouring]=useState(false),[questsOpen,setQuestsOpen]=useState(false);
+ useEffect(()=>{const open=()=>setQuestsOpen(true);window.addEventListener('reboot-quests',open);return()=>window.removeEventListener('reboot-quests',open);},[]);
+ useEffect(()=>{if(page==='Journey'||page==='Review')markFlag(FLAGS.progress);},[page]);
  useEffect(()=>{if(!state||touring||tourSeen()||page!=='Today'||!stateRef.current?.settings.onboarded)return;const t=window.setTimeout(()=>setTouring(true),700);return()=>clearTimeout(t);},[!!state,page]);
  useEffect(()=>{const open=()=>{go('Today');window.setTimeout(()=>setTouring(true),350);};const key=(e:KeyboardEvent)=>{const t=e.target instanceof Element?e.target:null;if(e.key==='?'&&!t?.closest('input,textarea,select,[contenteditable="true"]'))open();};
   window.addEventListener('reboot-tour',open);window.addEventListener('keydown',key);return()=>{window.removeEventListener('reboot-tour',open);window.removeEventListener('keydown',key);};},[]);
@@ -119,10 +123,11 @@ export default function App(){
    <p className="sidebar-caption">Make room for who you’re becoming.</p>
    <Chibi pose="avatar" className="sidebar-chibi"/>
    <nav aria-label="Main navigation">{[...nav,['Settings','Settings','Settings',SettingsIcon] as const].map(([key,name,,Icon])=>{const on=navKey(page)===key;return <button key={key} className={`${on?'current':''} ${key==='Settings'?'nav-settings':''}`} onClick={()=>go(key)} aria-current={on?'page':undefined}>{on&&<span className="nav-ink" data-flip-id="nav-ink" aria-hidden="true"/>}<Icon size={18} strokeWidth={1.5}/>{name}</button>;})}</nav>
-   <div className="sidebar-bottom"><p>Progress isn’t linear.<br/><em>Keep showing up.</em></p><span className={saved==='Not saved'?'error sidebar-status':'sidebar-status'} role="status"><Check size={13}/>{saved}</span><button type="button" className="text-button sidebar-tour" onClick={startTour}>Show me around</button><span className="sidebar-private"><ShieldCheck size={14}/>Private on this device</span></div>
+   <div className="sidebar-bottom"><p>Progress isn’t linear.<br/><em>Keep showing up.</em></p><span className={saved==='Not saved'?'error sidebar-status':'sidebar-status'} role="status"><Check size={13}/>{saved}</span><QuestMeter list={quests(state,pet)} onOpen={()=>setQuestsOpen(true)}/><button type="button" className="text-button sidebar-tour" onClick={startTour}>Show me around</button><span className="sidebar-private"><ShieldCheck size={14}/>Private on this device</span></div>
   </aside>
   {pet&&<PocketPets choice={petChoice} state={state} now={now} cheer={cheer} onCheerDone={()=>setCheer(null)}/>}
   {touring&&<Tour onClose={()=>setTouring(false)}/>}
+  {questsOpen&&<QuestPanel list={quests(state,pet)} go={go} onClose={()=>setQuestsOpen(false)}/>}
   {cheer&&!pet&&<CheerToast key={cheer.key} pose={cheer.pose} text={cheer.text} onDone={()=>setCheer(null)}/>}
   <div className="main-shell">
    <header className="topbar"><span className="crumb"><span className="crumb-prefix">Personal workspace <span className="top-divider">/</span> </span><strong>{pageName(page)}</strong></span><div className="topbar-end"><span className={saved==='Not saved'?'error saved-status':'saved-status'} aria-hidden="true"><Check size={13}/><span>{saved==='Saved on this device'?'Saved':saved}</span></span><button className={`icon-button topbar-settings ${page==='Settings'?'current':''}`} aria-label="Open settings" onClick={()=>go('Settings')}><SettingsIcon size={20}/></button></div></header>

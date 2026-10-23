@@ -9,6 +9,7 @@ import type {State} from './model';
 import {promisesKept} from './engine';
 import {label} from './dates';
 import {burst,inkDrop,isInteractive} from './delight';
+import {FLAGS,markFlag} from './flags';
 
 export type Cheer={pose:ChibiPose;text:string;key:number};
 export type Dog='bond';
@@ -94,7 +95,7 @@ function PocketDog({dog,state,now,cheer,onCheerDone,lead,pos,speaks}:{dog:Dog;st
    if(!lead&&L.mood!=='private'&&!L.running){const side=e.clientX>P.x+W/2?-1:1;L.target=e.clientX+side*58-W/2;}
    const inside=hit(e.clientX,e.clientY),under=inside?document.elementFromPoint(e.clientX,e.clientY):null;
    el.classList.toggle('is-hover',inside&&!isInteractive(under));el.classList.toggle('is-ghost',inside&&isInteractive(under));};
-  const tap=()=>{a.setMood('talk');a.jump(20);a.say(evidence(latest.current.state,latest.current.now),4200);settle('follow',2000);};
+  const tap=()=>{markFlag(FLAGS.bond);a.setMood('talk');a.jump(20);a.say(evidence(latest.current.state,latest.current.now),4200);settle('follow',2000);};
   const click=(e:MouseEvent)=>{const t=e.target instanceof Element?e.target:null;
    if(hit(e.clientX,e.clientY)&&!isInteractive(t)){tap();return;}
    // Any click sends him sprinting to the spot, leaving paw prints; on empty paper the spot gets a drop of ink too.
