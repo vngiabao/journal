@@ -1,5 +1,5 @@
 // Pocket Bond: a chibi of Bond, who lives on the bottom edge of the page on a computer.
-// He trots after you, runs over when you tap empty space and sniffs the spot, covers his eyes while you write,
+// He walks after your cursor, sprints to wherever you click and sniffs the spot, covers his eyes while you write,
 // tilts his head while you type, jumps for the promises you keep, and lies down, then curls up asleep, when you step away.
 // He never blocks anything: he ignores the pointer, and taps on him are found by position instead.
 import {useEffect,useRef,useState,useSyncExternalStore} from 'react';
@@ -77,8 +77,10 @@ function PocketDog({dog,state,now,cheer,onCheerDone,lead,pos,speaks}:{dog:Dog;st
   const tick=(_t:number,dt:number)=>{
    // A follower trots a step behind the lead dog instead of chasing the pointer.
    if(lead&&!L.running&&free())L.target=lead.current.x-lead.current.face*78;
+   // He stays put while the guided tour is open, so its spotlight can find him.
+   if(document.body.classList.contains('touring')){if(shown!=='still'){L.running=false;show('still');}setX(P.x);return;}
    const dx=clampX(L.target)-P.x;
-   if(canMove()&&Math.abs(dx)>(lead?6:2)){const step=Math.sign(dx)*Math.min(Math.abs(dx),(L.running?7.5:2.7)*dt/16.67);P.x+=step;L.trail+=Math.abs(step);
+   if(canMove()&&Math.abs(dx)>(lead?6:2)){const step=Math.sign(dx)*Math.min(Math.abs(dx),(L.running?10:3.4)*dt/16.67);P.x+=step;L.trail+=Math.abs(step);
     show(L.running?'run':'walk');const f=Math.sign(dx);if(f!==P.face){P.face=f;el.dataset.face=f>0?'r':'l';}
     if(L.running&&L.trail>30){L.trail=0;L.upper=!L.upper;pawPrint(P.x+W/2+(L.upper?6:-6),P.face,L.upper);}}
    else if(shown!=='still'){const ran=L.running;L.running=false;show('still');
@@ -88,16 +90,17 @@ function PocketDog({dog,state,now,cheer,onCheerDone,lead,pos,speaks}:{dog:Dog;st
   const hit=(x:number,y:number)=>{const r=el.querySelector('.pet-frame')?.getBoundingClientRect();return !!r&&x>=r.left+8&&x<=r.right-8&&y>=r.top+10&&y<=r.bottom;};
   const pointer=(e:PointerEvent)=>{
    L.lastActive=performance.now();if(L.mood==='rest'||L.mood==='sleep')wake();
-   // The lead keeps you company from a step away, and stays put while you work near the bottom of the screen.
-   if(!lead&&L.mood!=='private'&&!L.running&&e.clientY<window.innerHeight-170){const side=e.clientX>P.x+W/2?-1:1;L.target=e.clientX+side*72-W/2;}
+   // He keeps walking toward your cursor wherever it is, and stops just beside it rather than underneath.
+   if(!lead&&L.mood!=='private'&&!L.running){const side=e.clientX>P.x+W/2?-1:1;L.target=e.clientX+side*58-W/2;}
    const inside=hit(e.clientX,e.clientY),under=inside?document.elementFromPoint(e.clientX,e.clientY):null;
    el.classList.toggle('is-hover',inside&&!isInteractive(under));el.classList.toggle('is-ghost',inside&&isInteractive(under));};
   const tap=()=>{a.setMood('talk');a.jump(20);a.say(evidence(latest.current.state,latest.current.now),4200);settle('follow',2000);};
   const click=(e:MouseEvent)=>{const t=e.target instanceof Element?e.target:null;
    if(hit(e.clientX,e.clientY)&&!isInteractive(t)){tap();return;}
-   // Tap empty paper and the dogs race over, leaving paw prints.
-   if(t&&!isInteractive(t)&&t.matches('main,.main-shell,.app,.page-footer,body')&&L.mood!=='private'){if(L.mood==='rest'||L.mood==='sleep')wake();
-    L.target=e.clientX-W/2+(lead?(e.clientX>P.x?-70:70):0);L.running=true;if(!lead)inkDrop(e.clientX,e.clientY);}};
+   // Any click sends him sprinting to the spot, leaving paw prints; on empty paper the spot gets a drop of ink too.
+   if(L.mood==='private')return;if(L.mood==='rest'||L.mood==='sleep')wake();
+   L.target=e.clientX-W/2;L.running=true;
+   if(t&&!isInteractive(t)&&t.matches('main,.main-shell,.app,.page-footer,body'))inkDrop(e.clientX,e.clientY);};
   const focusIn=(e:FocusEvent)=>{const t=e.target instanceof Element?e.target:null;if(!t)return;
    if(t.matches('.writing-area')){clearTimeout(timers.current.mood);a.setMood('private');a.say('Not peeking. Promise.',2000);}
    else if(t.matches('textarea,input:not([type=checkbox]):not([type=radio]):not([type=date]):not([type=file]):not([type=time])')&&['follow','rest','sleep','sniff'].includes(L.mood))a.setMood('think');};

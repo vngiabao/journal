@@ -1637,3 +1637,23 @@ body.focus-writing .recto{border-radius:4px;padding-left:var(--s-8);background:u
 @media(max-width:650px){.today-list .tl-chibi{display:none}.today-list .tl-score{grid-template-columns:1fr}.today-list .tl-head h2{font-size:26px}.today-list .day-quote blockquote{font-size:16px}.promise{flex-wrap:nowrap}.promise:has(.checklist,.numeric-control,.record-form,.milestone-control){flex-wrap:wrap}.promise .inline-actions .check-action{padding-inline:6px}}
 .today-list .tl-title .dateline{display:none}
 @media(max-width:650px){.today-list .tl-head{position:relative;padding-right:104px}.today-list .tl-score{position:absolute;top:var(--s-4);right:var(--s-4);row-gap:6px}.today-list .tl-score strong{font-size:30px}.today-list .tl-score span{font-size:18px}.today-list .tl-score small{display:none}.today-list .tl-score i{width:72px}.today-head .rh-becoming{font-size:24px}.today-list .frog-streak{display:none}}
+
+/* Guided tour: a spotlight on one part of the screen and a card that explains it */
+.tour-root{position:fixed;inset:0;z-index:100;pointer-events:auto}
+.tour-veil{position:absolute;inset:0;background:#0b1426a6}
+.tour-spot{position:fixed;border-radius:14px;box-shadow:0 0 0 2px var(--metal),0 0 0 9999px #0b1426a6;transition:top .35s var(--ease),left .35s var(--ease),width .35s var(--ease),height .35s var(--ease);pointer-events:none}
+.tour-card{position:fixed;padding:var(--s-5) var(--s-5) var(--s-4);border-radius:18px;background:var(--sheet);color:var(--ink);box-shadow:0 24px 60px -18px #000c;outline:none}
+.tour-guide{position:absolute;top:-46px;left:14px;width:64px;height:auto;filter:drop-shadow(0 6px 8px #0005);pointer-events:none}
+.tour-close{position:absolute;top:10px;right:10px}
+.tour-step{margin:0 0 6px;font:600 11px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--gold-text)}
+.tour-card h2{margin:0 0 var(--s-2);padding-right:var(--s-6);font:500 24px/1.2 var(--serif)}
+.tour-card p#tour-body{margin:0;font-size:15px;line-height:1.5;color:var(--ink-soft)}
+.tour-actions{display:flex;align-items:center;gap:var(--s-2);margin-top:var(--s-4)}
+.tour-dots{display:flex;gap:5px;margin-right:auto}
+.tour-dots i{width:6px;height:6px;border-radius:50%;background:var(--line-strong)}
+.tour-dots i.past{background:var(--gold)}
+.tour-dots i.on{width:18px;border-radius:3px;background:var(--blue)}
+.tour-skip{margin-top:var(--s-2);font-size:13px}
+.sidebar-tour{align-self:flex-start;color:var(--metal)!important;font-size:13px;padding:0;min-height:32px}
+body.touring .pocket-pet .pb-bubble{display:none}
+@media(prefers-reduced-motion:reduce){.tour-spot{transition:none}}

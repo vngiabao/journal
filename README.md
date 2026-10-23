@@ -92,6 +92,10 @@ Four places, the same on every screen: **Today, Journal, Progress** (your Journe
 
 The big chart, the board's centre goals and the review live in Progress and the Board, one tap away. Writing anything in the journal counts toward "Write a journal" automatically.
 
+## Guided tour
+
+A one-minute walkthrough of Today (`src/Tour.tsx`). It spotlights each part of the screen in turn: who you're becoming, the frog, tasks and priorities, promises, the check-in, the four places, Settings and reminders, and Bond. It runs once by itself. To replay it, press **?**, click "Show me around" in the sidebar, or use Settings → Take the tour.
+
 ## Board and Journal
 
 **Reboot Board.** The board is one printed bingo card with REBOOT across the top:
@@ -125,7 +129,7 @@ Habits from Brian Tracy's *Eat That Frog*, built into Today's list (`src/Frog.ts
 ## Bond and small delights
 
 On a computer, a chibi of Bond, the user's dog, lives on the bottom edge of the page (`src/Pet.tsx`, art in `public/art/dog/bond-*.webp`). Turn him on or off in Settings.
-- He trots after you, and runs over when you tap empty space, leaving paw prints and sniffing the spot.
+- He keeps walking toward your cursor, stopping just beside it, and sprints to wherever you click, leaving paw prints and sniffing the spot.
 - He covers his eyes while you write ("Not peeking. Promise.") and peeks out when you finish.
 - He tilts his head while you type.
 - He jumps for a kept promise and stands up for a finished goal.
