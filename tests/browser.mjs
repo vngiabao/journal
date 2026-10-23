@@ -23,6 +23,15 @@ await page.getByRole('button',{name:'Write it',exact:true}).click();await page.g
 await page.getByRole('radio',{name:'Shot taken'}).click();await page.getByRole('textbox',{name:'Add a shot taken'}).fill('Applied for a stretch role');await page.locator('.proof-rail').getByRole('button',{name:'Add',exact:true}).click();await saved();s=await state();assert.equal(s.proofs.length,1);assert.equal(s.proofs[0].kind,'attempt');assert.equal(s.journey.length,0,'proof never moves the journey line');
 assert.match(await page.locator('.rh-evidence').textContent(),/1\s*shot taken/);
 await page.getByRole('textbox',{name:'Add something for today'}).fill('Send two applications');await page.locator('.today-list').getByRole('button',{name:'Add',exact:true}).click();await saved();s=await state();assert.equal(s.todos.length,1);assert(s.logs.some(l=>l.goalId==='35'&&l.state==='success'),'writing today’s list counts toward the to-do goal');
+// Eat That Frog: choose the frog, slice it, label a second task B, get nudged for doing B first, then eat the frog.
+await page.getByRole('button',{name:'Make “Send two applications” my frog',exact:true}).click();await saved();await page.locator('.frog-card').waitFor();
+await page.getByRole('textbox',{name:'Add a slice of your frog',exact:true}).fill('Open the job board');await page.keyboard.press('Enter');await saved();
+await page.getByRole('textbox',{name:'Add something for today'}).fill('Tidy the desk');await page.locator('.today-list').getByRole('button',{name:'Add',exact:true}).click();await saved();
+await page.getByRole('button',{name:'Give “Tidy the desk” a priority',exact:true}).click();await page.getByRole('button',{name:/^Priority A/}).click();await saved();
+s=await state();let tidy=s.todos.find(t=>t.text==='Tidy the desk');assert.equal(tidy.priority,'B','tapping the chip cycles A then B');
+await page.locator('.todo-list .check-action').filter({hasText:'Tidy the desk'}).click();await page.locator('.abc-nudge').waitFor();await saved();
+await page.locator('.frog-title').click();await saved();s=await state();const frogTodo=s.todos.find(t=>t.frog);
+assert(frogTodo&&frogTodo.done&&frogTodo.doneAt&&frogTodo.priority==='A','eating the frog marks it done with a time');assert.equal(frogTodo.slices[0].text,'Open the job board');
 await nav('Journey');const svg=page.getByRole('application');await svg.waitFor();let box=await svg.boundingBox();
 const composer=page.locator('.composer');const logMoment=async(step,note,label)=>{await composer.getByRole('radio',{name:step,exact:true}).click();if(note)await composer.getByRole('textbox',{name:'What happened',exact:true}).fill(note);if(label)await composer.getByRole('button',{name:label,exact:true}).click();await composer.getByRole('button',{name:'Add to my line',exact:true}).click();await saved();};
 assert(await composer.getByRole('button',{name:'Add to my line',exact:true}).isDisabled(),'nothing is logged until a direction is picked');

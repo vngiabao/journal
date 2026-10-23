@@ -8,6 +8,8 @@ import {putActivity,type Mutate} from './GoalControls';
 import {addDays,label} from './dates';
 import {dayState} from './engine';
 import {Chibi} from './Art';
+import {FrogCard,FrogFocus,FrogGlyph,PriorityChip,TomorrowFrog,frogStats,priorityRank} from './Frog';
+import type {Priority} from './model';
 
 // Goal 6.5 on the board: write a to-do list every day.
 export const TODO_GOAL='35';
@@ -15,7 +17,8 @@ export const TODO_GOAL='35';
 // Today's list: the featured card under the greeting. The day's line and progress up top, then a big list you can work through.
 export function TodayList({state,mutate,now}:{state:State;mutate:Mutate;now:string}){
  const todays=(state.todos??[]).filter(t=>t.date===now),done=todays.filter(t=>t.done).length,unfinished=todays.length-done;
- const ordered=[...todays.filter(t=>!t.done),...todays.filter(t=>t.done)];
+ const frog=todays.find(t=>t.frog),rest=todays.filter(t=>!t.frog),ordered=[...rest].sort((a,b)=>priorityRank(a)-priorityRank(b));
+ const fs=frogStats(state.todos??[],now),[focus,setFocus]=useState(false),[nudge,setNudge]=useState(''),nudgeTimer=useRef(0);
  const goal=state.goals.find(g=>g.id===TODO_GOAL)!,counted=dayState(goal,state.logs,now)==='success';
  function add(text:string){mutate(s=>{s.todos=[...(s.todos??[]),{id:uid(),date:now,text,done:false,createdAt:new Date().toISOString()}];
   // Writing the day's list is the habit itself, so the first line counts for today.
@@ -23,7 +26,10 @@ export function TodayList({state,mutate,now}:{state:State;mutate:Mutate;now:stri
  },`todo ${now}`);}
  const card=useRef<HTMLElement>(null),flip=useRef<{state:Flip.FlipState;id:string}|null>(null),prevAll=useRef(todays.length>0&&!unfinished);
  // Capture the list before a check, so the item can glide to its new place after React re-renders.
- const toggle=(id:string,e?:React.MouseEvent<HTMLElement>)=>{const item=todays.find(x=>x.id===id);if(item&&!item.done&&e){const r=e.currentTarget.querySelector('.check-box')?.getBoundingClientRect();inkStamp(e.clientX||((r?.left??0)+60),e.clientY||(r?.top??0)+(r?.height??0)/2);}if(motionOK()&&card.current)flip.current={state:Flip.getState(card.current.querySelectorAll('.todo-list li')),id};mutate(s=>{const t=(s.todos??[]).find(x=>x.id===id);if(t)t.done=!t.done;},'todo check');};
+ const toggle=(id:string,e?:React.MouseEvent<HTMLElement>)=>{const item=todays.find(x=>x.id===id);
+  if(item&&!item.done&&(item.priority==='B'||item.priority==='C')){const waiting=frog&&!frog.done?'Your frog':todays.some(x=>!x.done&&x.priority==='A'&&x.id!==id)?'An A task':'';if(waiting){setNudge(`${waiting} is still waiting. Done is done, but next time, A before ${item.priority}.`);clearTimeout(nudgeTimer.current);nudgeTimer.current=window.setTimeout(()=>setNudge(''),6000);}}if(item&&!item.done&&e){const r=e.currentTarget.querySelector('.check-box')?.getBoundingClientRect();inkStamp(e.clientX||((r?.left??0)+60),e.clientY||(r?.top??0)+(r?.height??0)/2);}if(motionOK()&&card.current)flip.current={state:Flip.getState(card.current.querySelectorAll('.todo-list li')),id};mutate(s=>{const t=(s.todos??[]).find(x=>x.id===id);if(t){t.done=!t.done;t.doneAt=t.done?new Date().toISOString():undefined;}},'todo check');};
+ const setPriority=(id:string,p?:Priority)=>mutate(s=>{const t=(s.todos??[]).find(x=>x.id===id);if(t)t.priority=p;},'todo priority');
+ const makeFrog=(id:string)=>mutate(s=>{for(const t of s.todos??[])if(t.date===now)t.frog=t.id===id?true:false;const t=(s.todos??[]).find(x=>x.id===id);if(t)t.priority='A';},'frog chosen');
  const {contextSafe}=useGSAP({scope:card});
  // A clean sweep: gold paper bursts out of the score.
  const burst=contextSafe(()=>{const head=card.current?.querySelector('.tl-score');if(!head)return;const r=head.getBoundingClientRect();
@@ -49,23 +55,28 @@ export function TodayList({state,mutate,now}:{state:State;mutate:Mutate;now:stri
     <Chibi pose={todays.length&&!unfinished?'check':'think'} className="tl-chibi"/>
     <p><strong>{done}</strong><span>/{todays.length}</span><small>{todays.length&&!unfinished?'all done':'done'}</small></p>
     <i aria-hidden="true"><b style={{transform:`scaleX(${todays.length?done/todays.length:0})`}}/></i>
+    {fs.eaten>0&&<p className="frog-streak"><FrogGlyph/>{fs.streak>1?`${fs.streak}-day frog streak`:`${fs.eaten} ${fs.eaten===1?'frog':'frogs'} eaten`}{fs.early>0&&<small>{fs.early} before noon</small>}</p>}
    </div>
   </header>
   <div className="tl-body">
-   <AddTodo placeholder="Add something for today" onAdd={add}/>
-   {ordered.length?<ul className="todo-list big">{ordered.map(t=><TodoItem key={t.id} t={t} onToggle={toggle} onRemove={remove}/>)}</ul>:<p className="tl-empty">Nothing on the list yet. What would make today a good day?</p>}
+   {frog?<FrogCard frog={frog} mutate={mutate} now={now} onFocus={()=>setFocus(true)}/>:rest.some(x=>!x.done)?<p className="frog-pick"><FrogGlyph/><span><b>Which one is your frog?</b> The task you’d most like to put off. Tap its frog to eat it first.</span></p>:null}
+   <AddTodo label="Add something for today" placeholder={todays.length?'Add something for today':'Start with your frog: the task you’d most like to put off'} onAdd={add}/>
+   {nudge&&<p className="abc-nudge" role="status">{nudge}</p>}
+   {ordered.length?<ul className="todo-list big">{ordered.map(t=><TodoItem key={t.id} t={t} onToggle={toggle} onRemove={remove} onPriority={p=>setPriority(t.id,p)} onFrog={frog?undefined:()=>makeFrog(t.id)}/>)}</ul>:!frog&&<p className="tl-empty">Nothing on the list yet. What would make today a good day?</p>}
+   {focus&&frog&&<FrogFocus frog={frog} mutate={mutate} onClose={()=>setFocus(false)}/>}
    <div className="tl-foot"><p className="todo-hint">{counted?<><Check size={14}/>Counted toward “Daily to-do list for 90 days”.</>:'Your first item today counts toward “Daily to-do list for 90 days”.'}</p>{unfinished>0&&<button className="text-button" onClick={carry}>Move {unfinished} unfinished to tomorrow <ArrowRight size={15}/></button>}</div>
+   <TomorrowFrog state={state} mutate={mutate} now={now}/>
   </div>
  </section>;
 }
 
-function TodoItem({t,onToggle,onRemove}:{t:NonNullable<State['todos']>[number];onToggle:(id:string,e?:React.MouseEvent<HTMLElement>)=>void;onRemove:(id:string)=>void}){
- return <li className={t.done?'done':''} data-flip-id={t.id}><button className={`check-action ${t.done?'checked':''}`} aria-pressed={t.done} onClick={e=>onToggle(t.id,e)}><span className="check-box">{t.done&&<Check size={16}/>}</span><span className="todo-text">{t.text}</span></button><button className="icon-button" aria-label={`Remove “${t.text}”`} onClick={()=>onRemove(t.id)}><X size={14}/></button></li>;
+function TodoItem({t,onToggle,onRemove,onPriority,onFrog}:{t:NonNullable<State['todos']>[number];onToggle:(id:string,e?:React.MouseEvent<HTMLElement>)=>void;onRemove:(id:string)=>void;onPriority:(p?:Priority)=>void;onFrog?:()=>void}){
+ return <li className={`${t.done?'done':''} ${t.priority?`is-${t.priority}`:''}`} data-flip-id={t.id}>{!t.done&&<PriorityChip t={t} onSet={onPriority}/>}<button className={`check-action ${t.done?'checked':''}`} aria-pressed={t.done} onClick={e=>onToggle(t.id,e)}><span className="check-box">{t.done&&<Check size={16}/>}</span><span className="todo-text">{t.text}{t.priority==='D'&&<small className="todo-tag">hand it off</small>}{t.priority==='E'&&<small className="todo-tag">let it go</small>}</span></button>{onFrog&&!t.done&&t.priority!=='D'&&t.priority!=='E'&&<button className="icon-button frog-btn" aria-label={`Make “${t.text}” my frog`} title="Make this my frog" onClick={onFrog}><FrogGlyph/></button>}<button className="icon-button" aria-label={`Remove “${t.text}”`} onClick={()=>onRemove(t.id)}><X size={14}/></button></li>;
 }
 
-function AddTodo({placeholder,onAdd}:{placeholder:string;onAdd:(t:string)=>void}){
+function AddTodo({label,placeholder,onAdd}:{label:string;placeholder:string;onAdd:(t:string)=>void}){
  const [text,setText]=useState('');
- return <form className="todo-add" onSubmit={e=>{e.preventDefault();const v=text.trim();if(!v)return;onAdd(v);setText('');}}><Plus size={20}/><input aria-label={placeholder} value={text} maxLength={140} placeholder={placeholder} onChange={e=>setText(e.target.value)}/><button className="button" disabled={!text.trim()}>Add</button></form>;
+ return <form className="todo-add" onSubmit={e=>{e.preventDefault();const v=text.trim();if(!v)return;onAdd(v);setText('');}}><Plus size={20}/><input aria-label={label} value={text} maxLength={140} placeholder={placeholder} onChange={e=>setText(e.target.value)}/><button className="button" disabled={!text.trim()}>Add</button></form>;
 }
 
 // A line to start the day, above the list. Until you write a new one, the last one stays up.

@@ -91,6 +91,20 @@ The installed app keeps its own data, separate from Safari and from your compute
 - Inside, the pages are printed: double gold frames with corner ornaments, running heads, page numbers, fine ruling for writing, today's morning line as an epigraph, and a blind-embossed Reboot mark.
 - Past pages are laid out below as cards, with search.
 
+## Eat That Frog
+
+Habits from Brian Tracy's *Eat That Frog*, built into Today's list (`src/Frog.tsx`, rules in `src/frog-rules.ts`):
+- **One frog a day.** Tap the frog on the task you'd most like to put off. It moves into a featured card that says "eat this first". After noon the frog turns nervous; eating it sends it leaping off and celebrates.
+- **ABCDE.** Tap the letter chip on any task: A must, B should, C nice to do, D delegate, E eliminate. The list sorts by letter, and ticking a B or C while an A or the frog is still open gets a gentle nudge.
+- **Slice it.** Break the frog into small first steps, with a progress bar.
+- **Eat it now.** A 25, 50 or 90 minute focus screen with only the frog, its slices and a timer. It notifies you when time is up.
+- **Plan tomorrow tonight.** After 5 pm, choose tomorrow's frog. It's one task, not a list, and it becomes the frog at midnight.
+- **Record.** The frog count, the streak and the number eaten before noon show on Today.
+- **Reminders** (Settings, Frog reminders):
+  - A morning "Eat your frog first" and an evening "Choose tomorrow's frog".
+  - "Add to my calendar" downloads two daily calendar alarms, which ring on your phone even when Reboot is closed.
+  - "Notify me on this device" shows system notifications while Reboot is open. The morning one stays quiet once the frog is eaten.
+
 ## Pocket pups and small delights
 
 On a computer, a chibi Shiba and Samoyed live on the bottom edge of the page (`src/Pet.tsx`, art in `public/art/dog/`). You can pick one, both or none in Settings.

@@ -107,7 +107,8 @@ function Identity({state,mutate}:{state:State;mutate:Mutate}){
 // Proof you are moving: real counts only. Nothing here is estimated.
 function Evidence({state,now,daily}:{state:State;now:string;daily:Goal[]}){
  const kept=promisesKept(state,now),c=proofCounts(state.proofs.filter(p=>p.date<=now)),streak=Math.max(0,...daily.map(g=>stats(g,state.logs,now).current));
- const items:[number,string][]=[[kept,kept===1?'promise kept':'promises kept'],[streak,streak===1?'day, longest streak running':'days, longest streak running'],[c.attempt,c.attempt===1?'shot taken':'shots taken'],[c.win,c.win===1?'win logged':'wins logged']];
+ const frogs=(state.todos??[]).filter(t=>t.frog&&t.done&&t.date<=now).length;
+ const items:[number,string][]=[[kept,kept===1?'promise kept':'promises kept'],...(frogs?[[frogs,frogs===1?'frog eaten':'frogs eaten'] as [number,string]]:[]),[streak,streak===1?'day, longest streak running':'days, longest streak running'],[c.attempt,c.attempt===1?'shot taken':'shots taken'],[c.win,c.win===1?'win logged':'wins logged']];
  if(!items.some(([n])=>n))return <p className="rh-evidence-empty">Day one. Every promise you keep from today on is counted here, and nothing you didn’t do.</p>;
  return <div className="rh-evidence">{items.map(([n,l])=><div key={l}><strong data-count={n}>{n}</strong><span>{l}</span></div>)}</div>;
 }

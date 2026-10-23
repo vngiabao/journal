@@ -15,6 +15,7 @@ import {Today} from './Today';
 import {Chibi,type ChibiPose} from './Art';
 import {PocketPets,usePocketPets} from './Pet';
 import {burst,inkStamp,installHoverPhysics} from './delight';
+import {remindersOf,dueReminder,isDue,notify} from './reminders';
 import {gsap,useGSAP,motionOK,whenMotionOK,SplitText,Flip,ScrollTrigger} from './motion';
 
 const nav=[['Today',Sun],['Reboot Board',LayoutGrid],['Journey',TrendingUp],['Journal',BookOpen],['Review',ChartNoAxesCombined]] as const;
@@ -34,6 +35,11 @@ export default function App(){
   if(typed!=='reboot')return;typed='';setCheer({pose:'bingo',text:'Reboot complete. New day, same promise. Let’s go.',key:Date.now()});burst(window.innerWidth/2,window.innerHeight*.45,64);
   if(motionOK())gsap.fromTo('.brand svg path',{drawSVG:'0%'},{drawSVG:'100%',duration:.8,ease:'pen',stagger:.25});};
   window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[]);
+ // Frog reminders while Reboot is open: checked every half minute, each one at most once a day.
+ useEffect(()=>{const check=()=>{const s=stateRef.current;if(!s)return;const r=remindersOf(s);if(!r.notify)return;const day=today(s.settings.timezone),at=new Date();
+  for(const kind of ['morning','evening'] as const){if(!isDue(kind==='morning'?r.morning:r.evening,at))continue;const key=`reboot-reminded-${kind}-${day}`;try{if(localStorage.getItem(key))continue;localStorage.setItem(key,'1');}catch{continue;}
+   const msg=dueReminder(kind,s,day);if(msg)void notify(msg.title,msg.body,`frog-${kind}`);}};
+  check();const id=window.setInterval(check,30_000);return()=>clearInterval(id);},[]);
  const mainRef=useRef<HTMLElement>(null),navInk=useRef<ReturnType<typeof Flip.getState>|null>(null),loaded=!!state;
  // The current-page marker in the sidebar slides to its new place instead of jumping.
  useLayoutEffect(()=>{const from=navInk.current;navInk.current=null;if(from&&motionOK())Flip.from(from,{targets:'.nav-ink',duration:.5,ease:'power3.inOut'});},[page]);
@@ -92,6 +98,8 @@ export default function App(){
  function celebrate(a:State,b:State){
   const day=today(b.settings.timezone);
   const finished=b.goals.some(g=>g.status==='completed'&&a.goals.find(x=>x.id===g.id)?.status!=='completed')||b.achievements.length>a.achievements.length;
+  const frogEaten=(b.todos??[]).some(t=>t.frog&&t.done&&!(a.todos??[]).find(x=>x.id===t.id)?.done);
+  if(frogEaten){setCheer({pose:'bingo',text:'Frog eaten. Everything else today is downhill.',key:Date.now()});return;}
   const kept=b.logs.some(l=>l.date===day&&l.state==='success'&&a.logs.find(x=>x.id===l.id)?.state!=='success');
   if(!finished&&!kept)return;
   const p=lastPress.current;if(Date.now()-p.at<1500)inkStamp(p.x,p.y,finished?'Done':'Kept');
