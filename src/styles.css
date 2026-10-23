@@ -1059,7 +1059,6 @@ body{padding-bottom:env(safe-area-inset-bottom)}
 .pb-hop{transform-origin:50% 100%}
 .pet-frame{display:block;margin:0 auto;transform-origin:50% 100%;transition:transform .2s var(--ease);filter:drop-shadow(0 3px 4px #1f2a442e)}
 .pocket-pet img{display:block;height:88px;width:auto;margin:0 auto}
-.dog-samoyed img{height:85px}
 .pet-walk{position:relative;width:max-content}
 .pet-walk img+img{position:absolute;inset:0}
 .pet-walk img:first-child{animation:pet-step-a .36s steps(1) infinite}
@@ -1522,3 +1521,4 @@ body.focus-writing .recto{border-radius:4px;padding-left:var(--s-8);background:u
 }
 .tl-score .frog-streak{grid-column:2;align-items:center}
 @media(max-width:600px){.tl-score .frog-streak{grid-column:1}}
+.dog-bond img{height:94px}

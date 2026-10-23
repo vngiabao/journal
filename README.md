@@ -105,17 +105,17 @@ Habits from Brian Tracy's *Eat That Frog*, built into Today's list (`src/Frog.ts
   - "Add to my calendar" downloads two daily calendar alarms, which ring on your phone even when Reboot is closed.
   - "Notify me on this device" shows system notifications while Reboot is open. The morning one stays quiet once the frog is eaten.
 
-## Pocket pups and small delights
+## Bond and small delights
 
-On a computer, a chibi Shiba and Samoyed live on the bottom edge of the page (`src/Pet.tsx`, art in `public/art/dog/`). You can pick one, both or none in Settings.
-- They trot after you, and run over when you tap empty space, leaving paw prints and sniffing the spot.
-- They cover their eyes while you write ("Not peeking. Promise.") and peek out when you finish.
-- They tilt their heads while you type.
-- They jump for a kept promise and stand up for a finished goal.
-- Tap one and it reminds you of a real entry from your proof file.
-- They lie down when you step away and curl up asleep after a few minutes.
+On a computer, a chibi of Bond, the user's dog, lives on the bottom edge of the page (`src/Pet.tsx`, art in `public/art/dog/bond-*.webp`). Turn him on or off in Settings.
+- He trots after you, and runs over when you tap empty space, leaving paw prints and sniffing the spot.
+- He covers his eyes while you write ("Not peeking. Promise.") and peeks out when you finish.
+- He tilts his head while you type.
+- He jumps for a kept promise and stands up for a finished goal.
+- Tap him and he reminds you of a real entry from your proof file.
+- He lies down when you step away and curls up asleep after a few minutes.
 
-They ignore the pointer, so they never block a click. They are hidden on phones and with Reduce Motion. Swap poses through the `STILL` map in `src/Pet.tsx`.
+He ignores the pointer, so he never blocks a click. He is hidden on phones and with Reduce Motion.
 
 Elsewhere (`src/delight.ts`):
 - Keeping a promise or ticking a to-do stamps "KEPT" in red ink where you pressed.

@@ -1,7 +1,7 @@
-// Pocket pets: a chibi Shiba and/or Samoyed who live on the bottom edge of the page on a computer.
-// They trot after you, run over when you tap empty space and sniff the spot, cover their eyes while you write,
-// tilt their heads while you type, jump for the promises you keep, and lie down, then curl up asleep, when you step away.
-// They never block anything: they ignore the pointer, and taps on them are found by position instead.
+// Pocket Bond: a chibi of Bond, who lives on the bottom edge of the page on a computer.
+// He trots after you, runs over when you tap empty space and sniffs the spot, covers his eyes while you write,
+// tilts his head while you type, jumps for the promises you keep, and lies down, then curls up asleep, when you step away.
+// He never blocks anything: he ignores the pointer, and taps on him are found by position instead.
 import {useEffect,useRef,useState,useSyncExternalStore} from 'react';
 import type {ChibiPose} from './Art';
 import {gsap} from './motion';
@@ -11,8 +11,8 @@ import {label} from './dates';
 import {burst,inkDrop,isInteractive} from './delight';
 
 export type Cheer={pose:ChibiPose;text:string;key:number};
-export type Dog='shiba'|'samoyed';
-type Choice=Dog|'both'|'off';
+export type Dog='bond';
+type Choice='bond'|'off';
 type Frame='sit'|'walk'|'run'|'cover'|'peek'|'tilt'|'sniff'|'jump'|'cheer'|'lie'|'sleep';
 type Mood='follow'|'think'|'private'|'peek'|'rest'|'sleep'|'talk'|'cheer'|'sniff';
 // Which drawing each mood uses while standing still. Walking and running are handled by movement.
@@ -23,7 +23,7 @@ const KEY='reboot-pocket-pet',ROOMY='(hover:hover) and (pointer:fine) and (min-w
 const REST_AFTER=45_000,SLEEP_AFTER=150_000;
 
 let remembered:Choice|null=null;
-export function petChoice():Choice{if(remembered)return remembered;try{const v=localStorage.getItem(KEY);if(v==='shiba'||v==='samoyed'||v==='both'||v==='off')return v;if(localStorage.getItem('reboot-pocket-bao')==='off')return 'off';}catch{/* storage blocked */}return 'both';}
+export function petChoice():Choice{if(remembered)return remembered;try{const v=localStorage.getItem(KEY);if(v==='off'||(!v&&localStorage.getItem('reboot-pocket-bao')==='off'))return 'off';}catch{/* storage blocked */}return 'bond';}
 export function setPetChoice(v:Choice){remembered=v;try{localStorage.setItem(KEY,v);}catch{/* private browsing: the choice lasts for this visit */}window.dispatchEvent(new Event('reboot-pet'));}
 function subscribe(cb:()=>void){const a=window.matchMedia(ROOMY),b=window.matchMedia(QUIET);a.addEventListener('change',cb);b.addEventListener('change',cb);window.addEventListener('reboot-pet',cb);window.addEventListener('storage',cb);
  return()=>{a.removeEventListener('change',cb);b.removeEventListener('change',cb);window.removeEventListener('reboot-pet',cb);window.removeEventListener('storage',cb);};}
@@ -138,20 +138,17 @@ function PocketDog({dog,state,now,cheer,onCheerDone,lead,pos,speaks}:{dog:Dog;st
 
 // One dog, or the Shiba leading with the Samoyed a step behind.
 export function PocketPets({choice,state,now,cheer,onCheerDone}:{choice:Choice;state:State;now:string;cheer:Cheer|null;onCheerDone:()=>void}){
- const leadPos=useRef<Pos>({x:window.innerWidth+20,face:-1}),tailPos=useRef<Pos>({x:window.innerWidth+110,face:-1});
+ const leadPos=useRef<Pos>({x:window.innerWidth+20,face:-1});
  if(choice==='off')return null;
- const first:Dog=choice==='samoyed'?'samoyed':'shiba';
  return <>
-  <PocketDog key={first} dog={first} state={state} now={now} cheer={cheer} onCheerDone={onCheerDone} pos={leadPos} speaks/>
-  {choice==='both'&&<PocketDog key="samoyed-tail" dog="samoyed" state={state} now={now} cheer={cheer} lead={leadPos} pos={tailPos} speaks={false}/>}
+  <PocketDog key="bond" dog="bond" state={state} now={now} cheer={cheer} onCheerDone={onCheerDone} pos={leadPos} speaks/>
  </>;
 }
 
 export function PetSetting(){
- const choice=useSyncExternalStore(subscribe,petChoice,()=>'both' as Choice);
- const options:[Choice,string][]=[['both','Shiba and Samoyed'],['shiba','Shiba'],['samoyed','Samoyed'],['off','Off']];
- return <section className="settings-section"><h2>Pocket pups</h2>
-  <div className="segmented pet-choice" role="radiogroup" aria-label="Pocket pups">{options.map(([v,n])=><button key={v} type="button" role="radio" aria-checked={choice===v} className={choice===v?'selected':''} onClick={()=>setPetChoice(v)}>{n}</button>)}</div>
-  <p className="muted">On a computer, the pups keep you company along the bottom of the page. They follow you, cover their eyes while you write, jump for the promises you keep, and remind you of a real win when you tap one. Tap empty space and they race over. Hidden on phones and when Reduce Motion is on.</p>
+ const choice=useSyncExternalStore(subscribe,petChoice,()=>'bond' as Choice);
+ return <section className="settings-section"><h2>Bond</h2>
+  <label className="checkbox-label"><input type="checkbox" checked={choice==='bond'} onChange={e=>setPetChoice(e.target.checked?'bond':'off')}/>Let Bond walk along the bottom of the page</label>
+  <p className="muted">On a computer, Bond keeps you company: he follows you around, covers his eyes while you write, jumps for the promises you keep, and reminds you of a real win when you tap him. Tap empty space and he runs over. Hidden on phones and when Reduce Motion is on.</p>
  </section>;
 }
