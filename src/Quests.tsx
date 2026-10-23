@@ -23,6 +23,7 @@ export function quests(s:State,bondAround:boolean):Quest[]{
   {id:'slice',title:'Slice your frog',how:'Break it into small first steps inside the frog card.',page:'Today',target:'.frog-card .slice-add, .frog-card, .frog-pick',done:frogs.some(t=>(t.slices??[]).length>0)},
   {id:'priority',title:'Organize with A–E',how:'Tap the A–E chip on a task: A must, B should, C nice to do, D hand off, E drop.',page:'Today',target:'.todo-list .prio-chip, .today-list .todo-add',done:todos.some(t=>!!t.priority)},
   {id:'eat',title:'Eat a frog',how:'Finish your frog first thing. “Eat it now” starts a focus timer.',page:'Today',target:'.frog-card, .frog-pick',done:frogs.some(t=>t.done)},
+  {id:'training',title:'Train from your plan',how:'Tick off today’s exercises on Today. “Edit plan” changes your week.',page:'Today',target:'.training',done:(s.workouts??[]).some(w=>w.done.length>0)},
   {id:'promise',title:'Keep a promise',how:'Tap “Mark done” on one of your promises.',page:'Today',target:'.promises',done:s.logs.some(l=>l.state==='success')},
   {id:'checkin',title:'Check in on your day',how:'One tap on “How was today?” It also marks your Journey line.',page:'Today',target:'.checkin .mood-row',done:s.journals.some(j=>!!j.mood)||s.journey.some(d=>(d.moments??[]).some(m=>m.tag===CHECK_IN))},
   {id:'journal',title:'Write in your journal',how:'A line on Today’s check-in, or a full page in Journal.',page:'Journal',target:'.book .writing-area, .writing-room',done:s.journals.some(j=>!!j.text.trim())},

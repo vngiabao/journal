@@ -9,6 +9,7 @@ import {GoalControls,type Mutate} from './GoalControls';
 import {TodayList} from './Todo';
 import {CheckIn} from './CheckIn';
 import {Routine} from './Routine';
+import {TrainingCard} from './TrainingCard';
 import {quests,QuestMeter,openQuests} from './Quests';
 import {usePocketPets} from './Pet';
 
@@ -39,6 +40,7 @@ export function Today({state,mutate,now,go}:{state:State;mutate:Mutate;now:strin
    <div className="today-do">
     <Routine state={state} now={now} go={go}/>
     <TodayList state={state} mutate={mutate} now={now}/>
+    <TrainingCard state={state} mutate={mutate} now={now}/>
     <Promises state={state} mutate={mutate} now={now} go={go} active={active}/>
    </div>
    <aside className="today-checkin"><CheckIn state={state} mutate={mutate} now={now} go={go}/></aside>

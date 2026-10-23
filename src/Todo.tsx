@@ -9,6 +9,7 @@ import {addDays,label} from './dates';
 import {dayState} from './engine';
 import {Chibi} from './Art';
 import {FrogCard,FrogFocus,FrogGlyph,PriorityChip,frogStats,priorityRank} from './Frog';
+import {leftovers} from './frog-rules';
 import type {Priority} from './model';
 
 // Goal 6.5 on the board: write a to-do list every day.
@@ -64,6 +65,7 @@ export function TodayList({state,mutate,now}:{state:State;mutate:Mutate;now:stri
    </div>
   </header>
   <div className="tl-body">
+   <Rewrite state={state} mutate={mutate} now={now}/>
    {frog?<FrogCard frog={frog} mutate={mutate} now={now} onFocus={()=>setFocus(true)}/>:rest.some(x=>!x.done)?<div className="frog-pick"><FrogGlyph/><div><p><b>Pick today’s frog.</b> The task you’d most like to put off. You’ll do it first.</p><div className="frog-choices">{rest.filter(x=>!x.done&&x.priority!=='D'&&x.priority!=='E').map(x=><button key={x.id} type="button" className="frog-choice" aria-label={`Make “${x.text}” my frog`} onClick={()=>makeFrog(x.id)}>{x.text}</button>)}</div></div></div>:null}
    <AddTodo label="Add something for today" placeholder={todays.length?'Add something for today':'Start with your frog: the task you’d most like to put off'} onAdd={add}/>
    {nudge&&<p className="abc-nudge" role="status">{nudge}</p>}
@@ -94,4 +96,24 @@ function MorningQuote({state,mutate,now}:{state:State;mutate:Mutate;now:string})
   {shown?<blockquote>{shown.text}</blockquote>:<p>A line to start the day?</p>}
   <figcaption>{shown&&!todays&&<span>Still up from {label(shown.date,{month:'short',day:'numeric'})}</span>}<button className="text-button" onClick={()=>{setText(todays?.text??'');setEditing(true);}}><PenLine size={14}/>{todays?'Rewrite':shown?'Write today’s line':'Write a line'}</button></figcaption>
  </figure>;
+}
+
+// Rewrite, don't carry: yesterday's unfinished tasks wait here until you type each one again into today, or let it go.
+function Rewrite({state,mutate,now}:{state:State;mutate:Mutate;now:string}){
+ const left=leftovers(state.todos??[],now),resolved=(state.todos??[]).filter(t=>t.carriedOn===now).length;
+ if(!left.length)return resolved?<p className="rewrite-done"><Check size={14}/>Yesterday’s list is settled: {resolved} rewritten or let go.</p>:null;
+ const yesterday=addDays(now,-1),from=left.every(t=>t.date===yesterday)?'yesterday':'earlier days';
+ return <section className="rewrite" aria-labelledby="rewrite-title">
+  <h3 id="rewrite-title">Rewrite from {from}<span>{resolved} of {resolved+left.length} done</span></h3>
+  <p>Unfinished tasks don’t move by themselves. Type each one that still matters into today, in your own words, or let it go.</p>
+  <ul>{left.map(t=><RewriteRow key={t.id} t={t} now={now} showDate={from!=='yesterday'} mutate={mutate}/>)}</ul>
+ </section>;
+}
+function RewriteRow({t,now,showDate,mutate}:{t:NonNullable<State['todos']>[number];now:string;showDate:boolean;mutate:Mutate}){
+ const [text,setText]=useState('');
+ const settle=(how:'rewritten'|'dropped')=>mutate(s=>{const o=(s.todos??[]).find(x=>x.id===t.id);if(!o)return;o.carried=how;o.carriedOn=now;
+  if(how==='rewritten'){s.todos=[...(s.todos??[]),{id:uid(),date:now,text:text.trim(),done:false,createdAt:new Date().toISOString()}];const g=s.goals.find(x=>x.id===TODO_GOAL)!;if(dayState(g,s.logs,now)!=='success')putActivity(s,g,now,{state:'success',note:'Wrote today’s to-do list'});}},how==='rewritten'?'todo rewrite':'todo let go');
+ return <li className="rewrite-row"><p className="rewrite-was">{t.frog&&<FrogGlyph/>}<span>{t.text}</span>{showDate&&<small>{label(t.date,{weekday:'short',month:'short',day:'numeric'})}</small>}</p>
+  <form onSubmit={e=>{e.preventDefault();if(text.trim())settle('rewritten');}}><input aria-label={`Rewrite “${t.text}”`} value={text} maxLength={140} placeholder="Write it again for today" onChange={e=>setText(e.target.value)}/><button className="button" disabled={!text.trim()}>Add to today</button><button type="button" className="text-button" onClick={()=>settle('dropped')}>Let it go</button></form>
+ </li>;
 }

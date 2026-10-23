@@ -13,3 +13,8 @@ export function frogStats(todos:Todo[],now:string){
  let streak=0,d=days.has(now)?now:addDays(now,-1);while(days.has(d)){streak++;d=addDays(d,-1);}
  return {eaten:eaten.length,streak,early:eaten.filter(t=>t.doneAt&&new Date(t.doneAt).getHours()<12).length};
 }
+
+// Eat That Frog's rule: what you didn't finish is rewritten by hand into the next day's list, so you decide again.
+// Leftovers are unfinished tasks from the past week that you haven't rewritten or let go yet.
+export const leftovers=(todos:Todo[],now:string)=>todos.filter(t=>t.date<now&&t.date>=addDays(now,-7)&&!t.done&&!t.carried).sort((a,b)=>a.date.localeCompare(b.date));
+export const rewrittenOn=(todos:Todo[],now:string)=>todos.filter(t=>t.carriedOn===now).length;

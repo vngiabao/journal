@@ -6,6 +6,8 @@ import type {State} from './model';
 import {addDays,weekStart,daysBetween} from './dates';
 import {dayState} from './engine';
 import {showMe} from './Quests';
+import {dayPlan,finished,isTrainingDay} from './training';
+import {leftovers,rewrittenOn} from './frog-rules';
 import {Check,ArrowRight,ChevronDown} from './icons';
 
 type Step={id:string;title:string;page:string;target:string;done:boolean};
@@ -13,11 +15,14 @@ export function routine(s:State,now:string):Step[]{
  const todos=(s.todos??[]).filter(t=>t.date===now),frog=todos.find(t=>t.frog),tasks=todos.filter(t=>!t.frog&&!t.done);
  const entry=s.journals.find(j=>j.date===now&&j.kind==='daily'),daily=s.goals.filter(g=>g.status==='active'&&g.type==='daily');
  const dow=new Date(`${now}T12:00:00`).getDay(),[y,m]=now.split('-').map(Number),lastDay=new Date(y,m,0).getDate(),day=Number(now.slice(8)),ws=weekStart(now);
+ const left=leftovers(s.todos??[],now).length,settled=rewrittenOn(s.todos??[],now);
  const steps:Step[]=[
+  ...(left+settled>0?[{id:'rewrite',title:left?`Rewrite yesterday’s unfinished tasks (${left})`:'Rewrite yesterday’s unfinished tasks',page:'Today',target:'.rewrite, .rewrite-done',done:left===0}]:[]),
   {id:'frog',title:'Pick today’s frog',page:'Today',target:'.frog-pick, .frog-card, .today-list .todo-add',done:!!frog},
   {id:'label',title:'Label today’s tasks A to E',page:'Today',target:'.todo-list .prio-chip, .today-list .todo-add',done:todos.length>0&&tasks.every(t=>!!t.priority)},
   {id:'eat',title:'Eat your frog',page:'Today',target:'.frog-card, .frog-pick',done:!!frog?.done},
   ...(daily.length?[{id:'promises',title:'Keep today’s promises',page:'Today',target:'.promises',done:daily.every(g=>dayState(g,s.logs,now)==='success')}]:[]),
+  ...(isTrainingDay(dayPlan(s,now))?[{id:'workout',title:dayPlan(s,now).kind==='gym'?`Do today’s workout: ${dayPlan(s,now).title}`:`${dayPlan(s,now).title} today`,page:'Today',target:'.training',done:finished(s,now)}]:[]),
   {id:'checkin',title:'Check in: how was today?',page:'Today',target:'.checkin .mood-row',done:!!entry?.mood},
   {id:'journal',title:'Write a line in your journal',page:'Today',target:'.checkin-line, .checkin-wrote',done:!!entry?.text.trim()},
   {id:'tomorrow',title:'Choose tomorrow’s frog',page:'Today',target:'.close-day, .checkin',done:(s.todos??[]).some(t=>t.date===addDays(now,1)&&t.frog)},

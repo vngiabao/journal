@@ -100,6 +100,14 @@ Each page has a short tour (`src/Tour.tsx`): Today, Journal (with weekly and mon
 
 The Today tour is a one-minute walkthrough. It spotlights each part of the screen in turn: who you're becoming, the frog, tasks and priorities, promises, the check-in, the four places, Settings and reminders, and Bond. It runs once by itself. To replay it, press **?**, click "Show me around" in the sidebar, or use Settings → Take the tour.
 
+## Training plan
+
+The weekly gym and soccer plan (`src/training.ts`, `src/TrainingCard.tsx`) shows today's session on Today, with each exercise's sets × reps to tick off, or the whole session at once. A finished gym day counts toward "Gym 4+ times a week". "See the week" shows all seven days; "Edit plan" changes any day, one exercise per line ("Goblet squat 3 × 10–12").
+
+## Rewrite, don't carry
+
+The book's rule is that unfinished tasks are rewritten by hand into the next day's list. Nothing moves by itself. The next day, "Rewrite from yesterday" lists what's left from the past week. You type each one again in your own words to add it to today, or let it go. It's the first step of Today's routine until every leftover is settled.
+
 ## Getting started checklist
 
 A checklist of everything Reboot can do (`src/Quests.tsx`). Each item ticks itself off when you actually do it:

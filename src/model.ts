@@ -17,9 +17,13 @@ export interface Quote {id:string; date:string; text:string;}
 export type Priority='A'|'B'|'C'|'D'|'E';
 export interface Slice {id:string; text:string; done:boolean;}
 // `frog` marks the day's one most important task; `slices` are its small first steps; `doneAt` records when it was finished.
-export interface Todo {id:string; date:string; text:string; done:boolean; createdAt:string; priority?:Priority; frog?:boolean; slices?:Slice[]; doneAt?:string;}
+export interface Todo {id:string; date:string; text:string; done:boolean; createdAt:string; priority?:Priority; frog?:boolean; slices?:Slice[]; doneAt?:string; carried?:'rewritten'|'dropped'; carriedOn?:string;}
+// A weekly training plan (Monday first) and which exercises were done on each date.
+export interface Exercise {name:string; dose:string;}
+export interface TrainingDay {kind:'gym'|'sport'|'rest'; title:string; exercises:Exercise[];}
+export interface Workout {date:string; done:string[];}
 export type ProofKind='win'|'attempt'|'lesson';
 export interface Proof {id:string; date:string; kind:ProofKind; text:string; createdAt:string;}
 export interface Achievement {id:string;goalId:string;run:number;date:string;criteria:Criteria;}
-export interface State {schema:1; goals:Goal[]; logs:Activity[]; journey:Movement[]; journals:Journal[]; edits:Edit[]; achievements:Achievement[]; proofs:Proof[]; todos?:Todo[]; quotes?:Quote[]; settings:{language:'en'|'both'|'vi';timezone:string;onboarded:boolean;identity?:string;name?:string;customTags?:string[];reminders?:{morning:string;evening:string;notify:boolean};};}
+export interface State {schema:1; goals:Goal[]; logs:Activity[]; journey:Movement[]; journals:Journal[]; edits:Edit[]; achievements:Achievement[]; proofs:Proof[]; todos?:Todo[]; quotes?:Quote[]; training?:{days:TrainingDay[]}; workouts?:Workout[]; settings:{language:'en'|'both'|'vi';timezone:string;onboarded:boolean;identity?:string;name?:string;customTags?:string[];reminders?:{morning:string;evening:string;notify:boolean};};}
 export function uid(){return crypto.randomUUID();}

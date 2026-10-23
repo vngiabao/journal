@@ -1,10 +1,11 @@
 import {describe,it,expect} from 'vitest';
 import 'fake-indexeddb/auto';
 import {seed} from '../src/seed';
-import {frogStats,frogOf,priorityRank} from '../src/frog-rules';
+import {frogStats,frogOf,priorityRank,leftovers,rewrittenOn} from '../src/frog-rules';
 import {remindersIcs,dueReminder,isDue,DEFAULT_REMINDERS,remindersOf} from '../src/reminders';
 import {validateImport} from '../src/storage';
 import type {Todo} from '../src/model';
+import {parseLines,dayPlan,toggleExercise,setAll,finished,gymGoal,DEFAULT_PLAN} from '../src/training';
 
 const todo=(date:string,p:Partial<Todo>={}):Todo=>({id:crypto.randomUUID(),date,text:'Task',done:false,createdAt:date,...p});
 
@@ -46,5 +47,33 @@ describe('Frog reminders',()=>{
  it('is due from its time for two hours, and defaults fill in missing settings',()=>{
   expect(isDue('08:30',new Date(2026,9,23,8,29))).toBe(false);expect(isDue('08:30',new Date(2026,9,23,8,30))).toBe(true);expect(isDue('08:30',new Date(2026,9,23,10,31))).toBe(false);
   expect(remindersOf(seed('2026-10-01'))).toEqual(DEFAULT_REMINDERS);
+ });
+});
+
+describe('Training plan',()=>{
+ it('reads one exercise per line with its sets and reps',()=>{
+  expect(parseLines('Goblet squat 3 × 10–12\nSoccer 90 min\nPlank 3 x 30–45 sec\nStretch')).toEqual([{name:'Goblet squat',dose:'3 × 10–12'},{name:'Soccer',dose:'90 min'},{name:'Plank',dose:'3 × 30–45 sec'},{name:'Stretch',dose:''}]);
+ });
+ it('shows the weekday’s plan and counts a finished gym day toward the gym goal',()=>{
+  const s=seed('2026-10-01');expect(dayPlan(s,'2026-10-23').title).toBe('Upper + Arms');expect(dayPlan(s,'2026-10-25').kind).toBe('rest');
+  const g=gymGoal(s)!;expect(g).toBeTruthy();
+  toggleExercise(s,'2026-10-23','Back machine');expect(finished(s,'2026-10-23')).toBe(false);expect(s.logs.some(l=>l.goalId===g.id)).toBe(false);
+  setAll(s,'2026-10-23',true);expect(finished(s,'2026-10-23')).toBe(true);expect(s.logs.filter(l=>l.goalId===g.id&&l.date==='2026-10-23'&&l.state==='success')).toHaveLength(1);
+  setAll(s,'2026-10-23',false);expect(s.logs.some(l=>l.goalId===g.id&&l.date==='2026-10-23')).toBe(false);
+  expect(DEFAULT_PLAN.filter(d=>d.kind==='gym')).toHaveLength(4);
+ });
+ it('accepts a plan in a backup and rejects a broken one',()=>{
+  const s=seed('2026-10-01');s.training={days:structuredClone(DEFAULT_PLAN)};s.workouts=[{date:'2026-10-23',done:['Back machine']}];
+  expect(()=>validateImport(structuredClone(s))).not.toThrow();
+  const bad=structuredClone(s);bad.training!.days.pop();expect(()=>validateImport(bad)).toThrow();
+ });
+});
+
+describe('Rewrite unfinished tasks',()=>{
+ it('lists the past week’s unfinished tasks until each is rewritten or let go',()=>{
+  const todos=[todo('2026-10-22',{text:'Send deck'}),todo('2026-10-22',{text:'Done one',done:true}),todo('2026-10-14',{text:'Too old'}),todo('2026-10-23',{text:'Today'})];
+  expect(leftovers(todos,'2026-10-23').map(t=>t.text)).toEqual(['Send deck']);
+  todos[0].carried='rewritten';todos[0].carriedOn='2026-10-23';
+  expect(leftovers(todos,'2026-10-23')).toHaveLength(0);expect(rewrittenOn(todos,'2026-10-23')).toBe(1);
  });
 });

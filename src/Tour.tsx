@@ -22,9 +22,11 @@ const TOURS:Record<TourId,Stop[]>={
  today:[
   {title:'Welcome to Reboot',body:'A one-minute tour of how a day works here. Everything stays private on this device.'},
   {targets:['.routine'],title:'Today’s routine',body:'The few things worth doing every day, in order. Each ticks itself off when you do it, and “Show me” takes you there. Weekly and monthly reviews join it when they’re due.'},
+  {targets:['.rewrite'],title:'Rewrite what’s left',body:'The book’s rule: unfinished tasks don’t move by themselves. Type each one that still matters into today, in your own words, or let it go.',optional:true},
   {targets:['.today-head .rh-statement'],title:'Who you’re becoming',body:'Your one sentence, with real counts underneath: promises kept, streaks, shots taken. Nothing here is estimated.'},
   {targets:['.frog-card','.frog-pick','.today-list .todo-add'],title:'Eat your frog first',body:'Pick the task you’d most like to put off. It goes to the top, and you do it first. Break it into small slices, or tap “Eat it now” for a focus timer.'},
   {targets:['.today-list .todo-add'],title:'The rest of today',body:'Add what else today needs. Tap the A–E chip to set a priority: A must, B should, C nice to do, D hand it off, E drop it. The list sorts itself A to E.'},
+  {targets:['.training'],title:'Today’s training',body:'Your weekly plan, one day at a time. Tick each exercise as you go, or the whole session at once; a finished gym day counts toward “Gym 4+ times a week”. “Edit plan” changes any day.',optional:true},
   {targets:['.promises'],title:'Your promises',body:'The habits you’ve turned on. Tap Mark done each day. A gold note means today keeps a streak going; weekly ones show their count.'},
   {targets:['.checkin .mood-row','.checkin'],title:'How was today?',body:'One tap sets your mood and marks the day on your Journey line. Add one line for your journal, and one win or shot you took.'},
   {targets:['.tabbar','.sidebar nav'],title:'Four places',body:'Today is home. Journal is for writing, including weekly and monthly reviews. Progress holds your line and the review. The Board has all 36 goals from May.'},

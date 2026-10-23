@@ -1713,3 +1713,54 @@ body.touring .pocket-pet .pb-bubble{display:none}
 
 .today-list .tl-breakdown{grid-column:2;margin:0;font-size:12.5px;color:var(--cover-muted)}
 @media(max-width:650px){.today-list .tl-breakdown{grid-column:1;font-size:11.5px}}
+
+/* Today's training: the day from your weekly plan */
+.training{padding:var(--s-5) var(--s-6);background:var(--sheet);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow-1)}
+.training-head{display:flex;align-items:flex-end;justify-content:space-between;gap:var(--s-3);margin-bottom:var(--s-2)}
+.training-day{margin:0 0 4px;font:600 11.5px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--gold-text)}
+.training h2{margin:0;font:500 26px/1.15 var(--serif)}
+.training-count{font:600 13px/1 var(--sans);color:var(--muted);font-variant-numeric:tabular-nums}
+.training.complete .training-count{color:var(--green)}
+.exercise-list{margin:0;padding:0;list-style:none}
+.exercise-list li{border-bottom:1px solid var(--line)}
+.exercise-list li:last-child{border-bottom:0}
+.exercise-list .check-action{display:grid;grid-template-columns:auto minmax(0,1fr) auto;width:100%;min-height:52px;gap:var(--s-3);white-space:normal;text-align:left;color:var(--ink)}
+.exercise-name{font:400 18px/1.3 var(--serif)}
+.exercise-dose{font:600 13px/1 var(--sans);color:var(--blue-deep);font-variant-numeric:tabular-nums;white-space:nowrap}
+.exercise-list li.done .exercise-name{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--green)}
+.exercise-list li.done .exercise-dose{color:var(--muted)}
+.training-all{margin-top:var(--s-3)}
+.training .text-button{min-height:40px}
+.training-note,.training-rest{margin:var(--s-2) 0 0;font-size:13px;color:var(--muted)}
+.training-rest{font:400 18px/1.45 var(--serif);color:var(--ink-soft)}
+.training-foot{display:flex;flex-wrap:wrap;gap:var(--s-2) var(--s-5);margin-top:var(--s-3);padding-top:var(--s-2);border-top:1px dashed var(--line-strong)}
+.training-week{margin:var(--s-2) 0 0;padding:0;list-style:none}
+.training-week li{display:grid;grid-template-columns:44px minmax(0,1fr) 24px;align-items:center;gap:var(--s-2);min-height:36px;font-size:14px;color:var(--ink-soft)}
+.training-week li.today{font-weight:600;color:var(--ink)}
+.tw-day{font:600 11.5px/1 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.training-week li.today .tw-day{color:var(--gold-text)}
+.tw-mark{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;color:var(--sheet)}
+.training-week li.done .tw-mark{background:var(--green)}
+.plan-editor .plan-day{margin:0 0 var(--s-3);padding:var(--s-3) var(--s-4);border:1px solid var(--line);border-radius:var(--r-tile)}
+.plan-day legend{padding:0 6px;font:600 13px/1 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--gold-text)}
+.plan-row{display:grid;grid-template-columns:minmax(0,1fr) 120px;gap:var(--s-3)}
+.plan-row label,.plan-lines{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600}
+.plan-lines{margin-top:var(--s-2)}
+.plan-lines textarea{font:400 15px/1.5 var(--sans);resize:vertical}
+.plan-actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-4);margin-top:var(--s-2)}
+@media(max-width:650px){.training{padding:var(--s-4)}.training h2{font-size:22px}}
+
+/* Rewrite, don't carry: yesterday's unfinished tasks, typed again by hand */
+.rewrite{margin:0 0 var(--s-4);padding:var(--s-4);border:1px solid #ead9b4;border-radius:var(--r-tile);background:var(--gold-wash)}
+.rewrite h3{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:var(--s-2);margin:0 0 var(--s-1);font:500 20px/1.2 var(--serif)}
+.rewrite h3 span{font:600 12.5px/1 var(--sans);color:var(--gold-text)}
+.rewrite>p{margin:0 0 var(--s-3);font-size:14px;color:var(--ink-soft)}
+.rewrite ul{margin:0;padding:0;list-style:none}
+.rewrite-row{padding:var(--s-3) 0;border-top:1px dashed #e2cfa3}
+.rewrite-was{display:flex;align-items:center;gap:var(--s-2);margin:0 0 var(--s-2);font:400 17px/1.3 var(--serif);color:var(--muted);text-decoration:line-through;text-decoration-color:#c9a15a99}
+.rewrite-was small{font:12px var(--sans);text-decoration:none;color:var(--muted)}
+.rewrite-was .frog-glyph{width:22px;height:22px}
+.rewrite-row form{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-2)}
+.rewrite-row input{flex:1;min-width:180px;min-height:44px;font:400 17px var(--serif);background:var(--sheet)}
+.rewrite-done{display:flex;align-items:center;gap:6px;margin:0 0 var(--s-3);font-size:13px;color:var(--green)}
+.close-note{margin:0;font-size:14px;color:var(--ink-soft)}
