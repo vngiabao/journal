@@ -5,7 +5,7 @@ import {validateImport} from '../src/storage';
 import type {State} from '../src/model';
 import {addGoal} from '../src/plan';
 import {lifeAreas,ensureAreas,addVision,editVision,removeVision,restoreVision,visionsAt,addArea,renameArea,removeArea,restoreArea,setGoalArea,goalsIn,unassignedGoals,furthestVision,DEFAULT_AREAS,AREA_MAX,AREA_MIN} from '../src/horizon/life';
-import {mindLayout,mindSizes,mindSplit,branchPath,cloudPoints,bezLength,type MindAreaIn} from '../src/horizon/geometry';
+import {mindLayout,mindSizes,mindSplit,spinePath,branchPoints,taperedPoly,cloudPoints,bezLength,type MindAreaIn} from '../src/horizon/geometry';
 
 const fresh=()=>{const s=seed('2026-05-04');s.todos=[];return s;};
 
@@ -68,10 +68,16 @@ describe('Life map geometry: the mind map',()=>{
   const L=mindLayout([area(4)],{width:1200,height:600});const xs=L.branches[0].twigs.map(t=>t.x);for(let i=1;i<4;i++)expect(xs[i]).toBeGreaterThan(xs[i-1]);
  });
  it('grows taller than the window rather than squeezing',()=>{const L=mindLayout(Array.from({length:8},()=>area(6,60)),{width:1200,height:500});expect(L.height).toBeGreaterThan(500);});
- it('writes every branch path left to right so names read the right way up',()=>{
-  const L=mindLayout(Array.from({length:6},()=>area(1)),{width:1200,height:700});
-  for(const b of L.branches){const m=branchPath(b).match(/^M([\d.-]+) [\d.-]+ C[\d.-]+ [\d.-]+ [\d.-]+ [\d.-]+ ([\d.-]+)/)!;expect(Number(m[2])).toBeGreaterThan(Number(m[1]));}
+ it('starts every root inside the cloud, spread around its rim, and runs level where the name is written',()=>{
+  const L=mindLayout(Array.from({length:7},(_,i)=>({...area(1),nameW:60+i*10})),{width:1200,height:700});
+  expect(new Set(L.branches.map(b=>`${Math.round(b.p0[0])},${Math.round(b.p0[1])}`)).size).toBe(7);for(const side of [1,-1]){const ys=L.branches.filter(b=>b.side===side).map(b=>Math.round(b.p0[1]));expect(new Set(ys).size).toBe(ys.length);}
+  for(const b of L.branches){expect(Math.hypot((b.p0[0]-L.cloud.cx)/(L.cloud.w/2),(b.p0[1]-L.cloud.cy)/(L.cloud.h/2))).toBeLessThan(.95);
+   expect(b.knee[1]).toBeCloseTo(b.tip[1],5);expect(Math.abs(b.tip[0]-b.knee[0])).toBeGreaterThan(b.name.w);expect(spinePath(b).startsWith('M')).toBe(true);
+   const roots=b.twigs.map(t=>t.p0[0]);for(let k=1;k<roots.length;k++)expect(b.side*(roots[k]-roots[k-1])).toBeGreaterThan(0);}
  });
+ it('lets twigs leave one after another, never from a single point',()=>{const L=mindLayout([area(4)],{width:1200,height:600}),r=L.branches[0].twigs.map(t=>t.p0[0]);expect(new Set(r).size).toBe(4);});
+ it('tapers a branch outline from thick to thin',()=>{const pts=branchPoints({p0:[0,0],c1:[20,0],c2:[40,0],knee:[60,0],tip:[160,0]}),o=taperedPoly(pts,20,4),n=pts.length;
+  expect(o).toHaveLength(2*n);expect(Math.abs(o[0][1]-o[2*n-1][1])).toBeCloseTo(20,0);expect(Math.abs(o[n-1][1]-o[n][1])).toBeLessThan(6);});
  it('draws a closed, soft cloud',()=>{const p=cloudPoints(100,100,200,100);expect(Math.hypot(p[0][0]-p[90][0],p[0][1]-p[90][1])).toBeLessThan(1);for(const [x,y] of p){expect(Math.abs(x-100)).toBeLessThanOrEqual(100.5);expect(Math.abs(y-100)).toBeLessThanOrEqual(50.5);}});
  it('measures a branch',()=>{expect(bezLength([0,0],[10,0],[20,0],[30,0])).toBeCloseTo(30,0);});
 });

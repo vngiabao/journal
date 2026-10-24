@@ -1,6 +1,6 @@
 /* Life map · a hand-drawn Buzan mind map of the life Bao wants. Branch = area of life; time runs outward along its twigs.
  * Tokens only (tokens.css); values that don't exist there live here as custom properties on .lm and the popovers. */
-.lm,.lm-pop{--lm-halo:0 0 2px var(--paper),0 0 4px var(--paper),0 0 8px var(--paper),0 0 12px var(--paper);--lm-rung-col:92px;
+.lm,.lm-pop{--lm-rung-col:92px;
  /* Area inks the tokens don't have, mixed from them: plum, rust and olive sit apart from blue, violet, green and gold */
  --lm-plum:color-mix(in srgb,var(--red) 55%,var(--violet));--lm-rust:color-mix(in srgb,var(--gold-text) 60%,var(--red));--lm-olive:color-mix(in srgb,var(--green) 50%,var(--gold-text));
 }
@@ -15,52 +15,62 @@
 .mm-svg{display:block;overflow:visible}
 .mm-cloud .f{fill:var(--sheet)}
 .mm-cloud .s{stroke:var(--ink-pen);stroke-linecap:round;stroke-linejoin:round}
-.mm-area{transition:opacity 240ms var(--ease)}
-.lm.arriving .mm-area,.lm.arriving .mm-icon{transition:none}
 .mm-area .mm-fill .f{fill:var(--c)}
-.mm-spine{fill:none;stroke:var(--c);stroke-width:3;stroke-linecap:round}
-.mm-spine.twig{stroke-width:1.6}
+.mm-fill,.mm-line,.mm-line-add{transition:opacity 200ms var(--ease)}
+/* The centrelines exist only for the arrival: they draw out from "Me", then step back so only the inked shapes show */
+.mm-spine{fill:none;stroke:var(--c);stroke-width:3;stroke-linecap:round;opacity:0}
+.mm-spine.twig{stroke-width:2}
+.lm[data-arriving] .mm-spine{opacity:1}
+.lm[data-arriving] :is(.mm-fill,.mm-line,.mm-line-add,.mm-name,.mm-icon){transition:none}
 .mm-line .s{stroke:var(--c);stroke-linecap:round}
 .mm-line-add{stroke:var(--c);stroke-width:1.4;stroke-dasharray:3 5;stroke-linecap:round;opacity:.7}
-.mm-twig.add .mm-fill{opacity:.5}
-.mm-name{font-family:var(--hand);font-weight:600;letter-spacing:.06em;fill:var(--c);paint-order:stroke;stroke:var(--paper);stroke-width:4px;stroke-linejoin:round}
+.mm-twig.add .mm-fill{opacity:.45}
 /* Focusing an area lightens the other branches; their words step down to muted ink only, never below 4.5:1 */
-.mm-area.dim .mm-fill,.mm-area.dim .mm-line,.mm-area.dim .mm-line-add,.mm-area.dim .mm-spine{opacity:.28}
-.mm-area.dim .mm-name{fill:var(--muted)}
+.mm-area.dim .mm-fill,.mm-area.dim .mm-line,.mm-area.dim .mm-line-add{opacity:.28}
 .mm-centre{position:absolute;display:grid;place-items:center;text-align:center;z-index:1}
-.mm-centre .hz-sky{justify-content:center;flex-direction:column;gap:2px;min-height:0}
+.mm-centre .hz-sky{justify-content:center;min-height:0}
 .mm-centre .hz-sky-text{font-size:var(--lm-sky,21px);line-height:1.2;text-align:center;min-height:44px;color:var(--ink)}
-.mm-centre .hz-sun{width:28px;height:28px;order:-1}
-.mm-name-btn{position:absolute;z-index:2;height:44px;padding:0;border:0;background:transparent;border-radius:var(--r-small)}
-.mm-icon{position:absolute;z-index:1;display:grid;place-items:center;width:26px;height:26px;color:var(--c);pointer-events:none;transition:color 240ms var(--ease)}
+.mm-centre .hz-sun{display:none}
+/* The area's name, hand-lettered level along its branch. The whole word is the button, with no box behind it. */
+.mm-name{position:absolute;z-index:2;display:flex;align-items:flex-end;justify-content:center;padding:0 0 6px;border:0;background:transparent;border-radius:var(--r-small);
+ font-family:var(--hand);font-weight:600;line-height:1;letter-spacing:.06em;color:var(--c);white-space:nowrap;transition:color 200ms var(--ease),transform 160ms var(--ease)}
+.mm-name span{text-decoration-thickness:1.5px;text-underline-offset:4px}
+.mm-name.dim{color:var(--muted)}
+.mm-icon{position:absolute;z-index:1;display:grid;place-items:center;width:26px;height:26px;color:var(--c);opacity:.9;pointer-events:none;transition:color 200ms var(--ease)}
+.mm-icon.tilt-l{transform:rotate(-6deg)}.mm-icon.tilt-r{transform:rotate(5deg)}
 .mm-icon.dim{color:var(--muted)}
+.mm-legend{max-width:none;margin:var(--s-2) auto 0;font-size:13px;color:var(--muted);text-align:center}
 
 /* One idea: its words sit on top of their own line, like an underline. Lines are measured, so nothing truncates. */
-.mm-row{position:absolute;z-index:2;display:flex;flex-direction:column;align-items:flex-start;padding:0;border:0;background:transparent;text-align:left;color:var(--ink);font:500 17px/20px var(--serif);transition:color 160ms var(--ease)}
+.mm-row{position:absolute;z-index:2;display:flex;flex-direction:column;align-items:flex-start;padding:0;border:0;background:transparent;text-align:left;color:var(--ink);font:500 17px/20px var(--serif);transition:color 160ms var(--ease),transform 160ms var(--ease)}
 .mm-row::after{content:'';position:absolute;inset:-6px -4px}
 .mm-row.side-l{align-items:flex-end;text-align:right}
 .mm-row span{white-space:nowrap}
 .mm-text{display:flex;flex-direction:column;align-items:inherit}
-.mm-kicker{height:14px;font:650 12px/14px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--gold-text)}
 .mm-row.h3{font-weight:650}
 .mm-row.goal{font-weight:650}
 .mm-goal{display:flex;align-items:flex-start;gap:6px}
 .mm-goal .hz-mini-pennant{margin-top:1px}
-.mm-meta{display:flex;flex-direction:column;align-items:inherit;margin-top:9px;font:400 13px/16px var(--sans);color:var(--muted)}
+.mm-meta{display:flex;flex-direction:column;align-items:inherit;margin-top:7px;font:400 12px/15px var(--sans);color:var(--muted)}
 .mm-row.side-l .mm-meta{align-items:flex-end}
 .mm-meta.late{color:var(--red);font-weight:550}
 .mm-row.more,.mm-row.add{font:550 13px/20px var(--sans);color:var(--blue)}
 .mm-row.add{font-size:14px;line-height:24px}
-.mm.is-small .mm-row{font-size:15px;line-height:18px}
-.mm.is-small .mm-row.more{font-size:13px;line-height:20px}
-.mm.is-small .mm-row.add{font-size:14px;line-height:24px}
-.mm-row.dim,.mm-row.dim .mm-kicker{color:var(--muted)}
-.mm-name-btn:focus-visible,.mm-row:focus-visible,.mm-mini-name:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:var(--r-small);box-shadow:0 0 0 4px var(--focus-halo)}
+.mm.scale-s .mm-row{font-size:15px;line-height:18px}
+.mm.scale-l .mm-row{font-size:20px;line-height:24px}
+.mm.scale-s .mm-row.more,.mm.scale-l .mm-row.more{font-size:13px;line-height:22px}
+.mm.scale-s .mm-row.add,.mm.scale-l .mm-row.add{font-size:14px;line-height:24px}
+.mm.scale-l .mm-meta{font-size:13px;line-height:16px}
+/* Touch screens: every line on the map keeps a 44px target */
+@media(pointer:coarse){.mm-row::after{inset:-12px -4px}}
+.mm-row.dim{color:var(--muted)}
+.mm-name:focus-visible,.mm-row:focus-visible,.mm-mini-name:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:var(--r-small);box-shadow:0 0 0 4px var(--focus-halo)}
 .lm-vision:focus-visible,.lm-goal-text:focus-visible,.lm-next-text:focus-visible,.lm-area-row:focus-visible,.lm-acc-h button:focus-visible,.lm-chip:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:var(--r-small);box-shadow:0 0 0 4px var(--focus-halo)}
 @media(hover:hover) and (pointer:fine){
  .mm-row:hover,.mm-row.dim:hover{color:var(--blue)}
  .mm-row.add:hover,.mm-row.more:hover{text-decoration:underline 1.5px;text-underline-offset:4px}
- .mm-name-btn:hover{background:var(--paper-40)}
+ .mm-name:hover span{text-decoration-line:underline}
+ .mm-name:hover{color:var(--c)}
  .lm-vision:hover,.lm-goal-text:hover span,.lm-next-text:hover span:not(.lm-next-kicker):not(.hz-tag){color:var(--blue)}
  .lm-area-row:hover .lm-area-name,.lm-acc-h button:hover .lm-area-name{text-decoration:underline 1.5px;text-underline-offset:5px}
  .lm-chip:hover{border-color:var(--c)}
@@ -123,9 +133,9 @@
 /* First run */
 .lm-first h2{font:600 32px/1.1 var(--serif);color:var(--ink)}
 .lm-first p{font-size:15px;color:var(--muted);margin:var(--s-2) 0 var(--s-4)}
-.lm-chips{display:flex;flex-wrap:wrap;gap:var(--s-2)}
+.lm-chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:var(--s-2)}
 /* Chips grow to fill each row, so an odd count never leaves one stranded on its own line */
-.lm-chips>.lm-chip{flex:1 1 auto;justify-content:center}
+.lm-chips>.lm-chip{justify-content:center}
 .lm-chip{position:relative;display:inline-flex;align-items:center;gap:var(--s-2);min-height:44px;padding:0 var(--s-4);border:1px solid var(--line-strong);border-radius:var(--r-chip);background:var(--sheet);font:550 14px var(--sans);color:var(--ink);transition:border-color 160ms var(--ease),transform 160ms var(--ease)}
 .lm-chip::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--c,var(--blue))}
 .lm-chip:active{transform:scale(.97)}
@@ -156,7 +166,8 @@
 .lm-pop-goal{display:flex;align-items:flex-start;gap:var(--s-2);font:500 17px/1.3 var(--serif);color:var(--ink)}
 .lm-pop-goal .hz-mini-pennant{margin-top:2px}
 .lm-area-edit{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--s-1)}
-.lm-area-edit li{display:flex;align-items:center;gap:var(--s-2);padding-left:var(--s-2);border-left:3px solid var(--c)}
+.lm-area-edit li{display:flex;align-items:center;gap:var(--s-2)}
+.lm-area-edit li::before{content:'';flex:none;width:8px;height:8px;border-radius:50%;background:var(--c)}
 .lm-area-edit input,.lm-area-add input{flex:1;min-width:0;min-height:44px}
 .lm-area-add{display:flex;gap:var(--s-2)}
 
@@ -178,14 +189,14 @@
 /* The phone's small map: "Me" and one branch per area, names only */
 .mm-mini-stage{position:relative}
 .mm-mini-me{position:absolute;width:80px;text-align:center;font:400 22px/30px var(--hand);color:var(--ink-soft);pointer-events:none}
-.mm-mini-name{position:absolute;z-index:2;height:28px;padding:0;border:0;background:transparent;text-align:left;font:600 19px/28px var(--hand);letter-spacing:.06em;color:var(--c);white-space:nowrap}
+.mm-mini-name{position:absolute;z-index:2;height:28px;padding:0;border:0;background:transparent;text-align:center;font:600 19px/28px var(--hand);letter-spacing:.06em;color:var(--c);white-space:nowrap}
 .mm-mini-name::after{content:'';position:absolute;inset:-8px -6px}
 .mm-mini-name.dim{color:var(--muted)}
 .mm-mini-name[aria-pressed="true"]{text-decoration:underline 1.5px;text-underline-offset:4px}
 
-@media(prefers-reduced-motion:reduce){.mm-area,.mm-icon,.mm-row,.lm-chip,.lm-acc-h button::after{transition:none}}
+@media(prefers-reduced-motion:reduce){.mm-fill,.mm-line,.mm-line-add,.mm-name,.mm-icon,.mm-row,.lm-chip,.lm-acc-h button::after{transition:none}}
 
 /* Press states for every text control on the map and in the ladder */
-:is(.mm-row,.mm-name-btn,.mm-mini-name,.lm-vision,.lm-goal-text,.lm-next-text,.lm-area-row,.lm-acc-h button):active:not(:disabled){transform:scale(.98)}
+:is(.mm-row,.mm-name,.mm-mini-name,.lm-vision,.lm-goal-text,.lm-next-text,.lm-area-row,.lm-acc-h button):active:not(:disabled){transform:scale(.98)}
 .lm-ladder h2:focus{outline:none}
 .lm-ladder h2:focus-visible{outline:2px solid var(--blue);outline-offset:4px;border-radius:var(--r-small)}

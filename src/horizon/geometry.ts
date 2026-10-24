@@ -121,24 +121,28 @@ export function taperedOutline(p0:Pt,c1:Pt,c2:Pt,p3:Pt,w0:number,w1:number,sampl
 }
 
 // ---------------------------------------------------------------------------------------------- life map
-// A hand-drawn Buzan mind map. "Me" sits in a soft cloud; each area of life is one thick, tapering branch curving
-// out to the left or the right; at its end it splits into thin twigs, and every idea's words sit on their own
-// short line. Time runs outward: a goal's twig ends nearest the branch, 5 years a little further, at 40 furthest.
+// A hand-drawn Buzan mind map. "Me" sits in a soft cloud; each area of life is one thick, tapering branch that leaves
+// the cloud, curves, then runs level so its name can be written along it the right way up. Past the name the branch
+// splits, one twig after another, and every idea's words sit on their own short line. Time runs outward: a goal's
+// twig ends nearest the branch, 5 years a little further, at 40 furthest.
 export interface MindRowIn{h:number;base:number;w:number;horizon:number}
-export interface MindAreaIn{rows:MindRowIn[];minH:number}
+export interface MindAreaIn{rows:MindRowIn[];minH:number;nameW?:number}
 export interface MindTwig{p0:Pt;c1:Pt;c2:Pt;p3:Pt;x:number;y:number;len:number;top:number}
-export interface MindBranch{index:number;side:1|-1;p0:Pt;c1:Pt;c2:Pt;tip:Pt;top:number;bottom:number;twigs:MindTwig[]}
-export interface MindOpts{width:number;height:number;mode?:'both'|'right'|'auto';twig?:number;stagger?:number;gap?:number;pad?:number;cloudW?:number;branchLen?:number}
-export interface MindLayout{mode:'both'|'right';width:number;height:number;cloud:{cx:number;cy:number;w:number;h:number};branchLen:number;room:number;branches:MindBranch[]}
+export interface MindBranch{index:number;side:1|-1;p0:Pt;c1:Pt;c2:Pt;knee:Pt;tip:Pt;name:{x:number;y:number;w:number};top:number;bottom:number;room:number;twigs:MindTwig[]}
+export interface MindOpts{width:number;height:number;mode?:'both'|'right'|'auto';twig?:number;stagger?:number;gap?:number;pad?:number;cloudW?:number;branchLen?:number;tail?:number;nameGap?:number;minRoom?:number}
+export interface MindLayout{mode:'both'|'right';width:number;height:number;cloud:{cx:number;cy:number;w:number;h:number};branches:MindBranch[]}
 const clampN=(v:number,a:number,b:number)=>Math.max(a,Math.min(b,v));
-// Sizes that depend only on the width: two-sided when each side keeps at least 170px for words, else one-sided.
-export function mindSizes(o:MindOpts){
- const W=Math.max(300,o.width),pad=o.pad??16,twig=o.twig??26,stagger=o.stagger??14;
- const cwB=clampN(W*.19,190,290),blB=clampN(W*.11,90,190),roomB=W/2-cwB/2-blB-twig-3*stagger-pad-10;
- const mode:'both'|'right'=o.mode&&o.mode!=='auto'?o.mode:roomB>=170?'both':'right';
- const cw=o.cloudW??(mode==='both'?cwB:clampN(W*.24,140,220)),bl=o.branchLen??(mode==='both'?blB:clampN(W*.1,56,110));
- const room=mode==='both'?W/2-cw/2-bl-twig-3*stagger-pad-10:W-2*pad-cw-bl-twig-3*stagger-10;
- return {W,pad,twig,stagger,mode,cw,ch:Math.round(cw*.56),bl,room:Math.max(80,Math.floor(Math.min(320,room)))};
+// Sizes that depend on the width and the area names: two-sided when every area keeps `minRoom` for its words, else
+// one-sided. `rooms[i]` is how wide area i's words may run.
+export function mindSizes(o:MindOpts,nameWs:number[]=[0]){
+ const W=Math.max(280,o.width),pad=o.pad??16,twig=o.twig??20,stagger=o.stagger??8,tail=o.tail??26,nameGap=o.nameGap??10,minRoom=o.minRoom??110;
+ const arm=(cw:number,bl:number,nw:number)=>cw/2+bl+nw+2*nameGap+tail+twig+3*stagger+pad;
+ const cwB=o.cloudW??clampN(W*.22,220,330),blB=o.branchLen??clampN(W*.035,30,80);
+ const bothRooms=nameWs.map(nw=>W/2-arm(cwB,blB,nw));
+ const mode:'both'|'right'=o.mode&&o.mode!=='auto'?o.mode:Math.min(...bothRooms)>=minRoom?'both':'right';
+ const cw=mode==='both'?cwB:(o.cloudW??clampN(W*.3,96,220)),bl=mode==='both'?blB:(o.branchLen??clampN(W*.05,24,60));
+ const rooms=nameWs.map(nw=>Math.max(70,Math.floor(Math.min(320,mode==='both'?W/2-arm(cw,bl,nw):W-cw/2-pad-arm(cw,bl,nw)))));
+ return {W,pad,twig,stagger,tail,nameGap,mode,cw,ch:Math.round(cw*.56),bl,rooms,room:Math.min(...rooms)};
 }
 // Two-sided: the first areas run down the right, the rest come back up the left (clockwise, like a clock face).
 // Where to split is chosen by height, so both sides carry about the same amount of writing.
@@ -147,29 +151,39 @@ export function mindSplit(heights:number[],gap=0){const n=heights.length;if(n<2)
  return best;}
 export const mindSide=(i:number,split:number,mode:'both'|'right'):1|-1=>mode==='right'||i<split?1:-1;
 export function mindLayout(areas:MindAreaIn[],o:MindOpts):MindLayout{
- const s=mindSizes(o),n=areas.length,gap=o.gap??16;
- const bh=areas.map(a=>Math.max(a.minH,a.rows.reduce((t,r)=>t+r.h,0))),split=mindSplit(bh,gap);
+ const nameWs=areas.map(a=>a.nameW??0),s=mindSizes(o,nameWs.length?nameWs:[0]),n=areas.length,gap=o.gap??16;
+ const bh=areas.map(a=>Math.max(a.minH,a.rows.reduce((t,r)=>t+r.h,0))),split=s.mode==='right'?n:mindSplit(bh,gap);
  const order=(side:1|-1)=>{const ids=areas.map((_,i)=>i).filter(i=>mindSide(i,split,s.mode)===side);return side===1?ids:ids.reverse();};
  const sum=(side:1|-1)=>{const ids=order(side);return ids.reduce((t,i)=>t+bh[i],0)+gap*Math.max(0,ids.length-1);};
  const H=Math.max(o.height,sum(1)+2*s.pad,sum(-1)+2*s.pad,s.ch+2*s.pad+40);
  const cx=s.mode==='both'?s.W/2:s.pad+s.cw/2,cy=H/2,branches:MindBranch[]=new Array(n);
  for(const side of [1,-1] as const){const ids=order(side);if(!ids.length)continue;
-  // Spare height opens the gaps between areas (up to 40px each), so a tall window gets air, not a squashed stack.
-  const extra=H-2*s.pad-sum(side),spread=ids.length>1?Math.min(extra/(ids.length+1),40):0;let y=s.pad+(extra-spread*(ids.length-1))/2;
-  for(const i of ids){const top=y,bottom=y+bh[i],hy=(top+bottom)/2,hx=cx+side*(s.cw/2+s.bl);
-   const dy=clampN((hy-cy)*.5,-s.ch*.36,s.ch*.36),ex=Math.sqrt(Math.max(0,1-(dy/(s.ch/2))**2));
-   const p0:Pt=[cx+side*(s.cw/2)*ex*.97,cy+dy],tip:Pt=[hx,hy],c1:Pt=[p0[0]+side*s.bl*.55,p0[1]],c2:Pt=[hx-side*s.bl*.5,hy];
-   let rt=top;
-   const twigs=areas[i].rows.map(r=>{const x=hx+side*(s.twig+r.horizon*s.stagger),yy=rt+r.base;
-    const t:MindTwig={p0:tip,c1:[hx+side*s.twig*.5,hy],c2:[x-side*s.twig*.55,yy],p3:[x,yy],x,y:yy,len:r.w+10,top:rt};rt+=r.h;return t;});
-   branches[i]={index:i,side,p0,c1,c2,tip,top,bottom,twigs};y=bottom+gap+spread;}}
- return {mode:s.mode,width:s.W,height:H,cloud:{cx,cy,w:s.cw,h:s.ch},branchLen:s.bl,room:s.room,branches};
+  // Spare height opens the gaps between areas (40-90px each, more on tall maps); each side's stack is centred on the cloud.
+  const extra=H-2*s.pad-sum(side),spread=ids.length>1?Math.min(extra/(ids.length+1),clampN(H*.06,40,90)):0;let y=s.pad+(extra-spread*(ids.length-1))/2;
+  // Roots are spread around the cloud's rim (top to bottom in reading order) and start a little inside it.
+  const span=s.mode==='right'?1.2:1.0;
+  ids.forEach((i,j)=>{const top=y,bottom=y+bh[i],hy=(top+bottom)/2,k=ids.length,a=k>1?-span+2*span*j/(k-1):clampN((hy-cy)/(s.ch*2),-.6,.6);
+   const ca=Math.cos(a),sa=Math.sin(a),p0:Pt=[cx+side*(s.cw/2*.9-10)*ca,cy+(s.ch/2*.9-8)*sa];
+   const knee:Pt=[cx+side*(s.cw/2+s.bl),hy],c1:Pt=[p0[0]+side*ca*s.bl*.7,p0[1]+sa*s.bl*.7],c2:Pt=[knee[0]-side*s.bl*.6,hy];
+   const nw=nameWs[i]??0,level=nw+2*s.nameGap,tip:Pt=[knee[0]+side*(level+s.tail),hy];
+   const rows=areas[i].rows,m=rows.length;let rt=top;
+   // Twigs leave the branch one after another along its tail, the top one first, so they never fan from one point.
+   const twigs=rows.map((r,q)=>{const rx=knee[0]+side*(level+s.tail*(m>1?.12+.8*q/(m-1):.5)),x=tip[0]+side*(s.twig+r.horizon*s.stagger),yy=rt+r.base;
+    const t:MindTwig={p0:[rx,hy],c1:[rx+side*Math.min(12,Math.abs(x-rx)*.4),hy],c2:[x-side*s.twig*.6,yy],p3:[x,yy],x,y:yy,len:r.w+10,top:rt};rt+=r.h;return t;});
+   branches[i]={index:i,side,p0,c1,c2,knee,tip,name:{x:knee[0]+side*level/2,y:hy,w:nw},top,bottom,room:s.rooms[i]??s.room,twigs};y=bottom+gap+spread;});}
+ return {mode:s.mode,width:s.W,height:H,cloud:{cx,cy,w:s.cw,h:s.ch},branches};
 }
+// A branch's outline: thick where it leaves the cloud, tapering to thin at its tip, following its curve and level run.
+export function branchPoints(b:{p0:Pt;c1:Pt;c2:Pt;knee:Pt;tip:Pt}):Pt[]{const curve=Array.from({length:17},(_,k)=>bez(b.p0,b.c1,b.c2,b.knee,k/16));
+ const run=Array.from({length:10},(_,k)=>{const t=(k+1)/10;return [b.knee[0]+(b.tip[0]-b.knee[0])*t,b.knee[1]+Math.sin(t*Math.PI)*1.2] as Pt;});return [...curve,...run];}
+export function taperedPoly(pts:Pt[],w0:number,w1:number,pow=.7):Pt[]{const n=pts.length,left:Pt[]=[],right:Pt[]=[];
+ const cum=[0];for(let i=1;i<n;i++)cum.push(cum[i-1]+Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]));const L=cum[n-1]||1;
+ for(let i=0;i<n;i++){const a=pts[Math.max(0,i-1)],b=pts[Math.min(n-1,i+1)],dx=b[0]-a[0],dy=b[1]-a[1],len=Math.hypot(dx,dy)||1,w=(w0+(w1-w0)*Math.pow(cum[i]/L,pow))/2;
+  left.push([pts[i][0]-dy/len*w,pts[i][1]+dx/len*w]);right.push([pts[i][0]+dy/len*w,pts[i][1]-dx/len*w]);}
+ return [...left,...right.reverse()];}
+export const spinePath=(b:{p0:Pt;c1:Pt;c2:Pt;knee:Pt;tip:Pt})=>{const f=(p:Pt)=>`${p[0].toFixed(1)} ${p[1].toFixed(1)}`;return `M${f(b.p0)} C${f(b.c1)} ${f(b.c2)} ${f(b.knee)} L${f(b.tip)}`;};
 // A soft cloud: an ellipse with gentle scallops, closed so rough.js can trace it.
 export function cloudPoints(cx:number,cy:number,w:number,h:number,bumps=9,n=90):Pt[]{
  return Array.from({length:n+3},(_,i)=>{const a=i/n*Math.PI*2,r=.92+.08*Math.abs(Math.sin(a*bumps/2));return [cx+Math.cos(a)*w/2*r,cy+Math.sin(a)*h/2*r] as Pt;});
 }
-// A branch's centreline as path data, always written left to right so the area's name along it reads the right way up.
-export function branchPath(b:{side:1|-1;p0:Pt;c1:Pt;c2:Pt;tip:Pt}){const f=(p:Pt)=>`${p[0].toFixed(1)} ${p[1].toFixed(1)}`;
- return b.side===1?`M${f(b.p0)} C${f(b.c1)} ${f(b.c2)} ${f(b.tip)}`:`M${f(b.tip)} C${f(b.c2)} ${f(b.c1)} ${f(b.p0)}`;}
 export function bezLength(p0:Pt,c1:Pt,c2:Pt,p3:Pt,n=24){let len=0,prev=p0;for(let i=1;i<=n;i++){const p=bez(p0,c1,c2,p3,i/n);len+=Math.hypot(p[0]-prev[0],p[1]-prev[1]);prev=p;}return len;}
