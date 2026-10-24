@@ -114,7 +114,7 @@ function WeekShelf({state,mutate,goals,now,evening}:CampProps){
   toggle={{labels:['This week','Next week'],next:weekNext,set:setWeekNext}} empty="What gets done this week?" placeholder="Add to the week…"
   move={{label:evening?'Do tomorrow':'Do today',target:'today',run:(s,id)=>itemToDay(s,id,day),moved:it=>(state.todos??[]).some(t=>t.fromPlan===it.id&&!t.done&&t.date>=now)?'On your list':''}}/>;
 }
-function TodayShelf({state,mutate,goals,goal,now,evening,onDoToday}:CampProps){
+function TodayShelf({state,mutate,goals,goal,now}:CampProps){
  const ids=new Set([...goals.flatMap(g=>g.steps.map(x=>x.id)),...(state.plan?.items??[]).map(x=>x.id)]);
  const todos=(state.todos??[]).filter(t=>t.date===now&&t.fromPlan&&ids.has(t.fromPlan)&&!t.dismissed),next=goal?nextStep(goal):undefined,late=new Date().getHours()>=19&&periodItems(state,'week',weekOf(now)).some(x=>!x.done);
  const [all,setAll]=useState(false),shown=all?todos:todos.slice(0,3);
@@ -126,6 +126,6 @@ function TodayShelf({state,mutate,goals,goal,now,evening,onDoToday}:CampProps){
    <ShelfNo n={goalNoOf(state,goals,t)}/><span className="hz-moved"><Mountains size={14}/>On your list</span>
   </li>)}</ul>
   {todos.length>3&&<button type="button" className="text-button hz-more" onClick={()=>setAll(!all)}>{all?'Show fewer':`+${todos.length-3} more`}</button>}
-  {!todos.length&&<div className="hz-empty"><p>Nothing from your horizon on today’s list yet.</p>{next&&<button type="button" className="button secondary" onClick={e=>onDoToday(next,e.currentTarget)}>{evening?'Do the next step tomorrow':'Do the next step today'}</button>}</div>}
+  {!todos.length&&<p className="hz-empty">{next?`Nothing from your horizon on today’s list yet. The next step is “${next.text}”.`:'Nothing from your horizon on today’s list yet.'}</p>}
  </section>;
 }

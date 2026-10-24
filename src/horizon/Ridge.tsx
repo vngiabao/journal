@@ -42,7 +42,7 @@ export function Ridge({state,goals,ridge,band,width,focusId,phone,now,hatchDur=.
   <svg ref={svg} className="hz-ridge-svg" width={W} height={H} viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
    <defs>{ridge.peaks.map(p=>{const g=goals[p.index],st=g.steps,done=st.filter(x=>x.done).length,top=isReached(state,g)?p.summit-2:hatchTop(p,done,st.length);
     return <g key={g.id}><clipPath id={`${uid}-c${p.index}`}><rect className="hz-hatch-clip" data-goal={g.id} data-final={top} x={p.left} y={top} width={p.right-p.left} height={Math.max(0,p.base-top)+2}/></clipPath>
-     <clipPath id={`${uid}-h${p.index}`}><path d={catmullRom(hillPolygon(p.hill,p.base),.35)+' Z'}/></clipPath></g>;})}</defs>
+     <clipPath id={`${uid}-h${p.index}`}><path d={catmullRom(p.hill,.35)+' Z'}/></clipPath></g>;})}</defs>
    {ridge.peaks.map(p=><path key={goals[p.index].id} className={`hz-hill ${p.one?'one':''} ${goals[p.index].id===focusId?'focused':''}`} d={catmullRom(hillPolygon(p.hill,p.base),.35)+' Z'}/>)}
    {ridge.peaks.map(p=><g key={goals[p.index].id} clipPath={`url(#${uid}-h${p.index})`}><g clipPath={`url(#${uid}-c${p.index})`}><Rough className="hz-hatch" shape={shapes.hatch[p.index]}/></g></g>)}
    {ridge.add&&<path className="hz-add-hill" d={catmullRom(ridge.add.hill,.4)}/>}

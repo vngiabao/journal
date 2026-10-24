@@ -1,58 +1,66 @@
-/* Life map · a hand-drawn wheel of the life Bao wants. Angle is the area, distance from the centre is time.
+/* Life map · a hand-drawn Buzan mind map of the life Bao wants. Branch = area of life; time runs outward along its twigs.
  * Tokens only (tokens.css); values that don't exist there live here as custom properties on .lm and the popovers. */
-.lm,.lm-pop{--lm-halo:0 0 2px var(--paper),0 0 4px var(--paper),0 0 8px var(--paper),0 0 12px var(--paper);--lm-rung-col:92px}
+.lm,.lm-pop{--lm-halo:0 0 2px var(--paper),0 0 4px var(--paper),0 0 8px var(--paper),0 0 12px var(--paper);--lm-rung-col:92px;
+ /* Area inks the tokens don't have, mixed from them: plum, rust and olive sit apart from blue, violet, green and gold */
+ --lm-plum:color-mix(in srgb,var(--red) 55%,var(--violet));--lm-rust:color-mix(in srgb,var(--gold-text) 60%,var(--red));--lm-olive:color-mix(in srgb,var(--green) 50%,var(--gold-text));
+}
 
-/* Desktop: the wheel takes the room, the area's ladder sits beside it on wide windows and under it on narrower ones */
+/* Desktop: the map takes the room, the area's ladder sits beside it on wide windows and under it on narrower ones */
 .lm-desk{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s-6);align-items:start}
-.lm.is-side .lm-desk{grid-template-columns:minmax(0,1fr) var(--lm-panel);gap:var(--s-7)}
+.lm.is-side .lm-desk{grid-template-columns:minmax(0,1fr) var(--lm-panel);gap:var(--lm-gap,var(--s-7))}
 .lm.is-stacked .lm-panel{max-width:760px;width:100%;justify-self:center}
 
-/* The wheel */
-.lm-wheel{position:relative}
-.lm-svg{display:block;overflow:visible}
-.lm-ring-line .s{stroke:var(--line-strong);stroke-linecap:round}
-.lm-branch{transition:opacity 240ms var(--ease)}
-.lm-branch .f{fill:var(--c)}
-.lm-branch.dim{opacity:.2}
-.lm-dot{fill:var(--sheet);stroke:var(--c);stroke-width:1.6}
-.lm-centre-cloud .f{fill:var(--sheet)}
-.lm-centre-cloud .s{stroke:var(--ink-pen);stroke-linecap:round}
-.lm-centre{position:absolute;display:grid;place-items:center;text-align:center;z-index:1}
-.lm-centre .hz-sky{justify-content:center;min-height:0}
-.lm-centre .hz-sky-text{font-size:21px;line-height:1.2;text-align:center;min-height:44px}
-.lm-centre .hz-sun{display:none}
-.lm-ring-name{position:absolute;font:400 13px/18px var(--sans);color:var(--muted);text-align:center;text-shadow:var(--lm-halo);pointer-events:none;white-space:nowrap}
+/* The mind map: "Me" in a soft cloud, one thick tapering branch per area, ideas written on their own short lines */
+.mm{position:relative}
+.mm-svg{display:block;overflow:visible}
+.mm-cloud .f{fill:var(--sheet)}
+.mm-cloud .s{stroke:var(--ink-pen);stroke-linecap:round;stroke-linejoin:round}
+.mm-area{transition:opacity 240ms var(--ease)}
+.lm.arriving .mm-area,.lm.arriving .mm-icon{transition:none}
+.mm-area .mm-fill .f{fill:var(--c)}
+.mm-spine{fill:none;stroke:var(--c);stroke-width:3;stroke-linecap:round}
+.mm-spine.twig{stroke-width:1.6}
+.mm-line .s{stroke:var(--c);stroke-linecap:round}
+.mm-line-add{stroke:var(--c);stroke-width:1.4;stroke-dasharray:3 5;stroke-linecap:round;opacity:.7}
+.mm-twig.add .mm-fill{opacity:.5}
+.mm-name{font-family:var(--hand);font-weight:600;letter-spacing:.06em;fill:var(--c);paint-order:stroke;stroke:var(--paper);stroke-width:4px;stroke-linejoin:round}
+/* Focusing an area lightens the other branches; their words step down to muted ink only, never below 4.5:1 */
+.mm-area.dim .mm-fill,.mm-area.dim .mm-line,.mm-area.dim .mm-line-add,.mm-area.dim .mm-spine{opacity:.28}
+.mm-area.dim .mm-name{fill:var(--muted)}
+.mm-centre{position:absolute;display:grid;place-items:center;text-align:center;z-index:1}
+.mm-centre .hz-sky{justify-content:center;flex-direction:column;gap:2px;min-height:0}
+.mm-centre .hz-sky-text{font-size:var(--lm-sky,21px);line-height:1.2;text-align:center;min-height:44px;color:var(--ink)}
+.mm-centre .hz-sun{width:28px;height:28px;order:-1}
+.mm-name-btn{position:absolute;z-index:2;height:44px;padding:0;border:0;background:transparent;border-radius:var(--r-small)}
+.mm-icon{position:absolute;z-index:1;display:grid;place-items:center;width:26px;height:26px;color:var(--c);pointer-events:none;transition:color 240ms var(--ease)}
+.mm-icon.dim{color:var(--muted)}
 
-/* Labels at each ring crossing. Each line is placed by the layout, so text never truncates or overlaps. */
-.lm-node{position:absolute;display:flex;flex-direction:column;align-items:flex-start;text-align:left;text-shadow:var(--lm-halo);z-index:2}
-.lm-node.side-left{align-items:flex-end;text-align:right}
-.lm-node.side-up,.lm-node.side-down{align-items:center;text-align:center}
-.lm-node.side-up{justify-content:flex-end}
-.lm-name,.lm-row,.lm-more{position:relative;border:0;background:transparent;color:var(--ink);text-align:inherit;transition:color 160ms var(--ease)}
-.lm-name::after,.lm-row::after{content:'';position:absolute;inset:-7px -4px}
-.lm-name{display:flex;flex-direction:column;align-items:inherit;padding:0 0 4px;font:650 21px/25px var(--serif);color:var(--c)}
-.lm-row{display:flex;flex-direction:column;align-items:inherit;padding:5px 0;font:500 17px/20px var(--serif)}
-.lm-name>span,.lm-row span{white-space:nowrap}
-.lm-row.goal{display:grid;grid-template-columns:var(--num) auto;align-items:start;font-weight:650;text-align:left}
-.lm-row.goal b{font:600 19px/20px var(--hand);color:var(--c)}
-.lm-row-text{display:flex;flex-direction:column}
-.lm-row-meta{grid-column:2;font:400 13px/17px var(--sans);color:var(--muted)}
-.lm-row-meta.late{color:var(--red);font-weight:550}
-.lm-more{display:inline-flex;align-items:center;height:26px;margin-top:4px;padding:0 var(--s-3);border:1px solid var(--line-strong);border-radius:var(--r-chip);background:var(--sheet);font:550 13px/1 var(--sans);color:var(--blue);text-shadow:none;white-space:nowrap}
-.lm-more::after{content:'';position:absolute;inset:-9px -4px}
-/* Focusing an area dims the other branches; their words only step down to the muted ink, never below 4.5:1 */
-.lm-node.dim .lm-name,.lm-node.dim .lm-row,.lm-node.dim .lm-row.goal b{color:var(--muted)}
-.lm-node.dim .lm-more,.lm-more-here.dim{color:var(--muted)}
-.lm-more-here{position:absolute;z-index:2;margin:0}
-.lm-plus{position:absolute;z-index:3;display:grid;place-items:center;width:44px;height:44px;padding:0;border:0;background:transparent;color:var(--c)}
-.lm-plus span{display:grid;place-items:center;width:26px;height:26px;border:1.5px dashed var(--c);border-radius:50%;background:var(--sheet);font:600 18px/1 var(--sans);transition:transform 160ms var(--ease),background-color 160ms var(--ease),color 160ms var(--ease)}
-.lm-plus:active span{transform:scale(.92)}
-.lm-name:focus-visible,.lm-row:focus-visible,.lm-more:focus-visible,.lm-plus:focus-visible,.lm-vision:focus-visible,.lm-goal-text:focus-visible,.lm-next-text:focus-visible,.lm-area-row:focus-visible,.lm-acc-h button:focus-visible,.lm-chip:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:var(--r-small);box-shadow:0 0 0 4px var(--focus-halo)}
+/* One idea: its words sit on top of their own line, like an underline. Lines are measured, so nothing truncates. */
+.mm-row{position:absolute;z-index:2;display:flex;flex-direction:column;align-items:flex-start;padding:0;border:0;background:transparent;text-align:left;color:var(--ink);font:500 17px/20px var(--serif);transition:color 160ms var(--ease)}
+.mm-row::after{content:'';position:absolute;inset:-6px -4px}
+.mm-row.side-l{align-items:flex-end;text-align:right}
+.mm-row span{white-space:nowrap}
+.mm-text{display:flex;flex-direction:column;align-items:inherit}
+.mm-kicker{height:14px;font:650 12px/14px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--gold-text)}
+.mm-row.h3{font-weight:650}
+.mm-row.goal{font-weight:650}
+.mm-goal{display:flex;align-items:flex-start;gap:6px}
+.mm-goal .hz-mini-pennant{margin-top:1px}
+.mm-meta{display:flex;flex-direction:column;align-items:inherit;margin-top:9px;font:400 13px/16px var(--sans);color:var(--muted)}
+.mm-row.side-l .mm-meta{align-items:flex-end}
+.mm-meta.late{color:var(--red);font-weight:550}
+.mm-row.more,.mm-row.add{font:550 13px/20px var(--sans);color:var(--blue)}
+.mm-row.add{font-size:14px;line-height:24px}
+.mm.is-small .mm-row{font-size:15px;line-height:18px}
+.mm.is-small .mm-row.more{font-size:13px;line-height:20px}
+.mm.is-small .mm-row.add{font-size:14px;line-height:24px}
+.mm-row.dim,.mm-row.dim .mm-kicker{color:var(--muted)}
+.mm-name-btn:focus-visible,.mm-row:focus-visible,.mm-mini-name:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:var(--r-small);box-shadow:0 0 0 4px var(--focus-halo)}
+.lm-vision:focus-visible,.lm-goal-text:focus-visible,.lm-next-text:focus-visible,.lm-area-row:focus-visible,.lm-acc-h button:focus-visible,.lm-chip:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:var(--r-small);box-shadow:0 0 0 4px var(--focus-halo)}
 @media(hover:hover) and (pointer:fine){
- .lm-name:hover{text-decoration:underline 1.5px;text-underline-offset:5px}
- .lm-row:hover,.lm-node.dim .lm-row:hover{color:var(--blue)}
- .lm-more:hover{border-color:var(--blue)}
- .lm-plus:hover span{background:var(--c);color:var(--sheet);border-style:solid}
+ .mm-row:hover,.mm-row.dim:hover{color:var(--blue)}
+ .mm-row.add:hover,.mm-row.more:hover{text-decoration:underline 1.5px;text-underline-offset:4px}
+ .mm-name-btn:hover{background:var(--paper-40)}
  .lm-vision:hover,.lm-goal-text:hover span,.lm-next-text:hover span:not(.lm-next-kicker):not(.hz-tag){color:var(--blue)}
  .lm-area-row:hover .lm-area-name,.lm-acc-h button:hover .lm-area-name{text-decoration:underline 1.5px;text-underline-offset:5px}
  .lm-chip:hover{border-color:var(--c)}
@@ -79,23 +87,38 @@
 .lm-goal+.lm-goal{border-top:1px dashed var(--line-strong);padding-top:var(--s-2)}
 .lm-goal-top{display:flex;align-items:flex-start;gap:var(--s-2)}
 .lm-goal-text{flex:1;min-width:0;display:flex;align-items:baseline;gap:var(--s-2);min-height:44px;padding:var(--s-2) 0;border:0;background:transparent;text-align:left;font:600 19px/1.25 var(--serif);color:var(--ink)}
-.lm-goal-text b{font:600 22px/1 var(--hand);color:var(--c)}
-.lm-move{flex:none;font-size:13px;color:var(--muted)}
+.lm-goal-text .hz-mini-pennant{align-self:flex-start;margin-top:3px}
+.lm-move{flex:none;min-width:44px;justify-content:center;font-size:13px;color:var(--muted)}
 .lm-goal-meta{display:flex;flex-wrap:wrap;gap:var(--s-1) var(--s-3);font:400 13px/1.4 var(--sans);color:var(--muted)}
 .lm-goal-meta .late{color:var(--red);font-weight:550}
 .lm-next{display:flex;align-items:center;gap:var(--s-3);margin-top:var(--s-2);padding:var(--s-1) var(--s-2) var(--s-1) var(--s-3);background:var(--gold-wash);border:1px solid var(--gold-soft);border-radius:var(--r-control)}
 .lm-next-text{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;min-height:48px;padding:var(--s-1) 0;border:0;background:transparent;text-align:left;font:650 17px/1.25 var(--serif);color:var(--ink)}
 .lm-next-kicker{font:650 12px/1.3 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--gold-text)}
 .lm-do{flex:none;min-height:44px;padding:var(--s-2) var(--s-4);font-size:14px}
+/* A narrow panel (1366-1440 windows) stacks each rung's name over its lines, and lets the next step wrap above its button */
+.lm-panel.narrow{padding:var(--s-5)}
+.lm-panel.narrow .lm-rung{grid-template-columns:minmax(0,1fr)}
+.lm-panel.narrow .lm-rung>*,.lm-panel.narrow .lm-rung>.lm-rung-title{grid-column:1;grid-row:auto}
+.lm-panel.narrow .lm-rung>.lm-rung-title{padding-top:var(--s-1)}
+.lm-next{flex-wrap:wrap}
+.lm-next-text{flex:1 1 110px}
+.lm-next .lm-do{margin-left:auto}
 .lm-queued{flex:none;padding-right:var(--s-2);font:550 13px var(--sans);color:var(--green)}
 
 /* Every area at a glance */
 .lm-area-list{list-style:none;margin:0;padding:0}
-.lm-area-row,.lm-acc-h button{display:grid;gap:2px;width:100%;min-height:44px;padding:var(--s-3) 0;border:0;border-top:1px solid var(--line);background:transparent;text-align:left;color:var(--ink)}
+.lm-area-row,.lm-acc-h button{display:grid;gap:4px;width:100%;min-height:44px;padding:var(--s-3) 0;border:0;border-top:1px solid var(--line);background:transparent;text-align:left;color:var(--ink)}
 .lm-area-name{font:650 20px/1.2 var(--serif);color:var(--c)}
 .lm-area-line{font:500 17px/1.3 var(--serif);color:var(--ink)}
 .lm-area-line.empty{font:400 14px/1.4 var(--sans);color:var(--muted)}
 .lm-area-count{font:400 13px/1.4 var(--sans);color:var(--muted)}
+.lm-area-top{display:flex;justify-content:space-between;align-items:baseline;gap:var(--s-3)}
+.lm-area-goal{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:start;column-gap:var(--s-2)}
+.lm-area-goal .hz-mini-pennant{margin-top:2px}
+.lm-area-next{font:500 17px/1.3 var(--serif);color:var(--ink)}
+.lm-area-kicker{font:650 12px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--gold-text);margin-right:2px}
+.lm-area-prog{font:400 13px/1.6 var(--sans);color:var(--muted);white-space:nowrap}
+.lm-area-prog.late{color:var(--red);font-weight:550}
 
 /* First run */
 .lm-first h2{font:600 32px/1.1 var(--serif);color:var(--ink)}
@@ -116,19 +139,22 @@
 .lm-tray ul{list-style:none;margin:var(--s-2) 0 0;padding:0}
 .lm-tray-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--s-1) var(--s-3);padding:var(--s-2) 0}
 .lm-tray-row+.lm-tray-row{border-top:1px dashed var(--line)}
-.lm-tray-text{flex:1 1 200px;min-width:0;font:500 17px/1.3 var(--serif);color:var(--ink)}
-.lm-tray-text b{font:600 19px var(--hand);color:var(--muted);margin-right:var(--s-2)}
+.lm-tray-text{flex:1 1 200px;min-width:0;display:flex;align-items:flex-start;gap:var(--s-2);font:500 17px/1.3 var(--serif);color:var(--ink)}
+.lm-tray-text .hz-mini-pennant{margin-top:2px}
 .lm-tray-actions{display:flex;align-items:center;gap:var(--s-3);flex:none}
+.lm-tray-actions .text-button,.lm-pop .hz-pop-buttons .text-button{min-width:44px;justify-content:center}
 
 /* Popovers */
 .lm-pop-when{font:400 13px var(--sans);color:var(--muted)}
 .lm-pop .lm-when{align-self:flex-start}
 .lm-pop .lm-when button{min-height:44px}
-.lm-remove{color:var(--red)}
+.lm-remove{color:var(--muted)}
+.lm-remove:focus-visible{color:var(--red)}
+@media(hover:hover) and (pointer:fine){.lm-remove:hover:not(:disabled){color:var(--red)}}
 .lm-remove:disabled{opacity:var(--disabled)}
 .lm-spacer{flex:1}
-.lm-pop-goal{font:500 17px/1.3 var(--serif);color:var(--ink)}
-.lm-pop-goal b{font:600 19px var(--hand);color:var(--muted)}
+.lm-pop-goal{display:flex;align-items:flex-start;gap:var(--s-2);font:500 17px/1.3 var(--serif);color:var(--ink)}
+.lm-pop-goal .hz-mini-pennant{margin-top:2px}
 .lm-area-edit{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--s-1)}
 .lm-area-edit li{display:flex;align-items:center;gap:var(--s-2);padding-left:var(--s-2);border-left:3px solid var(--c)}
 .lm-area-edit input,.lm-area-add input{flex:1;min-width:0;min-height:44px}
@@ -149,5 +175,17 @@
 .lm-phone .lm-vision,.lm-phone .lm-goal-text{font-size:18px}
 .lm-phone .lm-tray{padding:var(--s-4);border:1px solid var(--line);border-radius:var(--r-card);background:var(--sheet)}
 .lm-edit-areas{align-self:flex-start}
+/* The phone's small map: "Me" and one branch per area, names only */
+.mm-mini-stage{position:relative}
+.mm-mini-me{position:absolute;width:80px;text-align:center;font:400 22px/30px var(--hand);color:var(--ink-soft);pointer-events:none}
+.mm-mini-name{position:absolute;z-index:2;height:28px;padding:0;border:0;background:transparent;text-align:left;font:600 19px/28px var(--hand);letter-spacing:.06em;color:var(--c);white-space:nowrap}
+.mm-mini-name::after{content:'';position:absolute;inset:-8px -6px}
+.mm-mini-name.dim{color:var(--muted)}
+.mm-mini-name[aria-pressed="true"]{text-decoration:underline 1.5px;text-underline-offset:4px}
 
-@media(prefers-reduced-motion:reduce){.lm-branch,.lm-plus span,.lm-chip,.lm-acc-h button::after{transition:none}}
+@media(prefers-reduced-motion:reduce){.mm-area,.mm-icon,.mm-row,.lm-chip,.lm-acc-h button::after{transition:none}}
+
+/* Press states for every text control on the map and in the ladder */
+:is(.mm-row,.mm-name-btn,.mm-mini-name,.lm-vision,.lm-goal-text,.lm-next-text,.lm-area-row,.lm-acc-h button):active:not(:disabled){transform:scale(.98)}
+.lm-ladder h2:focus{outline:none}
+.lm-ladder h2:focus-visible{outline:2px solid var(--blue);outline-offset:4px;border-radius:var(--r-small)}

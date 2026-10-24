@@ -42,3 +42,5 @@ export function removeVision(s:State,id:string){const list=s.plan?.visions;if(!l
 export function restoreVision(s:State,vision:Vision,index:number){const list=plan(s).visions??=[];if(list.some(v=>v.id===vision.id))return;list.splice(Math.min(index,list.length),0,vision);}
 
 export function setGoalArea(s:State,goalId:string,area?:string){const g=(s.plan?.goals??[]).find(x=>x.id===goalId);if(!g)return;ensureAreas(s);if(area)g.area=area;else delete g.area;}
+// The furthest vision written for an area (at 40, else 10 years, else 5), for one-line summaries.
+export function furthestVision(s:State,area:string){for(const w of WHENS){const v=visionsAt(s,area,w)[0];if(v)return v;}return undefined;}

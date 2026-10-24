@@ -121,52 +121,55 @@ export function taperedOutline(p0:Pt,c1:Pt,c2:Pt,p3:Pt,w0:number,w1:number,sampl
 }
 
 // ---------------------------------------------------------------------------------------------- life map
-// A life wheel: angle is the area of life, distance from the centre is time. Rings (inner to outer): this year,
-// 5 years, 10 years, at 40. Drawn as ellipses so the wheel uses a wide window instead of leaving empty margins.
-export const LIFE_RING_F=[.46,.65,.83,1];
-// Odd counts put the first area at the top; even counts turn by half a slot. Either way the bottom of the wheel
-// falls between two branches, which is where the ring names sit.
-export const areaAngle=(i:number,n:number)=>-Math.PI/2+(n%2===0?Math.PI/n:0)+i*2*Math.PI/Math.max(1,n);
-export interface LifeBranch{index:number;angle:number;cos:number;sin:number;p0:Pt;c1:Pt;c2:Pt;tip:Pt;cross:Pt[]}
-export interface LifeGeo{width:number;height:number;cx:number;cy:number;rx:number;ry:number;rings:{rx:number;ry:number}[];centre:{w:number;h:number};branches:LifeBranch[]}
-export function lifeLayout({areas:n,width,height,padX=220,padTop=88,padBottom=40}:{areas:number;width:number;height:number;padX?:number;padTop?:number;padBottom?:number}):LifeGeo{
- // Never taller than wide: when the width runs out first, the wheel stays round and only takes the height it needs.
- const W=Math.max(320,width),rxA=Math.max(110,(W-2*padX)/2),ry=Math.max(110,Math.min(rxA,(Math.max(320,height)-padTop-padBottom)/2)),rx=Math.min(rxA,ry*1.75),H=padTop+2*ry+padBottom;
- const cx=W/2,cy=padTop+ry,rings=LIFE_RING_F.map(f=>({rx:rx*f,ry:ry*f}));
- const at=(f:number,a:number):Pt=>[cx+rx*f*Math.cos(a),cy+ry*f*Math.sin(a)];
- const er=(p:Pt)=>Math.hypot((p[0]-cx)/rx,(p[1]-cy)/ry);
- const branches:LifeBranch[]=[];
- for(let i=0;i<n;i++){const a=areaAngle(i,n),bend=(i%2?1:-1)*.07;
-  const p0=at(.2,a),c1=at(.5,a+bend),c2=at(.8,a-bend*.6),tip=at(1.045,a);
-  // Where the branch meets each ring: sample the curve and take the first point at or past the ring.
-  const cross=LIFE_RING_F.map(f=>{let prev=p0;for(let k=1;k<=60;k++){const p=bez(p0,c1,c2,tip,k/60);if(er(p)>=f){const r0=er(prev),r1=er(p),t=r1===r0?1:(f-r0)/(r1-r0);return [prev[0]+(p[0]-prev[0])*t,prev[1]+(p[1]-prev[1])*t] as Pt;}prev=p;}return at(f,a);});
-  branches.push({index:i,angle:a,cos:Math.cos(a),sin:Math.sin(a),p0,c1,c2,tip,cross});}
- return {width:W,height:H,cx,cy,rx,ry,rings,centre:{w:Math.min(300,rx*.6),h:Math.min(176,ry*.5)},branches};
+// A hand-drawn Buzan mind map. "Me" sits in a soft cloud; each area of life is one thick, tapering branch curving
+// out to the left or the right; at its end it splits into thin twigs, and every idea's words sit on their own
+// short line. Time runs outward: a goal's twig ends nearest the branch, 5 years a little further, at 40 furthest.
+export interface MindRowIn{h:number;base:number;w:number;horizon:number}
+export interface MindAreaIn{rows:MindRowIn[];minH:number}
+export interface MindTwig{p0:Pt;c1:Pt;c2:Pt;p3:Pt;x:number;y:number;len:number;top:number}
+export interface MindBranch{index:number;side:1|-1;p0:Pt;c1:Pt;c2:Pt;tip:Pt;top:number;bottom:number;twigs:MindTwig[]}
+export interface MindOpts{width:number;height:number;mode?:'both'|'right'|'auto';twig?:number;stagger?:number;gap?:number;pad?:number;cloudW?:number;branchLen?:number}
+export interface MindLayout{mode:'both'|'right';width:number;height:number;cloud:{cx:number;cy:number;w:number;h:number};branchLen:number;room:number;branches:MindBranch[]}
+const clampN=(v:number,a:number,b:number)=>Math.max(a,Math.min(b,v));
+// Sizes that depend only on the width: two-sided when each side keeps at least 170px for words, else one-sided.
+export function mindSizes(o:MindOpts){
+ const W=Math.max(300,o.width),pad=o.pad??16,twig=o.twig??26,stagger=o.stagger??14;
+ const cwB=clampN(W*.19,190,290),blB=clampN(W*.11,90,190),roomB=W/2-cwB/2-blB-twig-3*stagger-pad-10;
+ const mode:'both'|'right'=o.mode&&o.mode!=='auto'?o.mode:roomB>=170?'both':'right';
+ const cw=o.cloudW??(mode==='both'?cwB:clampN(W*.24,140,220)),bl=o.branchLen??(mode==='both'?blB:clampN(W*.1,56,110));
+ const room=mode==='both'?W/2-cw/2-bl-twig-3*stagger-pad-10:W-2*pad-cw-bl-twig-3*stagger-10;
+ return {W,pad,twig,stagger,mode,cw,ch:Math.round(cw*.56),bl,room:Math.max(80,Math.floor(Math.min(320,room)))};
 }
-// Which side of its ring crossing a label sits on. Labels on the outer ring above or below the centre stack
-// over or under the point; everything else reads outward, to the right or the left.
-export function nodeSide(cos:number,sin:number,outer:boolean):'left'|'right'|'up'|'down'{if(outer&&Math.abs(cos)<.3)return sin<0?'up':'down';return cos>=-.05?'right':'left';}
-// A closed, slightly irregular ellipse for rough.js to trace (a hand-drawn ring, never a perfect circle).
-export function ellipsePoints(cx:number,cy:number,rx:number,ry:number,seed=0,n=36):Pt[]{return Array.from({length:n+3},(_,i)=>{const a=i/n*Math.PI*2+seed*.37,w=1+Math.sin(i*1.7+seed)*.006;return [cx+Math.cos(a)*rx*w,cy+Math.sin(a)*ry*w] as Pt;});}
-
-export interface NodeIn{key:string;anchor:Pt;side:'left'|'right'|'up'|'down';variants:{w:number;h:number}[];gap?:number;lane?:Box;alt?:'left'|'right';altFrom?:number}
-export interface NodeOut{key:string;variant:number;box:Box;overlap:boolean;side:NodeIn['side']}
-// Places labels next to their ring crossings in the order given (most important first). Each node tries its richest
-// variant first, nudged a little along its side; if nothing fits it folds to a smaller variant ("+2"). Boxes stay
-// inside the canvas and never overlap each other or the obstacles unless even the smallest variant cannot fit.
-// A node's `lane` (the first line's spot beside its own point) is kept free for it until it is placed, so an earlier,
-// taller label on the same branch cannot swallow a later ring's point.
-export function placeNodes(nodes:NodeIn[],o:{width:number;height:number;gap?:number;pad?:number;obstacles?:Box[]}):NodeOut[]{
- const pad=o.pad??6,placed:Box[]=[...(o.obstacles??[])],out:NodeOut[]=[];
- const boxAt=(n:NodeIn,w:number,h:number,shift:number,side=n.side):Box=>{const [x,y]=n.anchor,gap=n.gap??o.gap??14;let l:number,t:number;
-  if(side==='right'){l=x+gap;t=y-h/2+shift;}else if(side==='left'){l=x-gap-w;t=y-h/2+shift;}else if(side==='up'){l=x-w/2+shift;t=y-gap-h;}else{l=x-w/2+shift;t=y+gap;}
-  l=Math.max(0,Math.min(o.width-w,l));t=Math.max(0,Math.min(o.height-h,t));return {l,t,r:l+w,b:t+h};};
- const lanes=new Map(nodes.filter(n=>n.lane).map(n=>[n.key,n.lane!]));
- const over=(q:Box,p:Box)=>q.l<p.r+pad&&q.r+pad>p.l&&q.t<p.b+pad&&q.b+pad>p.t;
- const hits=(q:Box,self:string)=>placed.some(p=>over(q,p))||[...lanes].some(([k,p])=>k!==self&&over(q,p));
- for(const n of nodes){let done=false;lanes.delete(n.key);const shifts=n.side==='left'||n.side==='right'?[0,-14,14,-28,28,-44,44,-60,60]:[0,-24,24,-48,48,-72,72];
-  // A label may read to the other side of its branch when the outward side is taken (from variant `altFrom` on).
-  for(let v=0;v<n.variants.length&&!done;v++){const {w,h}=n.variants[v];for(const side of n.alt&&v>=(n.altFrom??0)?[n.side,n.alt]:[n.side]){for(const s of shifts){const q=boxAt(n,w,h,s,side);if(!hits(q,n.key)){placed.push(q);out.push({key:n.key,variant:v,box:q,overlap:false,side});done=true;break;}}if(done)break;}}
-  if(!done){const v=n.variants.length-1,q=boxAt(n,n.variants[v].w,n.variants[v].h,0);placed.push(q);out.push({key:n.key,variant:v,box:q,overlap:true,side:n.side});}}
- return out;
+// Two-sided: the first areas run down the right, the rest come back up the left (clockwise, like a clock face).
+// Where to split is chosen by height, so both sides carry about the same amount of writing.
+export function mindSplit(heights:number[],gap=0){const n=heights.length;if(n<2)return n;let best=Math.ceil(n/2),score=Infinity;
+ for(let k=1;k<n;k++){const r=heights.slice(0,k).reduce((a,b)=>a+b,0)+gap*(k-1),l=heights.slice(k).reduce((a,b)=>a+b,0)+gap*(n-k-1),s=Math.max(r,l)+Math.abs(k-n/2)*.01;if(s<score-.5||(Math.abs(s-score)<=.5&&k===Math.ceil(n/2))){score=s;best=k;}}
+ return best;}
+export const mindSide=(i:number,split:number,mode:'both'|'right'):1|-1=>mode==='right'||i<split?1:-1;
+export function mindLayout(areas:MindAreaIn[],o:MindOpts):MindLayout{
+ const s=mindSizes(o),n=areas.length,gap=o.gap??16;
+ const bh=areas.map(a=>Math.max(a.minH,a.rows.reduce((t,r)=>t+r.h,0))),split=mindSplit(bh,gap);
+ const order=(side:1|-1)=>{const ids=areas.map((_,i)=>i).filter(i=>mindSide(i,split,s.mode)===side);return side===1?ids:ids.reverse();};
+ const sum=(side:1|-1)=>{const ids=order(side);return ids.reduce((t,i)=>t+bh[i],0)+gap*Math.max(0,ids.length-1);};
+ const H=Math.max(o.height,sum(1)+2*s.pad,sum(-1)+2*s.pad,s.ch+2*s.pad+40);
+ const cx=s.mode==='both'?s.W/2:s.pad+s.cw/2,cy=H/2,branches:MindBranch[]=new Array(n);
+ for(const side of [1,-1] as const){const ids=order(side);if(!ids.length)continue;
+  // Spare height opens the gaps between areas (up to 40px each), so a tall window gets air, not a squashed stack.
+  const extra=H-2*s.pad-sum(side),spread=ids.length>1?Math.min(extra/(ids.length+1),40):0;let y=s.pad+(extra-spread*(ids.length-1))/2;
+  for(const i of ids){const top=y,bottom=y+bh[i],hy=(top+bottom)/2,hx=cx+side*(s.cw/2+s.bl);
+   const dy=clampN((hy-cy)*.5,-s.ch*.36,s.ch*.36),ex=Math.sqrt(Math.max(0,1-(dy/(s.ch/2))**2));
+   const p0:Pt=[cx+side*(s.cw/2)*ex*.97,cy+dy],tip:Pt=[hx,hy],c1:Pt=[p0[0]+side*s.bl*.55,p0[1]],c2:Pt=[hx-side*s.bl*.5,hy];
+   let rt=top;
+   const twigs=areas[i].rows.map(r=>{const x=hx+side*(s.twig+r.horizon*s.stagger),yy=rt+r.base;
+    const t:MindTwig={p0:tip,c1:[hx+side*s.twig*.5,hy],c2:[x-side*s.twig*.55,yy],p3:[x,yy],x,y:yy,len:r.w+10,top:rt};rt+=r.h;return t;});
+   branches[i]={index:i,side,p0,c1,c2,tip,top,bottom,twigs};y=bottom+gap+spread;}}
+ return {mode:s.mode,width:s.W,height:H,cloud:{cx,cy,w:s.cw,h:s.ch},branchLen:s.bl,room:s.room,branches};
 }
+// A soft cloud: an ellipse with gentle scallops, closed so rough.js can trace it.
+export function cloudPoints(cx:number,cy:number,w:number,h:number,bumps=9,n=90):Pt[]{
+ return Array.from({length:n+3},(_,i)=>{const a=i/n*Math.PI*2,r=.92+.08*Math.abs(Math.sin(a*bumps/2));return [cx+Math.cos(a)*w/2*r,cy+Math.sin(a)*h/2*r] as Pt;});
+}
+// A branch's centreline as path data, always written left to right so the area's name along it reads the right way up.
+export function branchPath(b:{side:1|-1;p0:Pt;c1:Pt;c2:Pt;tip:Pt}){const f=(p:Pt)=>`${p[0].toFixed(1)} ${p[1].toFixed(1)}`;
+ return b.side===1?`M${f(b.p0)} C${f(b.c1)} ${f(b.c2)} ${f(b.tip)}`:`M${f(b.tip)} C${f(b.c2)} ${f(b.c1)} ${f(b.p0)}`;}
+export function bezLength(p0:Pt,c1:Pt,c2:Pt,p3:Pt,n=24){let len=0,prev=p0;for(let i=1;i<=n;i++){const p=bez(p0,c1,c2,p3,i/n);len+=Math.hypot(p[0]-prev[0],p[1]-prev[1]);prev=p;}return len;}

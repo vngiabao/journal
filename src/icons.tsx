@@ -51,3 +51,12 @@ export const Steady=wrap(P.Minus,'bold');
 export const Mountains=wrap(P.Mountains,'light');
 export const Flag=wrap(P.Flag,'light');
 export const Grip=wrap(P.DotsSixVertical,'bold');
+// Life map: one small drawing per area of life.
+export const AreaCareer=wrap(P.Briefcase,'light');
+export const AreaEducation=wrap(P.GraduationCap,'light');
+export const AreaHealth=wrap(P.Heartbeat,'light');
+export const AreaRelationship=wrap(P.Heart,'light');
+export const AreaConnection=wrap(P.Users,'light');
+export const AreaOwnership=wrap(P.HouseLine,'light');
+export const AreaMind=wrap(P.Brain,'light');
+export const AreaOther=wrap(P.Leaf,'light');

@@ -63,7 +63,8 @@ export function Popover({anchor,onClose,label,children,className='',width=280}:{
   window.addEventListener('keydown',key,true);document.addEventListener('pointerdown',down,true);
   return()=>{window.removeEventListener('keydown',key,true);document.removeEventListener('pointerdown',down,true);if(back&&document.contains(back))back.focus({preventScroll:true});else (anchor as HTMLElement|null)?.focus?.({preventScroll:true});};
  },[]);
- useLayoutEffect(()=>{if(!pos||!box.current)return;const mm=whenMotionOK(()=>{gsap.fromTo(box.current,{opacity:0,scale:.96},{opacity:1,scale:1,duration:.16,ease:'enter',clearProps:'opacity,transform'});});return()=>mm.revert();},[!!pos]);
+ useLayoutEffect(()=>{if(!pos||!box.current)return;const sheet=window.matchMedia('(max-width: 650px)').matches;
+  const mm=whenMotionOK(()=>{gsap.fromTo(box.current,sheet?{opacity:0,yPercent:8}:{opacity:0,scale:.96},{opacity:1,scale:1,yPercent:0,duration:sheet?.22:.16,ease:'enter',clearProps:'opacity,transform'});});return()=>mm.revert();},[!!pos]);
  return createPortal(<div ref={box} className={`hz-popover ${className}`} role="dialog" aria-modal="true" aria-label={label}
   style={{left:pos?.left??-9999,top:pos?.top??0,width:Math.min(width,typeof window!=='undefined'?innerWidth-24:width),transformOrigin:pos?.origin}}>{children}</div>,document.body);
 }

@@ -4,11 +4,10 @@ import {seed} from '../src/seed';
 import {validateImport} from '../src/storage';
 import type {State} from '../src/model';
 import {addGoal} from '../src/plan';
-import {lifeAreas,ensureAreas,addVision,editVision,removeVision,restoreVision,visionsAt,addArea,renameArea,removeArea,restoreArea,setGoalArea,goalsIn,unassignedGoals,DEFAULT_AREAS,AREA_MAX,AREA_MIN} from '../src/horizon/life';
-import {lifeLayout,areaAngle,nodeSide,placeNodes,LIFE_RING_F,type Box} from '../src/horizon/geometry';
+import {lifeAreas,ensureAreas,addVision,editVision,removeVision,restoreVision,visionsAt,addArea,renameArea,removeArea,restoreArea,setGoalArea,goalsIn,unassignedGoals,furthestVision,DEFAULT_AREAS,AREA_MAX,AREA_MIN} from '../src/horizon/life';
+import {mindLayout,mindSizes,mindSplit,branchPath,cloudPoints,bezLength,type MindAreaIn} from '../src/horizon/geometry';
 
 const fresh=()=>{const s=seed('2026-05-04');s.todos=[];return s;};
-const overlap=(a:Box,b:Box)=>a.l<b.r&&a.r>b.l&&a.t<b.b&&a.b>b.t;
 
 describe('Life map data',()=>{
  it('reads the default areas without writing, and seeds them on the first edit',()=>{
@@ -30,6 +29,7 @@ describe('Life map data',()=>{
   restoreArea(s,r);expect(lifeAreas(s)[r.index].id).toBe('health');expect(g.area).toBe('health');expect(visionsAt(s,'health','5y')).toHaveLength(1);
   while(lifeAreas(s).length>AREA_MIN)removeArea(s,lifeAreas(s)[0].id);expect(removeArea(s,lifeAreas(s)[0].id)).toBeUndefined();
  });
+ it('summarises an area by its furthest vision',()=>{const s=fresh();expect(furthestVision(s,'mind')).toBeUndefined();addVision(s,'mind','5y','I read daily');expect(furthestVision(s,'mind')!.when).toBe('5y');addVision(s,'mind','10y','I meditate');expect(furthestVision(s,'mind')!.when).toBe('10y');addVision(s,'mind','40','I am calm');expect(furthestVision(s,'mind')!.text).toBe('I am calm');});
  it('places goals in their area; a goal whose area is gone waits in the tray',()=>{
   const s=fresh();const a=addGoal(s,'I work as a PM'),b=addGoal(s,'I read 20 books');setGoalArea(s,a.id,'career');
   expect(goalsIn(s,'career').map(g=>g.id)).toEqual([a.id]);expect(unassignedGoals(s).map(g=>g.id)).toEqual([b.id]);
@@ -44,31 +44,34 @@ describe('Life map data',()=>{
  });
 });
 
-describe('Life map geometry',()=>{
- it('leaves the bottom of the wheel free for the ring names at any area count',()=>{
-  for(const n of [5,6,7,8]){const near=Array.from({length:n},(_,i)=>{const a=areaAngle(i,n);return Math.abs(Math.atan2(Math.sin(a-Math.PI/2),Math.cos(a-Math.PI/2)));});expect(Math.min(...near)).toBeGreaterThan(.3);}
-  expect(areaAngle(0,7)).toBeCloseTo(-Math.PI/2);
+describe('Life map geometry: the mind map',()=>{
+ const area=(n:number,h=40):MindAreaIn=>({rows:Array.from({length:n},(_,k)=>({h,base:h-12,w:120,horizon:Math.min(3,k)})),minH:44});
+ it('goes two-sided on a wide map and one-sided on a narrow one',()=>{
+  expect(mindSizes({width:1114,height:740}).mode).toBe('both');expect(mindSizes({width:654,height:552}).mode).toBe('right');
+  expect(mindSizes({width:1114,height:740}).room).toBeGreaterThanOrEqual(170);expect(mindSizes({width:654,height:552}).room).toBeGreaterThanOrEqual(170);
  });
- for(const [w,h] of [[1050,560],[1180,780],[1540,1100],[2000,1200]] as const)it(`fits the wheel inside ${w}x${h} and uses the width`,()=>{
-  const g=lifeLayout({areas:7,width:w,height:h});
-  expect(g.cx-g.rx).toBeGreaterThanOrEqual(0);expect(g.cx+g.rx).toBeLessThanOrEqual(w);expect(g.cy-g.ry).toBeGreaterThan(0);expect(g.cy+g.ry).toBeLessThanOrEqual(h);
-  expect(g.rx).toBeGreaterThanOrEqual(g.ry*.9);expect(g.branches).toHaveLength(7);
-  for(const b of g.branches){expect(b.cross).toHaveLength(4);
-   // Each crossing sits on its ring (within a pixel or two) and they run outward in order.
-   b.cross.forEach((p,k)=>{const r=Math.hypot((p[0]-g.cx)/g.rx,(p[1]-g.cy)/g.ry);expect(Math.abs(r-LIFE_RING_F[k])).toBeLessThan(.02);});}
-  expect(g.centre.w/2).toBeLessThan(g.rings[0].rx);expect(g.centre.h/2).toBeLessThan(g.rings[0].ry);
+ it('puts the first half down the right and brings the rest back up the left, clockwise',()=>{
+  const L=mindLayout(Array.from({length:7},()=>area(2)),{width:1200,height:800});
+  expect(L.branches.filter(b=>b.side===1)).toHaveLength(4);
+  for(let i=1;i<4;i++)expect(L.branches[i].tip[1]).toBeGreaterThan(L.branches[i-1].tip[1]);
+  for(let i=5;i<7;i++)expect(L.branches[i].tip[1]).toBeLessThan(L.branches[i-1].tip[1]);
+  for(const b of L.branches){expect(Math.sign(b.tip[0]-L.cloud.cx)).toBe(b.side);expect(Math.abs(b.p0[0]-L.cloud.cx)).toBeLessThanOrEqual(L.cloud.w/2);}
  });
- it('reads labels outward: right side to the right, left side to the left, top and bottom stacked',()=>{
-  expect(nodeSide(1,0,false)).toBe('right');expect(nodeSide(-1,0,true)).toBe('left');expect(nodeSide(0,-1,true)).toBe('up');expect(nodeSide(0,1,true)).toBe('down');expect(nodeSide(0,-1,false)).toBe('right');
+ it('stacks each area without overlaps and keeps every twig line on the page',()=>{
+  for(const [w,h] of [[654,552],[1114,740],[1392,1040]] as const){const L=mindLayout([area(3),area(5,62),area(1),area(0),area(4),area(2),area(6)],{width:w,height:h});
+   for(const side of [1,-1]){const bs=L.branches.filter(b=>b.side===side).sort((a,b)=>a.top-b.top);for(let i=1;i<bs.length;i++)expect(bs[i].top).toBeGreaterThanOrEqual(bs[i-1].bottom);}
+   for(const b of L.branches)for(const t of b.twigs){const end=t.x+b.side*t.len;expect(Math.min(t.x,end)).toBeGreaterThanOrEqual(0);expect(Math.max(t.x,end)).toBeLessThanOrEqual(L.width+.5);expect(t.y).toBeLessThanOrEqual(L.height);}}
  });
- it('places labels without overlaps, folding to the smaller variant when crowded',()=>{
-  const g=lifeLayout({areas:8,width:1180,height:780});
-  const nodes=g.branches.flatMap((b,i)=>b.cross.map((p,r)=>({key:`${i}-${r}`,anchor:p,side:nodeSide(b.cos,b.sin,r===3),variants:[{w:200,h:70},{w:110,h:30}]})));
-  const out=placeNodes(nodes,{width:g.width,height:g.height});
-  expect(out).toHaveLength(32);
-  const clean=out.filter(o=>!o.overlap);
-  for(let i=0;i<clean.length;i++){const a=clean[i].box;expect(a.l).toBeGreaterThanOrEqual(0);expect(a.r).toBeLessThanOrEqual(g.width+.5);for(let j=i+1;j<clean.length;j++)expect(overlap(a,clean[j].box)).toBe(false);}
-  expect(out.some(o=>o.variant===1)).toBe(true);expect(clean.length).toBeGreaterThan(18);
+ it('splits the sides by how much is written, keeping the clockwise order',()=>{expect(mindSplit([1,1,1,1,1,1,1])).toBe(4);expect(mindSplit([300,40,40,40,40,40,40])).toBe(1);expect(mindSplit([40,40,40,40,40,40,300])).toBe(6);
+  const L=mindLayout([area(6,60),area(1),area(1),area(1),area(1),area(1)],{width:1200,height:600});expect(L.branches.filter(b=>b.side===1)).toHaveLength(1);});
+ it('runs time outward: later horizons end further from the branch',()=>{
+  const L=mindLayout([area(4)],{width:1200,height:600});const xs=L.branches[0].twigs.map(t=>t.x);for(let i=1;i<4;i++)expect(xs[i]).toBeGreaterThan(xs[i-1]);
  });
- it('keeps away from obstacles such as the centre',()=>{const o=placeNodes([{key:'a',anchor:[100,100],side:'right',variants:[{w:80,h:20}]}],{width:400,height:400,obstacles:[{l:110,r:200,t:80,b:120}]});expect(overlap(o[0].box,{l:110,r:200,t:80,b:120})).toBe(false);});
+ it('grows taller than the window rather than squeezing',()=>{const L=mindLayout(Array.from({length:8},()=>area(6,60)),{width:1200,height:500});expect(L.height).toBeGreaterThan(500);});
+ it('writes every branch path left to right so names read the right way up',()=>{
+  const L=mindLayout(Array.from({length:6},()=>area(1)),{width:1200,height:700});
+  for(const b of L.branches){const m=branchPath(b).match(/^M([\d.-]+) [\d.-]+ C[\d.-]+ [\d.-]+ [\d.-]+ [\d.-]+ ([\d.-]+)/)!;expect(Number(m[2])).toBeGreaterThan(Number(m[1]));}
+ });
+ it('draws a closed, soft cloud',()=>{const p=cloudPoints(100,100,200,100);expect(Math.hypot(p[0][0]-p[90][0],p[0][1]-p[90][1])).toBeLessThan(1);for(const [x,y] of p){expect(Math.abs(x-100)).toBeLessThanOrEqual(100.5);expect(Math.abs(y-100)).toBeLessThanOrEqual(50.5);}});
+ it('measures a branch',()=>{expect(bezLength([0,0],[10,0],[20,0],[30,0])).toBeCloseTo(30,0);});
 });

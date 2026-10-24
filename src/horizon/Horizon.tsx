@@ -130,8 +130,8 @@ export function Horizon({state,mutate,now,go:_go}:{state:State;mutate:Mutate;now
  const lastFocus=useRef(focus?.id);
  useLayoutEffect(()=>{if(lastFocus.current===focus?.id)return;const first=lastFocus.current===undefined;lastFocus.current=focus?.id;if(first||view!=='horizon')return;
   const mm=whenMotionOK(()=>{const q=(s:string)=>gsap.utils.toArray<Element>(s,root.current);
-   gsap.from(q('.hz-trail-line path'),{drawSVG:'0%',duration:.45,ease:'move',overwrite:'auto',clearProps:CLEAR_DASH});
-   gsap.from(q('.hz-connector path'),{drawSVG:'0%',duration:.35,delay:.2,ease:'move',overwrite:'auto',clearProps:CLEAR_DASH});
+   gsap.from(q('.hz-trail-line path'),{drawSVG:'0%',duration:.3,ease:'move',overwrite:'auto',clearProps:CLEAR_DASH});
+   gsap.from(q('.hz-connector path'),{drawSVG:'0%',duration:.25,delay:.1,ease:'move',overwrite:'auto',clearProps:CLEAR_DASH});
    gsap.from(q('.hz-stone-row, .hz-stone-art, .hz-behind'),{opacity:0,y:8,duration:.2,stagger:.03,overwrite:'auto',clearProps:'opacity,transform'});
    gsap.from(q('[data-card]'),{opacity:0,y:6,duration:.2,overwrite:'auto',clearProps:'opacity,transform'});});
   return()=>{mm.revert();};
@@ -153,7 +153,7 @@ export function Horizon({state,mutate,now,go:_go}:{state:State;mutate:Mutate;now
    :view==='horizon'&&focus?<>
     <SkyLine state={state} mutate={mutate}/>
     <div ref={stage} className="hz-stage">
-     <div ref={ridgeRef} className="hz-ridge-wrap"><Ridge state={state} goals={goals} ridge={ridge} band={band} width={stageW} focusId={focus.id} phone={phone} now={now} hatchDur={lastVia.current==='key'?.2:.6} onFocus={focusGoal} onAdd={anchor=>setPop({kind:'goal',anchor})}/></div>
+     <div ref={ridgeRef} className="hz-ridge-wrap"><Ridge state={state} goals={goals} ridge={ridge} band={band} width={stageW} focusId={focus.id} phone={phone} now={now} hatchDur={lastVia.current==='key'?.2:.3} onFocus={focusGoal} onAdd={anchor=>setPop({kind:'goal',anchor})}/></div>
      <div className="hz-below">
       <div ref={trailCol} className="hz-trail-col">
               <Trail state={state} goal={focus} gi={fi} now={now} phone={phone} maxOpen={maxOpen} expanded={expanded} onExpand={setExpanded} peak={peak} ridgeRef={ridgeRef} width={trailW} pet={pet} bondPose={bondPose} evening={evening}
