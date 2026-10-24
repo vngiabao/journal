@@ -19,7 +19,7 @@ import {remindersOf,dueReminder,isDue,notify} from './reminders';
 import {Tour,tourSeen,startTour,TOUR_FOR_PAGE,type TourId} from './Tour';
 import {quests,QuestMeter,QuestPanel} from './Quests';
 import {FLAGS,markFlag} from './flags';
-import {gsap,useGSAP,motionOK,whenMotionOK,SplitText,Flip,ScrollTrigger} from './motion';
+import {gsap,useGSAP,motionOK,whenMotionOK,SplitText,Flip} from './motion';
 
 // Four places, the same on every screen: Today, Journal, Progress (your line and the review) and the Board. Settings sits beside them.
 // Each entry: the page it opens, its label, its short label for the phone's tab bar, and its icon.
@@ -59,29 +59,18 @@ export default function App(){
   window.addEventListener('reboot-tour',open);window.addEventListener('keydown',key);return()=>{window.removeEventListener('reboot-tour',open);window.removeEventListener('keydown',key);};},[]);
  const mainRef=useRef<HTMLElement>(null),navInk=useRef<ReturnType<typeof Flip.getState>|null>(null),loaded=!!state;
  // The current-page marker in the sidebar slides to its new place instead of jumping.
- useLayoutEffect(()=>{const from=navInk.current;navInk.current=null;if(from&&motionOK())Flip.from(from,{targets:'.nav-ink',duration:.5,ease:'power3.inOut'});},[page]);
- // Every page arrives the same way: the title rises word by word, what is on screen settles in,
- // and everything further down waits until you scroll to it. Today has its own opening, so it only gets the scroll part.
- useGSAP(()=>{const root=mainRef.current;if(!root)return;let ro:ResizeObserver|undefined,raf=0;
+ useLayoutEffect(()=>{const from=navInk.current;navInk.current=null;if(from&&motionOK())Flip.from(from,{targets:'.nav-ink',duration:.22,ease:'move'});},[page]);
+ // Each page's title rises in word by word, once. Everything else is simply there; pages with their own moment
+ // (the journal's ink, the board's stamps, Horizon's ridge) mark themselves with data-own-motion.
+ useGSAP(()=>{const root=mainRef.current;if(!root||page==='Today')return;
   const mm=whenMotionOK(()=>{
-   const kids=[...root.children].filter(el=>!el.matches('.page-footer,.error-banner,.page-heading,.reboot-hero,[data-own-motion]')) as HTMLElement[];
-   const fold=window.innerHeight*.94,above=kids.filter(el=>el.getBoundingClientRect().top<fold),below=kids.filter(el=>!above.includes(el));
-   const inner=(els:Element[])=>els.flatMap(el=>[...el.querySelectorAll('[data-stagger]')].flatMap(l=>[...l.children].slice(0,14)));
-   const grow=(els:Element[])=>els.flatMap(el=>[...el.querySelectorAll('[data-grow]')]);
-   if(page!=='Today'){
-    const tl=gsap.timeline({defaults:{ease:'power3.out'}}),head=root.querySelector(':scope > .page-heading');
-    const h1=head?.querySelector('h1'),lede=head?.querySelector(':scope > p'),split=h1?SplitText.create(h1,{type:'words',mask:'words'}):null;
-    if(split)tl.from(split.words,{yPercent:110,duration:.7,stagger:.06},0);
-    const dot=h1?.querySelector('.title-period');if(dot)tl.from(dot,{scale:0,duration:.5,ease:'back.out(4)'},.45);
-    if(lede)tl.from(lede,{opacity:0,y:10,duration:.5},.25);
-    if(above.length)tl.from(above,{opacity:0,y:22,duration:.6,stagger:.08,clearProps:'opacity,transform'},.3);
-    const items=inner(above);if(items.length)tl.from(items,{opacity:0,y:10,duration:.4,stagger:.03,clearProps:'opacity,transform'},.55);
-    const bars=grow(above);if(bars.length)tl.from(bars,{scaleX:0,transformOrigin:'0 50%',duration:.8,stagger:.05,clearProps:'transform'},.6);
-    if(split)tl.add(()=>split.revert());
-   }
-
+   const head=root.querySelector(':scope > .page-heading'),h1=head?.querySelector('h1'),lede=head?.querySelector(':scope > p');if(!h1)return;
+   const split=SplitText.create(h1,{type:'words',mask:'words'}),tl=gsap.timeline({defaults:{ease:'enter'}});
+   tl.from(split.words,{yPercent:110,duration:.6,stagger:.05},0);
+   if(lede)tl.from(lede,{opacity:0,y:8,duration:.4},.2);
+   tl.add(()=>split.revert());
   });
-  return()=>{cancelAnimationFrame(raf);ro?.disconnect();mm.revert();};
+  return()=>mm.revert();
  },{dependencies:[page,loaded],revertOnUpdate:true});
  useEffect(()=>{
   loadState().then(s=>{stateRef.current=s;setState(s);if(!s.settings.onboarded&&!location.hash)setPage('Reboot Board');setSaved('Saved on this device');}).catch(()=>setError('Private data could not be opened. Check browser storage permissions and reload.'));

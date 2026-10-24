@@ -45,11 +45,12 @@ export function Guide({state,mutate,now,go}:{state:State;mutate:Mutate;now:strin
  const open=(p:Place)=>{p.before?.();showMe({id:p.id,title:p.title,how:'',page:p.page,target:p.target,done:p.done},go);};
  return <section className="guide-panel" aria-labelledby="guide-title">
   <div className="gp-head"><h2 id="guide-title">Where to next</h2><span>{done} of {list.length}</span></div>
-  <ul className="gp-list">{list.map(p=><li key={p.id}><button type="button" className={`gp-item ${p.done?'done':''}`} onClick={()=>open(p)}>
-   <span className="gp-icon" aria-hidden="true">{p.done?<Check size={16}/>:<p.Icon size={18}/>}</span>
+  <ul className="gp-list">{list.filter(p=>!p.done).map(p=><li key={p.id}><button type="button" className="gp-item" onClick={()=>open(p)}>
+   <span className="gp-mark" aria-hidden="true"/>
    <span className="gp-text"><strong>{p.title}</strong><small>{p.sub}</small></span>
    <ArrowRight size={16} className="gp-arrow"/>
   </button></li>)}</ul>
+  {done>0&&<p className="gp-done"><Check size={14}/>Done today: {list.filter(p=>p.done).map(p=>p.title).join(' · ')}</p>}
   <div className="close-day"><h3>Close the day</h3><TomorrowFrog state={state} mutate={mutate} now={now} always/></div>
  </section>;
 }
@@ -67,7 +68,7 @@ export function DailyTicks({state,mutate,now}:{state:State;mutate:Mutate;now:str
   </button>
   {!open&&(left.length?<p className="dt-left">Still to tick: {left.map(g=>goalName(g,state)).join(' · ')}</p>:on.length?<p className="dt-left">Every daily promise kept today.</p>:null)}
   {open&&<><ul className="dt-list">{daily.map(g=><DailyRow key={g.id} g={g} state={state} mutate={mutate} now={now} risk={risk.has(g.id)}/>)}</ul>
-   <p className="dt-board">Big milestones are logged on the Reboot Board.</p></>}
+</>}
  </section>;
 }
 

@@ -69,7 +69,7 @@ export function TomorrowFrog({state,mutate,now,always=false}:{state:State;mutate
  if(set&&!open)return <p className="tomorrow-frog is-set"><FrogGlyph/><span>Tomorrow’s frog: <b>{set.text}</b></span><button className="text-button" onClick={()=>{setText(set.text);setOpen(true);}}>Change</button></p>;
  if(!evening&&!open&&!always)return null;
  return <form className="tomorrow-frog" onSubmit={e=>{e.preventDefault();const v=text.trim();mutate(s=>{const list=(s.todos??[]).filter(t=>!(t.date===tomorrow&&t.frog&&!v));const ex=list.find(t=>t.date===tomorrow&&t.frog);if(v){if(ex)ex.text=v;else list.push({id:uid(),date:tomorrow,text:v,done:false,frog:true,priority:'A',createdAt:new Date().toISOString()});}s.todos=list;},'tomorrow frog');setOpen(false);setText('');}}>
-  <FrogGlyph/><label><span>Before bed: choose tomorrow’s frog</span><input aria-label="Tomorrow’s frog" value={text} maxLength={140} placeholder="The one task you’ll do first tomorrow" onChange={e=>setText(e.target.value)}/></label><button className="button secondary" disabled={!text.trim()&&!set}>{set&&!text.trim()?'Clear':'Set'}</button>
+  <FrogGlyph/><label><span>Before bed: choose tomorrow’s frog</span><input aria-label="Tomorrow’s frog" value={text} maxLength={140} placeholder="Tomorrow’s first task" onChange={e=>setText(e.target.value)}/></label><button className="button secondary" disabled={!text.trim()&&!set}>{set&&!text.trim()?'Clear':'Set'}</button>
  </form>;
 }
 

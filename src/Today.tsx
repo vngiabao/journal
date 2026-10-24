@@ -8,6 +8,7 @@ import {goalName} from './Board';
 import {GoalControls,type Mutate} from './GoalControls';
 import {TodayList} from './Todo';
 import {Guide,DailyTicks} from './Guide';
+import {Count} from './Count';
 import {routineNeedsSync,syncRoutine} from './Routine';
 import {TrainingCard} from './TrainingCard';
 import {needsWorkoutTask,ensureWorkoutTask} from './training';
@@ -29,7 +30,6 @@ export function Today({state,mutate,now,go}:{state:State;mutate:Mutate;now:strin
   const line=hero.current?.querySelector('.rh-becoming');if(line)gsap.set(line,{opacity:0});
   document.fonts.ready.then(contextSafe!(()=>{
    if(line){const split=SplitText.create(line,{type:'words,lines',mask:'lines'});gsap.set(line,{opacity:1});gsap.from(split.words,{yPercent:110,duration:.7,stagger:.035,ease:'power4.out',onComplete:()=>split.revert()});}
-   hero.current?.querySelectorAll<HTMLElement>('[data-count]').forEach((el,i)=>{const n={v:0},to=Number(el.dataset.count);gsap.to(n,{v:to,duration:.9,delay:.2+i*.06,ease:'power3.out',onUpdate:()=>{el.textContent=String(Math.round(n.v));}});});
   }));
  });return()=>mm.revert();},{scope:hero});
  return <>
@@ -84,7 +84,7 @@ function Evidence({state,now,daily}:{state:State;now:string;daily:Goal[]}){
  const frogs=(state.todos??[]).filter(t=>t.frog&&t.done&&t.date<=now).length;
  const items:[number,string][]=[[kept,kept===1?'promise kept':'promises kept'],...(frogs?[[frogs,frogs===1?'frog eaten':'frogs eaten'] as [number,string]]:[]),[streak,streak===1?'day, longest streak running':'days, longest streak running'],[c.attempt,c.attempt===1?'shot taken':'shots taken'],[c.win,c.win===1?'win logged':'wins logged']];
  if(!items.some(([n])=>n))return <p className="rh-evidence-empty">Day one. Every promise you keep from today on is counted here, and nothing you didn’t do.</p>;
- return <div className="rh-evidence">{items.map(([n,l])=><div key={l}><strong data-count={n}>{n}</strong><span>{l}</span></div>)}</div>;
+ return <div className="rh-evidence">{items.map(([n,l])=><div key={l}><strong><Count value={n}/></strong><span>{l}</span></div>)}</div>;
 }
 
 

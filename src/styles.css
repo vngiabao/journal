@@ -1,6 +1,6 @@
 /* Hallmark · macrostructure: app shell, notebook-cover side rail (N3) · tone: cozy editorial, Operate · anchor hue: deep blue (#1f3b66)
  * theme: custom, warm paper + deep blue ink + honey gold + red-pen checks + sage · accent under 5% of any view
- * fonts: Brygada 1918 (display) + Mona Sans (body) · headings and display type stay roman · spacing on the --s-* scale
+ * fonts: Cormorant Garamond (display) + Source Sans 3 (body); Courier Prime for datelines only; Caveat for the hand-drawn charts · headings stay roman · spacing on the --s-* scale
  * Hallmark · pre-emit critique: P4 H4 E4 S5 R4 V4
  */
 @import './tokens.css';
@@ -1953,3 +1953,191 @@ body.touring .pocket-pet .pb-bubble{display:none}
 @media(hover:hover){.dt-counter button:not(:disabled):hover{border-color:var(--green);color:var(--green)}}
 .dt-counter span{font-variant-numeric:lining-nums tabular-nums}
 @media(max-width:650px){.dt-part{min-height:40px}.dt-counter button{width:40px;height:40px}}
+
+
+/* ===== Consistency pass: one set of rules for every page ===== */
+/* Nothing under 12px; small print in the sans, sentence case; monospace only for datelines */
+.postmark span,.week-days small,.month-grid span,.folio-top,.running-head,.running-head i,.signoff time,.book .masthead-text p,.masthead-text p{font-size:12px}
+.chart-axis{font:12px var(--sans);letter-spacing:.02em;text-transform:none}
+.chart-frame .date-tick,.date-tick{font-size:12px}
+.speech cite,.epigraph cite,.drawer-eyebrow,.focus-eyebrow,.tomorrow-frog label span{font-family:var(--sans);font-size:12px;font-weight:600;letter-spacing:.06em}
+.cell-top{font:600 12px/1 var(--sans);letter-spacing:.02em;font-variant-numeric:lining-nums tabular-nums}
+.cell-may{font-size:12px}
+.entry-date span{font:600 12px/1.35 var(--sans);letter-spacing:.04em}
+.todo-tag,.todo-list .todo-tag.auto{font:500 12.5px/1 var(--sans);letter-spacing:0;text-transform:none}
+.prio-chip{font-family:var(--sans);font-weight:700}
+.prio-chip.prio-none{font-size:12px}
+.tour-step,.training-day,.tw-day{font-size:12px}
+.book .mood-picker>span,.book .prompt-list>span,.prompt-list>span,.on-record>span,.book-proof>span{font:600 13px/1.2 var(--sans);letter-spacing:0;text-transform:none;color:var(--ink-soft)}
+.folio{font:500 13px/1 var(--sans);letter-spacing:0;text-transform:none;color:var(--muted)}
+@media(max-width:720px){.cell-top{font-size:12px}.cell-no{display:none}.week-days small{font-size:12px;letter-spacing:.04em}}
+@media(max-width:650px){.tabbar button{font-size:12px}.today-list .tl-breakdown{font-size:12px}}
+
+/* Motion: UI changes in 250ms or less; no layout properties animated */
+.quest-meter em,.slice-meter b,.og-meter em,.routine-meter em{transition-duration:.25s}
+.tour-spot{transition:none}
+.bingo-card .goal-tile::before{height:100%;transform:scaleY(var(--p,0));transform-origin:50% 100%;background:color-mix(in srgb,var(--blue) 11%,transparent);transition:transform .25s var(--ease)}
+.cmp-bar{width:100%;transform:scaleX(var(--w,0));transform-origin:0 50%;transition:transform .25s var(--ease)}
+
+/* One disabled look */
+button:disabled,.week-nav:disabled,.week-days button:disabled,.dt-counter button:disabled{opacity:var(--disabled);cursor:not-allowed}
+
+/* Every control is at least 44px to touch, even where it looks smaller */
+.todo-list .icon-button{width:44px;min-width:44px;height:44px;opacity:.7}
+.prio-chip,.dt-counter button,.proof-item .icon-button,.tile-top .icon-button,.frog-slices .icon-button,.search .icon-button,.add-when button,.book .mood-picker button,.dt-part{position:relative}
+.prio-chip::before,.dt-counter button::before,.proof-item .icon-button::before,.tile-top .icon-button::before,.frog-slices .icon-button::before,.search .icon-button::before,.add-when button::before,.book .mood-picker button::before{content:'';position:absolute;inset:-7px}
+.dt-part{min-height:44px}
+.segmented button{min-height:44px}
+
+/* Focus is always visible */
+.today-list .todo-add:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px var(--focus-halo)}
+.book .recto:focus-within{box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--violet) 32%,transparent)}
+.slice-add input:focus-visible,.tomorrow-frog input:focus-visible,.book .proof-add input:focus-visible,.rewrite-row input:focus-visible,.today-list .todo-add input:focus-visible{outline:2px solid var(--violet);outline-offset:3px}
+.tour-card:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+
+/* The journal's writing page: a faint dot grid instead of ruled lines */
+.book .writing-area{background-image:radial-gradient(circle,color-mix(in srgb,var(--gold) 45%,transparent) .9px,transparent 1.4px);background-size:22px 1.85em;background-position:0 .55em}
+
+/* The journal's mood: five equal choices on one row */
+.book .mood-picker{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
+.book .mood-picker>span{grid-column:1/-1}
+.book .mood-picker button{flex-direction:column;justify-content:center;gap:5px;min-height:52px;padding:6px 2px;border-radius:12px;font-size:15.5px}
+
+/* Where to next: a ruled list, a drawn circle, done items folded into one line */
+.gp-list{gap:0}
+.gp-item{grid-template-columns:24px minmax(0,1fr) auto;min-height:60px;padding:var(--s-3) 0;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent}
+.gp-list li:last-child .gp-item{border-bottom:0}
+@media(hover:hover){.gp-item:hover{transform:none;background:transparent;border-color:var(--line)}.gp-item:hover strong{color:var(--blue-deep)}}
+.gp-mark{width:20px;height:20px;border:1.5px solid var(--line-strong);border-radius:50%}
+.gp-item:hover .gp-mark{border-color:var(--gold)}
+.gp-done{display:flex;align-items:flex-start;gap:6px;margin:0;font-size:13px;line-height:1.45;color:var(--green)}
+.gp-done svg{flex:none;margin-top:3px}
+
+/* Today: a short header so the list starts in the first screen; use wide windows */
+.reboot-hero.today-head{padding:var(--s-5) var(--s-6);gap:var(--s-2);margin-bottom:var(--s-4)}
+.today-head .rh-becoming{font-size:clamp(24px,2.1vw,32px);line-height:1.15}
+.today-head .rh-evidence strong{font-size:22px}
+.reboot-hero.today-head .rh-figure{height:clamp(92px,7.5vw,124px)}
+.today-head>*:not(.rh-figure){max-width:calc(100% - clamp(92px,7.5vw,124px) * 1.8)}
+@media(min-width:1760px){main{max-width:1640px}}
+@media(min-width:1600px){
+ .today-grid{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) minmax(320px,.9fr);grid-template-rows:auto auto}
+ .today-do{display:contents}
+ .today-list{grid-column:1;grid-row:1/span 2}
+ .training{grid-column:2;grid-row:1}
+ .promises{grid-column:2;grid-row:2}
+ .today-checkin{grid-column:3;grid-row:1/span 2}
+}
+
+
+/* ===== Consistency pass 2 ===== */
+/* The journal joins the app's palette: navy leather with gold stitching, warm leaves from the tokens, the app's mood colours */
+.book{--leaf:var(--page-leaf);--leaf-2:var(--page-leaf-2);--gutter:var(--page-gutter);--foil:var(--gold);background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='l'><feTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .35 0'/></filter><rect width='100%' height='100%' filter='url(%23l)'/></svg>"),radial-gradient(120% 90% at 30% 0%,var(--blue-stage),transparent 70%),linear-gradient(160deg,var(--blue-deep),var(--blue-deeper));border-radius:var(--r-card)}
+.book::before{border-radius:calc(var(--r-card) - 4px)}
+.writing-room,.past-pages .journal-index>button,.week-days button{border-radius:var(--r-card)}
+.tone-great{--tone:var(--metal)}.tone-good{--tone:var(--green)}.tone-okay{--tone:var(--gold)}.tone-low{--tone:var(--blue)}.tone-difficult{--tone:var(--violet)}
+.mood-picker .tone-great .mood-swatch{background:var(--metal)}.mood-picker .tone-good .mood-swatch{background:var(--green)}.mood-picker .tone-okay .mood-swatch{background:var(--gold)}.mood-picker .tone-low .mood-swatch{background:var(--blue)}.mood-picker .tone-difficult .mood-swatch{background:var(--violet)}
+.tone-great .ink-drop-dot,.has-entry .ink-drop-dot.tone-great{background:var(--metal)}.tone-good .ink-drop-dot,.has-entry .ink-drop-dot.tone-good{background:var(--green)}.tone-okay .ink-drop-dot,.has-entry .ink-drop-dot.tone-okay{background:var(--gold)}.tone-low .ink-drop-dot,.has-entry .ink-drop-dot.tone-low{background:var(--sky-2)}.tone-difficult .ink-drop-dot,.has-entry .ink-drop-dot.tone-difficult{background:var(--violet-wash)}
+.book .prompt-list button,.book .proof-item{border-bottom-color:var(--page-rule)}
+.book .folio,.folio{color:var(--page-folio)}
+
+/* One page head everywhere but Today */
+.page-heading>h1,.journal-head h1{font-size:clamp(36px,3.6vw,52px)}
+.page-heading{margin-bottom:var(--s-6)}
+
+/* Review: commitments as ruled rows with a slim meter; numbers as one inline line */
+.review-rows{margin:var(--s-3) 0 0;padding:0;list-style:none}
+.review-row{display:grid;grid-template-columns:minmax(0,1fr) 140px;align-items:center;gap:var(--s-5);min-height:60px;padding:var(--s-3) 0;border-bottom:1px solid var(--line)}
+.review-row:last-child{border-bottom:0}
+.review-row strong{display:block;font:500 18px/1.3 var(--serif);color:var(--ink)}
+.review-row small{display:block;margin-top:3px;font-size:13px;color:var(--muted)}
+.rr-meter{display:block;height:5px;border-radius:3px;background:var(--line);overflow:hidden}
+.rr-meter b{display:block;height:100%;background:var(--green);transform-origin:0 50%}
+@media(max-width:650px){.review-row{grid-template-columns:minmax(0,1fr);gap:var(--s-2)}}
+.review-summary{display:flex;flex-wrap:wrap;gap:var(--s-2) var(--s-7)}
+.review-summary>div{display:flex;align-items:baseline;gap:8px;padding:0;background:transparent;border:0;box-shadow:none}
+.review-summary strong{margin:0;font-size:32px}
+.proof-tally{display:flex;flex-wrap:wrap;gap:var(--s-5)}
+.proof-tally button{flex-direction:row;align-items:baseline;gap:8px;padding:4px 0;border:0;border-bottom:2px solid transparent;border-radius:0;background:transparent}
+.proof-tally button.selected{border-color:transparent transparent var(--blue);background:transparent}
+.proof-tally strong{font-size:28px}
+
+/* Board list fits at 1366: target and remaining live in the drawer */
+.goal-table{min-width:0;width:100%}
+.goal-table th:first-child{width:auto;min-width:260px}
+@media(max-width:1500px){.goal-table th:nth-child(2),.goal-table td:nth-child(2),.goal-table th:nth-child(6),.goal-table td:nth-child(6){display:none}}
+
+/* Wide windows: more room, and Settings in two columns */
+@media(min-width:1900px){main{max-width:1760px}}
+.settings-section{max-width:none}
+@media(min-width:1500px){main:has(>.settings-section){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:var(--s-5);align-items:start}main:has(>.settings-section)>:not(.settings-section){grid-column:1/-1}}
+
+/* Form controls in the paper style */
+select,input[type="date"],input[type="time"]{min-height:44px;padding:0 14px;border:1px solid var(--line-strong);border-radius:var(--r-control);background-color:var(--sheet);font:500 14px var(--sans);color:var(--ink)}
+select{appearance:none;-webkit-appearance:none;padding-right:36px;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1.5l5 5 5-5' fill='none' stroke='%235b6377' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");background-repeat:no-repeat;background-position:right 13px center;background-size:12px 8px}
+input[type="date"]::-webkit-calendar-picker-indicator,input[type="time"]::-webkit-calendar-picker-indicator{opacity:.55;cursor:pointer}
+input[type="checkbox"]{accent-color:var(--green);width:20px;height:20px}
+.checkbox-label{min-height:44px;display:flex;align-items:center;gap:var(--s-2)}
+
+/* Plan editor: ruled days, not a form */
+.plan-editor .plan-day{padding:var(--s-3) 0;border:0;border-bottom:1px solid var(--line);border-radius:0}
+.plan-day legend{padding:0;font:500 20px/1.2 var(--serif);letter-spacing:0;text-transform:none;color:var(--ink)}
+.plan-row label,.plan-lines{font-weight:500;color:var(--ink-soft)}
+.plan-lines textarea{font:400 16px/1.5 var(--serif);resize:none}
+
+/* One button system: actions are 8px, views and filters are segmented */
+.book .proof-add .button,.proof-add .button,.tomorrow-frog .button{border-radius:var(--r-control)}
+.tabs{display:inline-flex;flex-wrap:nowrap;gap:4px;padding:4px;max-width:100%;overflow-x:auto;background:var(--paper-deep);border-radius:var(--r-chip)}
+.tabs button{flex:none;min-height:40px;background:transparent}
+.tabs button.selected{background:var(--sheet);color:var(--ink);box-shadow:var(--shadow-1)}
+.button:disabled{background:var(--sheet-2);border-color:var(--line-strong);color:var(--placeholder);opacity:1}
+
+/* Bingo lines no longer strike through the words */
+.bingo-card .bingo-lines line{opacity:.42;mix-blend-mode:multiply}
+
+/* Greens from the tokens */
+.frog-go,.frog-eat{background:var(--green);border-color:var(--green);color:var(--sheet)}
+@media(hover:hover){.frog-go:hover,.frog-eat:hover{background:var(--green);border-color:var(--green);filter:brightness(.92)}}
+.frog-eyebrow,.slice-add{color:var(--green)}
+.frog-pick{background:var(--green-wash);border-color:var(--green-line)}
+.frog-choice{border-color:var(--green-line)}
+@media(hover:hover){.frog-choice:hover{border-color:var(--green);background:var(--green-wash)}}
+.frog-card{border-color:var(--green-line);background:var(--sheet)}
+
+/* Close the day */
+.tomorrow-frog label span{font:600 13px/1.3 var(--sans);letter-spacing:0;text-transform:none;color:var(--metal)}
+.tomorrow-frog .button{background:var(--metal);border-color:var(--metal);color:var(--ink)}
+.tomorrow-frog .button:disabled{background:transparent;border-color:var(--cover-line);color:var(--cover-muted)}
+
+/* Sibling cards share one heading size and one padding */
+.daily-ticks .dt-toggle h2,.gp-head h2,.promises h2,.training h2,.past-head h2,.settings-section h2,.review-section h2,.period-comparison h2{font-size:26px}
+.daily-ticks,.guide-panel,.promises,.training,.settings-section,.review-section,.period-comparison,.past-pages{padding:var(--s-5) var(--s-6)}
+@media(max-width:650px){.daily-ticks,.guide-panel,.promises,.training,.settings-section,.review-section,.period-comparison,.past-pages{padding:var(--s-4)}}
+
+/* Stats read inline, not as big tiles */
+.goal-drawer .detail-facts{display:flex;flex-wrap:wrap;gap:6px var(--s-5)}
+.goal-drawer .detail-facts span{display:inline;font-size:14px;color:var(--muted)}
+.goal-drawer .detail-facts b{display:inline;margin-left:4px;font:600 14px var(--sans);color:var(--ink)}
+
+/* Journey: the step choice is one segmented control */
+.composer .steps{gap:4px;padding:4px;background:var(--paper-deep);border-radius:var(--r-control)}
+.composer .step{border:0;background:transparent;box-shadow:none}
+.composer .step.on{background:var(--sheet);box-shadow:var(--shadow-1)}
+
+/* Small fixes */
+.prio-chip.prio-none{color:var(--placeholder);border-color:var(--line-strong)}
+.topbar-end{display:flex;align-items:center;gap:var(--s-2)}
+.dt-check{position:relative}.dt-check::before{content:'';position:absolute;inset:-8px}
+.week-nav{width:44px;min-width:44px;height:44px}
+.month-toggle{min-height:44px}
+.attachment-control{min-height:44px}
+.book .proof-add form{flex-wrap:nowrap}.book .proof-add input{min-width:0}
+@media(max-width:650px){.proof-kinds button,.book .proof-kinds button,.dt-part{min-height:44px}.drawer-status{width:auto;flex:1}.drawer-row{flex-wrap:nowrap}.drawer-status button{padding-inline:var(--s-2)}}
+
+/* Consistency pass 2, fixes after review */
+@media(max-width:1500px){.goal-table th:nth-child(4),.goal-table td:nth-child(4){display:none}}
+@media(min-width:1500px){main:has(>.settings-section){display:block;column-count:2;column-gap:var(--s-5)}main:has(>.settings-section)>*{break-inside:avoid}main:has(>.settings-section)>:not(.settings-section){column-span:all}main:has(>.settings-section)>.settings-section{display:inline-block;width:100%}}
+.rh-evidence .count{font:inherit;color:inherit;letter-spacing:inherit}
+.today-head .rh-becoming{max-width:36ch}
+.book{background-color:var(--red-hover);background-image:radial-gradient(120% 90% at 30% 0%,color-mix(in srgb,var(--red) 70%,transparent),transparent 70%),linear-gradient(160deg,var(--red-hover),color-mix(in srgb,var(--red-hover) 55%,var(--ink)))}
+.today-head .rh-evidence strong .count,.rh-evidence strong .count{font:inherit;color:inherit;max-width:none;letter-spacing:inherit}

@@ -184,7 +184,7 @@ function JourneyLog({state,start,end,span,selected,onSelect}:{state:State;start:
 function DayContext({state,date}:{state:State;date:string}){
  const kept=state.logs.filter(l=>l.date===date&&l.state==='success').map(l=>state.goals.find(g=>g.id===l.goalId)).filter((g,i,a)=>g&&a.indexOf(g)===i);
  const journal=state.journals.find(j=>j.date===date&&j.kind==='daily'),proofs=state.proofs.filter(p=>p.date===date);
- return <div className="day-context"><strong>Alongside this day</strong><p className="muted-small">Recorded separately. Your line never changes on its own.</p>
+ return <div className="day-context"><strong>Alongside this day</strong>
   <p>{kept.length?<>Kept: {kept.map(g=>goalName(g!,state)).join(', ')}</>:'No habits recorded.'}</p>
   {proofs.map(p=><p key={p.id} className="context-proof"><span>{p.kind==='win'?'Win':p.kind==='attempt'?'Shot taken':'Lesson'}</span>{p.text}</p>)}
   <p className="context-journal">{journal?.text.trim()?`“${journal.text.trim().slice(0,200)}${journal.text.trim().length>200?'…':''}”`:'No journal entry.'}</p>

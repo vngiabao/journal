@@ -77,8 +77,9 @@ export function Tour({which,onClose}:{which:TourId;onClose:()=>void}){
   let raf=0;const measure=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>setRect(el.getBoundingClientRect()));};
   measure();const t=window.setTimeout(measure,450);window.addEventListener('scroll',measure,true);window.addEventListener('resize',measure);
   return()=>{cancelAnimationFrame(raf);clearTimeout(t);window.removeEventListener('scroll',measure,true);window.removeEventListener('resize',measure);};},[i]);
- useEffect(()=>{card.current?.focus();if(motionOK()&&card.current)gsap.fromTo(card.current,{opacity:0,y:8},{opacity:1,y:0,duration:.25,ease:'power2.out'});},[i]);
- useEffect(()=>{const key=(e:KeyboardEvent)=>{if(e.key==='Escape')finish();else if(e.key==='ArrowRight'||e.key==='Enter'){e.preventDefault();if(last)finish();else setI(n=>n+1);}else if(e.key==='ArrowLeft'){e.preventDefault();setI(n=>Math.max(0,n-1));}};
+ const viaKey=useRef(false);
+ useEffect(()=>{card.current?.focus();if(!viaKey.current&&motionOK()&&card.current)gsap.fromTo(card.current,{opacity:0,y:6},{opacity:1,y:0,duration:.2,ease:'enter'});viaKey.current=false;},[i]);
+ useEffect(()=>{const key=(e:KeyboardEvent)=>{const onButton=e.target instanceof HTMLButtonElement;if(e.key==='Escape')finish();else if(e.key==='ArrowRight'||(e.key==='Enter'&&!onButton)){e.preventDefault();viaKey.current=true;if(last)finish();else setI(n=>n+1);}else if(e.key==='ArrowLeft'){e.preventDefault();viaKey.current=true;setI(n=>Math.max(0,n-1));}};
   window.addEventListener('keydown',key);document.body.classList.add('touring');return()=>{window.removeEventListener('keydown',key);document.body.classList.remove('touring');};},[last]);
 
  // The card sits below the spotlight, or above it, or at the bottom of the screen when the part is tall.

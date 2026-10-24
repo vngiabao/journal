@@ -9,9 +9,9 @@ import {Count} from './Count';
 import {gsap,useGSAP,whenMotionOK} from './motion';
 
 export const PROOF_KINDS:{kind:ProofKind;name:string;plural:string;prompt:string;Icon:typeof Trophy}[]=[
- {kind:'win',name:'Win',plural:'Wins',prompt:'Something that went right, however small',Icon:Trophy},
- {kind:'attempt',name:'Shot taken',plural:'Shots taken',prompt:'Something brave you tried. The result does not matter',Icon:Target},
- {kind:'lesson',name:'Lesson',plural:'Lessons',prompt:'A setback you turned into something you know now',Icon:Lightbulb},
+ {kind:'win',name:'Win',plural:'Wins',prompt:'Something that went right',Icon:Trophy},
+ {kind:'attempt',name:'Shot taken',plural:'Shots taken',prompt:'Something brave you tried',Icon:Target},
+ {kind:'lesson',name:'Lesson',plural:'Lessons',prompt:'What a setback taught you',Icon:Lightbulb},
 ];
 export const proofName=(k:ProofKind)=>PROOF_KINDS.find(p=>p.kind===k)!.name;
 

@@ -12,7 +12,7 @@ import {inkStamp} from './delight';
 export function TrainingCard({state,mutate,now}:{state:State;mutate:Mutate;now:string}){
  const day=dayPlan(state,now),done=doneNames(state,now),complete=finished(state,now),[week,setWeek]=useState(false),[editing,setEditing]=useState(false);
  const ws=weekStart(now),count=day.exercises.filter(e=>done.has(e.name)).length;
- const tick=(name:string,e:React.MouseEvent<HTMLElement>)=>{if(!done.has(name)){const r=e.currentTarget.getBoundingClientRect();inkStamp(Math.min(r.right-60,innerWidth-70),r.top+r.height/2,'Done');}mutate(s=>toggleExercise(s,now,name),'workout');};
+ const tick=(name:string,e:React.MouseEvent<HTMLElement>)=>{if(!done.has(name)&&day.exercises.filter(x=>!done.has(x.name)).length===1){const r=e.currentTarget.getBoundingClientRect();inkStamp(Math.min(r.right-60,innerWidth-70),r.top+r.height/2,'Done');}mutate(s=>toggleExercise(s,now,name),'workout');};
  return <section className={`training ${day.kind} ${complete?'complete':''}`} aria-labelledby="training-title">
   <div className="training-head">
    <div><p className="training-day">{WEEKDAYS[weekdayIndex(now)]}{day.kind==='gym'?' · Gym':day.kind==='sport'?' · Sport':''}</p><h2 id="training-title">{day.kind==='rest'?'Rest day':day.title}</h2></div>
@@ -33,13 +33,13 @@ export function TrainingCard({state,mutate,now}:{state:State;mutate:Mutate;now:s
 
 function PlanEditor({plan,onSave,onClose}:{plan:TrainingDay[];onSave:(d:TrainingDay[])=>void;onClose:()=>void}){
  const [days,setDays]=useState(()=>plan.map(d=>({kind:d.kind,title:d.title,text:formatLines(d)}))),close=useRef(onClose);close.current=onClose;
- useEffect(()=>{const esc=(e:KeyboardEvent)=>{if(e.key==='Escape')close.current();};window.addEventListener('keydown',esc);document.body.classList.add('drawer-open');return()=>{window.removeEventListener('keydown',esc);document.body.classList.remove('drawer-open');};},[]);
+ useEffect(()=>{const back=document.activeElement as HTMLElement|null;document.querySelector<HTMLElement>('.plan-editor input')?.focus();const esc=(e:KeyboardEvent)=>{if(e.key==='Escape')close.current();};window.addEventListener('keydown',esc);document.body.classList.add('drawer-open');return()=>{window.removeEventListener('keydown',esc);document.body.classList.remove('drawer-open');back?.focus?.();};},[]);
  const set=(i:number,p:Partial<typeof days[number]>)=>setDays(ds=>ds.map((d,n)=>n===i?{...d,...p}:d));
  return createPortal(<div className="drawer-root">
   <button type="button" className="drawer-scrim" aria-hidden="true" tabIndex={-1} onClick={onClose}/>
   <aside className="goal-drawer plan-editor" role="dialog" aria-modal="true" aria-labelledby="plan-title">
-   <header className="drawer-head"><span className="drawer-eyebrow">Weekly training plan</span><button className="icon-button" aria-label="Close" onClick={onClose}><X size={18}/></button></header>
-   <h2 id="plan-title">Your week</h2>
+   <header className="drawer-head"><span className="drawer-eyebrow">Training</span><button className="icon-button" aria-label="Close" onClick={onClose}><X size={18}/></button></header>
+   <h2 id="plan-title">Your training week</h2>
    <p className="muted">One exercise per line, like “Goblet squat: 3 × 8–10” or “Soccer: 90 minutes”.</p>
    {days.map((d,i)=><fieldset key={i} className="plan-day"><legend>{WEEKDAYS[i]}</legend>
     <div className="plan-row"><label>Name<input value={d.title} maxLength={40} onChange={e=>set(i,{title:e.target.value})}/></label>
