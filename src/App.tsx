@@ -1,5 +1,6 @@
 import {useEffect,useLayoutEffect,useRef,useState} from 'react';
-import {Sun,LayoutGrid,TrendingUp,BookOpen,SettingsIcon,Check,ShieldCheck} from './icons';
+import {Sun,LayoutGrid,TrendingUp,BookOpen,SettingsIcon,Check,ShieldCheck,Mountains} from './icons';
+import {Horizon} from './horizon/Horizon';
 import type {State} from './model';
 import {uid} from './model';
 import {loadState,saveState} from './storage';
@@ -21,10 +22,10 @@ import {quests,QuestMeter,QuestPanel} from './Quests';
 import {FLAGS,markFlag} from './flags';
 import {gsap,useGSAP,motionOK,whenMotionOK,SplitText,Flip} from './motion';
 
-// Four places, the same on every screen: Today, Journal, Progress (your line and the review) and the Board. Settings sits beside them.
+// Five places, the same on every screen: Today, Journal, Horizon (the long game), Progress (your line and the review) and the Board. Settings sits beside them.
 // Each entry: the page it opens, its label, its short label for the phone's tab bar, and its icon.
-const nav=[['Today','Today','Today',Sun],['Journal','Journal','Journal',BookOpen],['Journey','Progress','Progress',TrendingUp],['Reboot Board','Reboot Board','Board',LayoutGrid]] as const;
-const PAGES=new Set<string>(['Today','Reboot Board','Journey','Journal','Review','Settings']);
+const nav=[['Today','Today','Today',Sun],['Journal','Journal','Journal',BookOpen],['Horizon','Horizon','Horizon',Mountains],['Journey','Progress','Progress',TrendingUp],['Reboot Board','Reboot Board','Board',LayoutGrid]] as const;
+const PAGES=new Set<string>(['Today','Reboot Board','Journey','Journal','Horizon','Review','Settings']);
 const navKey=(page:string)=>page==='Review'?'Journey':page;
 const pageName=(page:string)=>page==='Journey'||page==='Review'?'Progress':page;
 const pageFromHash=()=>{try{const p=decodeURIComponent(location.hash.slice(1));return PAGES.has(p)?p:'Today';}catch{return 'Today';}};
@@ -124,13 +125,14 @@ export default function App(){
   <div className="main-shell">
    <header className="topbar"><span className="crumb"><span className="crumb-prefix">Personal workspace <span className="top-divider">/</span> </span><strong>{pageName(page)}</strong></span><div className="topbar-end"><span className={saved==='Not saved'?'error saved-status':'saved-status'} aria-hidden="true"><Check size={13}/><span>{saved==='Saved on this device'?'Saved':saved}</span></span><button className={`icon-button topbar-settings ${page==='Settings'?'current':''}`} aria-label="Open settings" onClick={()=>go('Settings')}><SettingsIcon size={20}/></button></div></header>
    <nav className="tabbar" aria-label="Sections">{nav.map(([key,,short,Icon])=>{const on=navKey(page)===key;return <button key={key} className={on?'current':''} aria-current={on?'page':undefined} onClick={()=>go(key)}><Icon size={22} strokeWidth={1.5}/><span>{short}</span></button>;})}</nav>
-   <main id="main" key={page} ref={mainRef} className={page==='Today'?'page-enter':undefined}>
+   <main id="main" key={page} ref={mainRef} className={page==='Today'?'page-enter':page==='Horizon'?'wide':undefined}>
     {error&&<div className="error-banner" role="alert">{error}<button onClick={()=>setError('')}>Dismiss</button></div>}
     {page==='Reboot Board'?<Board state={state} mutate={mutate} now={now}/>
     :page==='Journey'||page==='Review'?<><div className="page-heading"><h1>Progress<span className="title-period">.</span></h1><p>{page==='Journey'?'Doubt, small wins, restarts, breakthroughs. The line is uneven on purpose.':'Consistency, effort, results, and how it felt. None of it is a score.'}</p></div>
      <div className="segmented progress-tabs" role="tablist" aria-label="Progress views">{([['Journey','Your line'],['Review','Review']] as const).map(([k,n])=><button key={k} role="tab" aria-selected={page===k} className={page===k?'selected':''} onClick={()=>go(k)}>{n}</button>)}</div>
      {page==='Journey'?<Journey state={state} mutate={mutate} now={now}/>:<Review state={state} mutate={mutate} now={now}/>}</>
     :page==='Journal'?<Journal state={state} mutate={mutate} now={now}/>
+    :page==='Horizon'?<Horizon state={state} mutate={mutate} now={now} go={go}/>
     :page==='Settings'?<Settings state={state} mutate={mutate} replace={persist} now={now}/>
     :<Today state={state} mutate={mutate} now={now} go={go}/>}
     <footer className="page-footer"><span>Project Reboot</span><span>A personal commitment. An ongoing story.</span></footer>

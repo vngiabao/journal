@@ -30,7 +30,7 @@ export function quests(s:State,bondAround:boolean):Quest[]{
   {id:'journal',title:'Write in your journal',how:'A line on Today’s check-in, or a full page in Journal.',page:'Journal',target:'.book .writing-area, .writing-room',done:s.journals.some(j=>!!j.text.trim())},
   {id:'weekly',title:'Write a weekly review',how:'Once a week in Progress → Review: three questions on what improved, what didn’t, what you’ll change.',page:'Review',target:'#main .board-topline .button',done:s.journals.some(j=>j.kind==='weekly'&&!!j.text.trim())},
   {id:'monthly',title:'Write a monthly review',how:'The same, for the whole month. Switch Review to Monthly, then write it.',page:'Review',target:'#main .board-topline .button',done:s.journals.some(j=>j.kind==='monthly'&&!!j.text.trim())},
-  {id:'plan',title:'Set your one goal',how:'Board → Plan: write ten goals, then pick the one with the greatest impact and list its steps.',page:'Reboot Board',target:'.plan-goals',done:!!oneGoal(s)},
+  {id:'plan',title:'Set your one goal',how:'In Horizon: write ten goals, make one your one goal, and list its steps.',page:'Horizon',target:'.hz-ridge-wrap, .hz-first',done:!!oneGoal(s)},
   {id:'progress',title:'Look at your progress',how:'Your Journey line and the weekly review.',page:'Journey',target:'.progress-tabs',done:flag(FLAGS.progress)},
   {id:'tomorrow',title:'Plan tomorrow’s frog',how:'Under “Close the day” on the right of Today.',page:'Today',target:'.tomorrow-frog',done:frogs.some(t=>t.date>t.createdAt.slice(0,10))},
   {id:'reminders',title:'Set your frog reminders',how:'Add the morning and evening reminders to your calendar.',page:'Settings',target:'.reminders',done:flag(FLAGS.calendar)||!!s.settings.reminders?.notify},
@@ -41,7 +41,6 @@ export function quests(s:State,bondAround:boolean):Quest[]{
 // Open the page and point at the spot: it scrolls into view and pulses for a moment.
 export function showMe(q:Quest,go:(p:string)=>void){
  if(q.id==='tour'){startTour('today');return;}
- if(q.id==='plan')try{sessionStorage.setItem('reboot-board-mode','plan');}catch{/* fine */}
  if(q.id==='weekly'||q.id==='monthly')try{sessionStorage.setItem('reboot-review-write',q.id);}catch{/* fine */}
  go(q.page);
  window.setTimeout(()=>{const el=q.target?q.target.split(',').map(x=>document.querySelector(x.trim())).find(Boolean):null;if(!el)return;

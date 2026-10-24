@@ -24,10 +24,13 @@ export interface TrainingDay {kind:'gym'|'sport'|'rest'; title:string; exercises
 // `task` records that the day's session was added to the to-do list once, so deleting it there sticks.
 export interface Workout {date:string; done:string[]; task?:boolean;}
 // The planning chapter: up to ten goals, one chosen, with a deadline, a reason and its steps.
-export interface PlanStep {id:string; text:string; done:boolean;}
-export interface PlanGoal {id:string; text:string; one?:boolean; deadline?:string; why?:string; steps:PlanStep[]; createdAt:string;}
+// `doneAt` is when a step was ticked; `due` is an optional date for the step itself.
+export interface PlanStep {id:string; text:string; done:boolean; doneAt?:string; due?:string;}
+// `boardGoal` links a goal to one of the 36 board squares; `reachedAt` is set when its flag is planted on Horizon.
+export interface PlanGoal {id:string; text:string; one?:boolean; deadline?:string; why?:string; steps:PlanStep[]; createdAt:string; boardGoal?:string; reachedAt?:string;}
 // The book's lists: one for the month before it starts, one for the week; items move down to the week, then to a day.
-export interface PlanItem {id:string; scope:'week'|'month'; period:string; text:string; done:boolean; sentTo?:string;}
+// `stepId`/`goalId` are set when an item came from a step on a goal's trail.
+export interface PlanItem {id:string; scope:'week'|'month'; period:string; text:string; done:boolean; sentTo?:string; stepId?:string; goalId?:string;}
 export type ProofKind='win'|'attempt'|'lesson';
 export interface Proof {id:string; date:string; kind:ProofKind; text:string; createdAt:string;}
 export interface Achievement {id:string;goalId:string;run:number;date:string;criteria:Criteria;}

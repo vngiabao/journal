@@ -7,11 +7,11 @@ import {gsap,motionOK} from './motion';
 import {ArrowLeft,ArrowRight,X} from './icons';
 
 // One tour per page. Each runs the first time you open its page; ? or "Show me around" replays the one you're on.
-export type TourId='today'|'journal'|'progress'|'review'|'board';
-export const TOUR_FOR_PAGE:Record<string,TourId>={Today:'today',Journal:'journal',Journey:'progress',Review:'review','Reboot Board':'board'};
-export const TOUR_NAMES:Record<TourId,string>={today:'Today',journal:'Journal and reviews',progress:'Your line',review:'Weekly and monthly review',board:'Reboot Board'};
+export type TourId='today'|'journal'|'horizon'|'progress'|'review'|'board';
+export const TOUR_FOR_PAGE:Record<string,TourId>={Today:'today',Journal:'journal',Horizon:'horizon',Journey:'progress',Review:'review','Reboot Board':'board'};
+export const TOUR_NAMES:Record<TourId,string>={today:'Today',journal:'Journal',horizon:'Horizon',progress:'Your line',review:'Weekly and monthly review',board:'Reboot Board'};
 const keyOf=(id:TourId)=>id==='today'?'reboot-tour-v1':`reboot-tour-${id}`;
-export const TOUR_KEYS=(['today','journal','progress','review','board'] as TourId[]).map(keyOf);
+export const TOUR_KEYS=(['today','journal','horizon','progress','review','board'] as TourId[]).map(keyOf);
 export const tourSeen=(id:TourId='today')=>{try{return localStorage.getItem(keyOf(id))==='done';}catch{return true;}};
 const markSeen=(id:TourId)=>{try{localStorage.setItem(keyOf(id),'done');}catch{/* private browsing: it may show again next visit */}};
 // With no id, the tour for whatever page is open.
@@ -28,7 +28,7 @@ const TOURS:Record<TourId,Stop[]>={
   {targets:['.training'],title:'Today’s training',body:'Your weekly plan, one day at a time. Tick each exercise as you go, or the whole session at once; a finished gym day counts toward “Gym 4+ times a week”. “Edit plan” changes any day.',optional:true},
   {targets:['.daily-ticks','.promises'],title:'Every day',body:'Your daily promises from the board, on the right so you remember to tick them. A gold note means today keeps a streak going. “More daily goals” turns another one on. Weekly ones sit under “This week” on the left.'},
   {targets:['.guide-panel'],title:'Where to next',body:'Everything beyond your list: write today’s page, add a win, see your line, plan your year. Each shows where you stand and takes you there. Tomorrow’s frog closes the day.'},
-  {targets:['.tabbar','.sidebar nav'],title:'Four places',body:'Today is home. Journal is for daily writing. Progress holds your line, and Review, where you write your weekly and monthly reviews. The Board has all 36 goals from May.'},
+  {targets:['.tabbar','.sidebar nav'],title:'Five places',body:'Today is home. Journal is for writing. Horizon holds the long game: your goals, the trail to the one that matters, and your month and week. Progress has your line and your reviews. The Board has all 36 goals from May.'},
   {targets:['.topbar-settings','.sidebar .nav-settings'],title:'Settings and reminders',body:'Set your frog reminders here, so your phone’s calendar nudges you each morning and evening. Bond and backups live here too.'},
   {targets:['.pocket-pet .pet-frame'],title:'This is Bond',body:'He follows your cursor and sprints wherever you click. He covers his eyes while you write. Tap him for a reminder of a real win.',optional:true},
   {title:'You’re all set',body:'Start at the top of your list. Each page has its own short tour the first time you open it. Replay any of them with ?, “Show me around”, or Settings → Guide.'},
@@ -53,6 +53,12 @@ const TOURS:Record<TourId,Stop[]>={
   {targets:['#main .board-topline .button'],title:'Write the review',body:'Opens a journal page for this week or month with three questions: what improved, what didn’t, what you’ll change.'},
   {targets:['.review-summary'],title:'The numbers',body:'Promises kept, misses, shots taken, targets reached, and days on your line, for the period you picked.'},
   {targets:['.period-comparison'],title:'Compared with last time',body:'The same window of the previous period, side by side.',optional:true},
+ ],
+ horizon:[
+  {title:'Your horizon',body:'The long game, in one picture. Higher is later, lower is sooner.'},
+  {targets:['.hz-ridge-wrap','.hz-first'],title:'Ten goals, one chosen',body:'Each peak is a goal, written as if it’s already true. The tallest is your one goal - the one that would change the most. Tap a peak to see its trail.'},
+  {targets:['.hz-trail-col'],title:'The trail',body:'Every step to get there, in order. The next one sits at the bottom with “Do today”. Tap any stone to move it to today, this week or this month.',optional:true},
+  {targets:['.hz-camp'],title:'Base camp',body:'Plan the month before it starts and the week before it begins. Then move tomorrow’s step onto your list each evening.',optional:true},
  ],
  board:[
   {title:'Reboot Board',body:'Your 36 commitments from May, as a bingo card.'},

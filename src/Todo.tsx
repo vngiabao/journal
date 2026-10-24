@@ -1,7 +1,7 @@
 import {useLayoutEffect,useRef,useState} from 'react';
 import {gsap,useGSAP,Flip,motionOK} from './motion';
 import {inkStamp} from './delight';
-import {Check,Plus,X,ArrowRight,PenLine} from './icons';
+import {Check,Plus,X,ArrowRight,PenLine,Mountains} from './icons';
 import type {State} from './model';
 import {uid} from './model';
 import {putActivity,type Mutate} from './GoalControls';
@@ -89,7 +89,7 @@ export function TodayList({state,mutate,now}:{state:State;mutate:Mutate;now:stri
 }
 
 function TodoItem({t,onToggle,onRemove,onPriority}:{t:NonNullable<State['todos']>[number];onToggle:(id:string,e?:React.MouseEvent<HTMLElement>)=>void;onRemove:(id:string)=>void;onPriority:(p?:Priority)=>void}){
- return <li className={`${t.done?'done':''} ${t.priority?`is-${t.priority}`:''}`} data-flip-id={t.id}>{!t.done&&<PriorityChip t={t} onSet={onPriority}/>}<button className={`check-action ${t.done?'checked':''}`} aria-pressed={t.done} onClick={e=>onToggle(t.id,e)}><span className="check-box">{t.done&&<Check size={16}/>}</span><span className="todo-text">{t.text}{(t.routine||t.auto||t.fromPlan)&&<small className="todo-tag auto">{t.fromPlan?'toward your one goal':t.auto?'from your training':'ticks itself'}</small>}{t.priority==='D'&&<small className="todo-tag">hand it off</small>}{t.priority==='E'&&<small className="todo-tag">let it go</small>}</span></button><button className="icon-button" aria-label={`Remove “${t.text}”`} onClick={()=>onRemove(t.id)}><X size={14}/></button></li>;
+ return <li className={`${t.done?'done':''} ${t.priority?`is-${t.priority}`:''}`} data-flip-id={t.id}>{!t.done&&<PriorityChip t={t} onSet={onPriority}/>}<button className={`check-action ${t.done?'checked':''}`} aria-pressed={t.done} onClick={e=>onToggle(t.id,e)}><span className="check-box">{t.done&&<Check size={16}/>}</span><span className="todo-text">{t.text}{(t.routine||t.auto||t.fromPlan)&&<small className="todo-tag auto">{t.fromPlan?<><Mountains size={13}/> from your horizon</>:t.auto?'from your training':'ticks itself'}</small>}{t.priority==='D'&&<small className="todo-tag">hand it off</small>}{t.priority==='E'&&<small className="todo-tag">let it go</small>}</span></button><button className="icon-button" aria-label={`Remove “${t.text}”`} onClick={()=>onRemove(t.id)}><X size={14}/></button></li>;
 }
 
 function AddTodo({label,placeholder,onAdd,when,onWhen}:{label:string;placeholder:string;onAdd:(t:string)=>void;when:'today'|'tomorrow';onWhen:(w:'today'|'tomorrow')=>void}){

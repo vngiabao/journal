@@ -32,9 +32,9 @@ export function places(s:State,now:string):Place[]{
  if(lastDay-day<3||day===1)list.push({id:'monthly',title:'Write your monthly review',Icon:ChartNoAxesCombined,page:'Review',target:'#main .board-topline .button',before:review('monthly'),
   done:s.journals.some(j=>j.kind==='monthly'&&!!j.text.trim()&&j.date.slice(0,7)===(day===1?addDays(now,-1):now).slice(0,7)),sub:'The same look back, for the whole month.'});
  const weekNow=periodItems(s,'week',weekOf(now)),weekNext=periodItems(s,'week',nextWeek(now)),weekend=dow===0||dow===6;
- list.push({id:'week',title:weekend?'Plan next week':'Plan this week',Icon:Target,page:'Reboot Board',target:'.period-lists',before:()=>{try{sessionStorage.setItem('reboot-board-mode','plan');}catch{/* fine */}},
+ list.push({id:'week',title:weekend?'Plan next week':'Plan this week',Icon:Target,page:'Horizon',target:'.hz-camp',
   done:weekend?weekNext.length>0:weekNow.length>0,sub:(weekend?weekNext:weekNow).length?`${(weekend?weekNext:weekNow).length} on the list · move tomorrow’s onto your to-do`:'Write the week’s list, pulled from the month.'});
- list.push({id:'plan',title:one?'Your one goal':'Plan your year',Icon:Target,page:'Reboot Board',target:'.plan-goals, .one-goal',before:()=>{try{sessionStorage.setItem('reboot-board-mode','plan');}catch{/* fine */}},
+ list.push({id:'plan',title:one?'Your one goal':'Plan your year',Icon:Target,page:'Horizon',target:'.hz-ridge-wrap, .hz-first',
   done:!!one&&one.steps.length>0&&(s.todos??[]).some(t=>t.date===now&&!!t.fromPlan),
   sub:one?`${one.steps.filter(x=>x.done).length} of ${one.steps.length} steps · ${(s.todos??[]).some(t=>t.date===now&&!!t.fromPlan)?'a step is on today’s list':'put one step on today’s list'}`:'Ten goals, then the one that would change the most.'});
  return list;

@@ -2141,3 +2141,8 @@ input[type="checkbox"]{accent-color:var(--green);width:20px;height:20px}
 .today-head .rh-becoming{max-width:36ch}
 .book{background-color:var(--red-hover);background-image:radial-gradient(120% 90% at 30% 0%,color-mix(in srgb,var(--red) 70%,transparent),transparent 70%),linear-gradient(160deg,var(--red-hover),color-mix(in srgb,var(--red-hover) 55%,var(--ink)))}
 .today-head .rh-evidence strong .count,.rh-evidence strong .count{font:inherit;color:inherit;max-width:none;letter-spacing:inherit}
+
+/* Horizon gets the wide canvas; the phone tab bar holds five places */
+main.wide{max-width:1680px}
+@media(max-width:650px){.tabbar{grid-template-columns:repeat(5,minmax(0,1fr))}.tabbar button{font-size:12px;padding-inline:0}}
+.todo-tag.auto svg{vertical-align:-2px}
