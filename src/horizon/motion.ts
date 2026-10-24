@@ -16,7 +16,7 @@ export function flyChip(text:string,from:Element|null,to:Element|null){
  gsap.timeline({onComplete:()=>el.remove()})
   .fromTo(el,{opacity:0,scale:.92},{opacity:1,scale:1,duration:.12,ease:'enter'})
   .to(el,{x:b.left+16-a.left,y:b.top+20-(a.top+a.height/2-18),duration:.45,ease:'move'},'<.04')
-  .to(el,{opacity:0,scale:.96,duration:.16,ease:'power1.in'},'-=.08');
+  .to(el,{opacity:0,scale:.96,duration:.16,ease:'enter'},'-=.08');
 }
 
 export {gsap,motionOK,whenMotionOK,useGSAP,Flip,CLEAR_DASH};

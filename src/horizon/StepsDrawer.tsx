@@ -5,7 +5,7 @@ import {createPortal} from 'react-dom';
 import type {PlanGoal} from '../model';
 import type {Mutate} from '../GoalControls';
 import {addStep,reorderStep,renameStep,toggleStep} from '../plan';
-import {Check,ChevronUp,ChevronDown,Plus,X,Trash2} from '../icons';
+import {Check,ChevronUp,ChevronDown,Plus,X,Trash2,Grip} from '../icons';
 import {gsap,whenMotionOK,useGSAP} from './motion';
 
 export function StepsDrawer({goal:g,gi,mutate,onRemoveStep,onClose}:{goal:PlanGoal;gi:number;mutate:Mutate;onRemoveStep:(stepId:string)=>void;onClose:()=>void}){
@@ -17,9 +17,9 @@ export function StepsDrawer({goal:g,gi,mutate,onRemoveStep,onClose}:{goal:PlanGo
    if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus();}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus();}};
   window.addEventListener('keydown',key,true);document.body.classList.add('drawer-open');
   return()=>{window.removeEventListener('keydown',key,true);document.body.classList.remove('drawer-open');back?.focus?.({preventScroll:true});};},[]);
- useGSAP(()=>{const mm=whenMotionOK(()=>{const wide=window.matchMedia('(min-width: 721px)').matches;gsap.from('.hz-drawer',{...(wide?{xPercent:8}:{yPercent:12}),opacity:0,duration:.35,ease:'enter',clearProps:'transform,opacity'});gsap.from('.hz-scrim',{opacity:0,duration:.25,clearProps:'opacity'});});return()=>mm.revert();},{scope:box});
+ useGSAP(()=>{const mm=whenMotionOK(()=>{const wide=window.matchMedia('(min-width: 651px)').matches;gsap.from('.hz-drawer',{...(wide?{xPercent:8}:{yPercent:12}),opacity:0,duration:.26,ease:'enter',clearProps:'transform,opacity'});gsap.from('.hz-scrim',{opacity:0,duration:.2,clearProps:'opacity'});});return()=>mm.revert();},{scope:box});
  const move=(from:number,to:number)=>{if(to<0||to>=g.steps.length)return;mutate(s=>reorderStep(s,g.id,from,to),'plan order');setSay(`Moved to position ${to+1} of ${g.steps.length}.`);
-  window.setTimeout(()=>panel.current?.querySelector<HTMLInputElement>(`[data-row="${to}"] input`)?.focus(),0);};
+  window.setTimeout(()=>panel.current?.querySelector<HTMLTextAreaElement>(`[data-row="${to}"] textarea`)?.focus(),0);};
  return createPortal(<div ref={box} className="hz-drawer-root">
   <button type="button" className="hz-scrim" aria-hidden="true" tabIndex={-1} onClick={onClose}/>
   <aside ref={panel} className="hz-drawer" role="dialog" aria-modal="true" aria-labelledby="hz-drawer-title">
@@ -27,11 +27,11 @@ export function StepsDrawer({goal:g,gi,mutate,onRemoveStep,onClose}:{goal:PlanGo
    <h2 id="hz-drawer-title" tabIndex={-1}>{g.text}</h2>
    <p className="hz-drawer-help">List every step. Order them later. Drag a row, or press Alt and an arrow key, to move it.</p>
    <ol className="hz-steps-list">{g.steps.map((x,i)=><li key={x.id} data-row={i} className={`${x.done?'done':''} ${over===i&&drag!==null&&drag!==i?'drop':''}`} draggable onDragStart={e=>{setDrag(i);e.dataTransfer.effectAllowed='move';}} onDragOver={e=>{e.preventDefault();setOver(i);}} onDragEnd={()=>{setDrag(null);setOver(null);}} onDrop={e=>{e.preventDefault();if(drag!==null&&drag!==i)move(drag,i);setDrag(null);setOver(null);}}>
-    <span className="hz-grip" aria-hidden="true">⋮⋮</span>
+    <span className="hz-grip" aria-hidden="true"><Grip size={16}/></span>
     <button type="button" className={`check-action ${x.done?'checked':''}`} aria-pressed={x.done} aria-label={`${x.done?'Done':'Mark done'}: ${x.text}`} onClick={()=>mutate(s=>toggleStep(s,g.id,x.id),'plan step')}><span className="check-box">{x.done&&<Check size={13}/>}</span></button>
     <span className="hz-row-no">{i+1}</span>
-    <input aria-label={`Step ${i+1}`} defaultValue={x.text} maxLength={140} onBlur={e=>{const v=e.target.value.trim();if(v&&v!==x.text)mutate(s=>renameStep(s,g.id,x.id,v),'plan step text');}}
-     onKeyDown={e=>{if(e.altKey&&e.key==='ArrowUp'){e.preventDefault();move(i,i-1);}else if(e.altKey&&e.key==='ArrowDown'){e.preventDefault();move(i,i+1);}else if(e.key==='Enter')(e.target as HTMLInputElement).blur();}}/>
+    <textarea rows={1} aria-label={`Step ${i+1}`} defaultValue={x.text} maxLength={140} onBlur={e=>{const v=e.target.value.trim();if(v&&v!==x.text)mutate(s=>renameStep(s,g.id,x.id,v),'plan step text');}}
+     onKeyDown={e=>{if(e.altKey&&e.key==='ArrowUp'){e.preventDefault();move(i,i-1);}else if(e.altKey&&e.key==='ArrowDown'){e.preventDefault();move(i,i+1);}else if(e.key==='Enter'){e.preventDefault();(e.target as HTMLTextAreaElement).blur();}}}/>
     <span className="hz-row-tools">
      <button type="button" className="icon-button" aria-label={`Move “${x.text}” earlier`} disabled={i===0} onClick={()=>move(i,i-1)}><ChevronUp size={14}/></button>
      <button type="button" className="icon-button" aria-label={`Move “${x.text}” later`} disabled={i===g.steps.length-1} onClick={()=>move(i,i+1)}><ChevronDown size={14}/></button>

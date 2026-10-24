@@ -2143,6 +2143,6 @@ input[type="checkbox"]{accent-color:var(--green);width:20px;height:20px}
 .today-head .rh-evidence strong .count,.rh-evidence strong .count{font:inherit;color:inherit;max-width:none;letter-spacing:inherit}
 
 /* Horizon gets the wide canvas; the phone tab bar holds five places */
-main.wide{max-width:1680px}
+main.wide{max-width:2000px}
 @media(max-width:650px){.tabbar{grid-template-columns:repeat(5,minmax(0,1fr))}.tabbar button{font-size:12px;padding-inline:0}}
 .todo-tag.auto svg{vertical-align:-2px}

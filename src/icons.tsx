@@ -50,3 +50,4 @@ export const ChevronsDown=wrap(P.CaretDoubleDown,'bold');
 export const Steady=wrap(P.Minus,'bold');
 export const Mountains=wrap(P.Mountains,'light');
 export const Flag=wrap(P.Flag,'light');
+export const Grip=wrap(P.DotsSixVertical,'bold');

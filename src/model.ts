@@ -27,12 +27,17 @@ export interface Workout {date:string; done:string[]; task?:boolean;}
 // `doneAt` is when a step was ticked; `due` is an optional date for the step itself.
 export interface PlanStep {id:string; text:string; done:boolean; doneAt?:string; due?:string;}
 // `boardGoal` links a goal to one of the 36 board squares; `reachedAt` is set when its flag is planted on Horizon.
-export interface PlanGoal {id:string; text:string; one?:boolean; deadline?:string; why?:string; steps:PlanStep[]; createdAt:string; boardGoal?:string; reachedAt?:string;}
+export interface PlanGoal {id:string; text:string; one?:boolean; deadline?:string; why?:string; steps:PlanStep[]; createdAt:string; boardGoal?:string; reachedAt?:string; area?:string;}
 // The book's lists: one for the month before it starts, one for the week; items move down to the week, then to a day.
 // `stepId`/`goalId` are set when an item came from a step on a goal's trail.
 export interface PlanItem {id:string; scope:'week'|'month'; period:string; text:string; done:boolean; sentTo?:string; stepId?:string; goalId?:string;}
+// The life map: areas of life (angle on the wheel) and present-tense visions at 5 years, 10 years and 40 (distance).
+// `PlanGoal.area` places a goal on its area's branch in the "This year" ring.
+export interface LifeArea {id:string; name:string;}
+export type VisionWhen='5y'|'10y'|'40';
+export interface Vision {id:string; area:string; when:VisionWhen; text:string;}
 export type ProofKind='win'|'attempt'|'lesson';
 export interface Proof {id:string; date:string; kind:ProofKind; text:string; createdAt:string;}
 export interface Achievement {id:string;goalId:string;run:number;date:string;criteria:Criteria;}
-export interface State {schema:1; goals:Goal[]; logs:Activity[]; journey:Movement[]; journals:Journal[]; edits:Edit[]; achievements:Achievement[]; proofs:Proof[]; todos?:Todo[]; quotes?:Quote[]; training?:{days:TrainingDay[]}; workouts?:Workout[]; plan?:{goals:PlanGoal[]; items?:PlanItem[]}; settings:{language:'en'|'both'|'vi';timezone:string;onboarded:boolean;identity?:string;name?:string;customTags?:string[];reminders?:{morning:string;evening:string;notify:boolean};};}
+export interface State {schema:1; goals:Goal[]; logs:Activity[]; journey:Movement[]; journals:Journal[]; edits:Edit[]; achievements:Achievement[]; proofs:Proof[]; todos?:Todo[]; quotes?:Quote[]; training?:{days:TrainingDay[]}; workouts?:Workout[]; plan?:{goals:PlanGoal[]; items?:PlanItem[]; areas?:LifeArea[]; visions?:Vision[]}; settings:{language:'en'|'both'|'vi';timezone:string;onboarded:boolean;identity?:string;name?:string;customTags?:string[];reminders?:{morning:string;evening:string;notify:boolean};};}
 export function uid(){return crypto.randomUUID();}

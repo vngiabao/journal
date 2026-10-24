@@ -22,7 +22,7 @@ const PHONE=mq('(max-width: 650px)'),SHORT=mq('(max-height: 820px)'),TALL=mq('(m
 export const usePhone=()=>useSyncExternalStore(PHONE.sub,PHONE.get,()=>false);
 export const useShort=()=>useSyncExternalStore(SHORT.sub,SHORT.get,()=>false);
 // How many open stones the trail shows before folding: fewer on short windows so the next stone stays above the fold.
-export function useMaxOpen(){const tall=useSyncExternalStore(TALL.sub,TALL.get,()=>true),mid=useSyncExternalStore(MID.sub,MID.get,()=>true);return tall?6:mid?5:4;}
+export function useMaxOpen(){const tall=useSyncExternalStore(TALL.sub,TALL.get,()=>true),mid=useSyncExternalStore(MID.sub,MID.get,()=>true),short=useSyncExternalStore(SHORT.sub,SHORT.get,()=>false);return tall?6:mid?5:short?3:4;}
 
 // Measures text with a canvas in the real web font, and re-measures once the fonts have loaded.
 let canvas:HTMLCanvasElement|null=null;
@@ -71,7 +71,7 @@ export function Popover({anchor,onClose,label,children,className='',width=280}:{
 // "Removed. Undo" for six seconds after anything is removed.
 export function UndoBar({text,onUndo,onDone}:{text:string;onUndo:()=>void;onDone:()=>void}){
  useEffect(()=>{const t=window.setTimeout(onDone,6000);return()=>clearTimeout(t);},[onDone]);
- return createPortal(<div className="hz-undo" role="status"><span>{text}</span><button type="button" className="text-button" onClick={()=>{onUndo();onDone();}}>Undo</button></div>,document.body);
+ return createPortal(<div className="hz-undo hz-rise" role="status"><span>{text}</span><button type="button" className="text-button" onClick={()=>{onUndo();onDone();}}>Undo</button></div>,document.body);
 }
 
 // Bond, the pocket dog, in a few still poses. Callers hide him when the pocket-pet choice is off.

@@ -19,11 +19,11 @@ export function BaseCamp(p:CampProps){
   <div className="hz-card-col">
    {!anyOne&&goals.length>1&&<p className="hz-prompt">Which of these, if you reached it, would change the most? Make it your one goal.</p>}
    {goal&&<GoalCard key={goal.id} {...p} goal={goal}/>}
-   <TodayShelf {...p}/>
   </div>
   <div className="hz-shelves">
    <MonthShelf {...p}/>
    <WeekShelf {...p}/>
+   <TodayShelf {...p}/>
   </div>
  </div>;
 }
@@ -35,7 +35,7 @@ function GoalCard({state,mutate,goal:g,gi,goals,now,evening,onDoToday,onEditTrai
  useEffect(()=>setWhy(g.why??''),[g.why]);
  const allDone=g.steps.length>0&&!next,onToday=next?stepPlace(state,next,now)==='today':false;
  return <section className={`hz-card ${g.one?'is-one':''}`} aria-labelledby="hz-card-title" data-card>
-  <div className="hz-card-top"><p className="hz-kicker">{g.one?'Your one goal':`Goal ${gi+1} of ${goals.length}`}</p>{g.one&&<span className="hz-seal static">The one</span>}</div>
+  <div className="hz-card-top"><p className="hz-kicker">{g.one?'Your one goal':`Goal ${gi+1} of ${goals.length}`}</p></div>
   {title===null?<h2 id="hz-card-title" className="hz-card-title"><button type="button" className="hz-title-edit" onClick={()=>setTitle(g.text)} aria-label={`${g.text}. Edit the goal`}>{g.text}<PenLine size={16}/></button></h2>
    :<form className="hz-title-form" onSubmit={e=>{e.preventDefault();const v=title.trim();if(v)edit(x=>{x.text=v;},'plan goal text');setTitle(null);}}><label className="visually-hidden" htmlFor="hz-title-input">Goal</label><input id="hz-title-input" autoFocus value={title} maxLength={140} onChange={e=>setTitle(e.target.value)} onBlur={()=>{const v=title.trim();if(v&&v!==g.text)edit(x=>{x.text=v;},'plan goal text');setTitle(null);}} onKeyDown={e=>{if(e.key==='Escape'){e.stopPropagation();setTitle(null);}}}/>{title.length>=140&&<small>Keep it under 140 characters.</small>}</form>}
   <div className="hz-card-meta">
@@ -86,8 +86,8 @@ function Shelf({kicker,title,scope,period,state,mutate,goals,toggle,move,empty,p
  const items=periodItems(state,scope,period),[text,setText]=useState(''),[all,setAll]=useState(false),shown=all?items:items.slice(0,3),done=items.filter(x=>x.done).length;
  return <section className="hz-shelf" data-shelf={scope} aria-label={`${kicker} - ${title}`} tabIndex={-1}>
   {ritual&&<Ritual text={ritual}/>}
-  <header className="hz-shelf-head"><p className="hz-kicker">{kicker}</p><h3>{title}</h3>
-   <div className="segmented hz-shelf-switch" role="tablist" aria-label={`${kicker} to plan`}>{toggle.labels.map((n,i)=><button key={n} type="button" role="tab" aria-selected={toggle.next===(i===1)} className={toggle.next===(i===1)?'selected':''} onClick={()=>toggle.set(i===1)}>{n}</button>)}</div></header>
+  <header className="hz-shelf-head"><h3>{title}</h3>
+   <div className="segmented hz-shelf-switch" role="group" aria-label={`${kicker} to plan`}>{toggle.labels.map((n,i)=><button key={n} type="button" aria-pressed={toggle.next===(i===1)} className={toggle.next===(i===1)?'selected':''} onClick={()=>toggle.set(i===1)}>{n}</button>)}</div></header>
   {items.length>0&&<p className="hz-shelf-count">{done} of {items.length} done</p>}
   <ul className="hz-items">{shown.map(it=>{const moved=move.moved(it);return <li key={it.id} className={it.done?'done':''}>
    <button type="button" className={`check-action ${it.done?'checked':''}`} aria-pressed={it.done} onClick={()=>mutate(s=>toggleItem(s,it.id),'plan list')}><span className="check-box">{it.done&&<Check size={13}/>}</span><span className="hz-item-text">{it.text}</span></button>
@@ -96,9 +96,8 @@ function Shelf({kicker,title,scope,period,state,mutate,goals,toggle,move,empty,p
    <button type="button" className="icon-button hz-x" aria-label={`Remove “${it.text}”`} onClick={()=>mutate(s=>{if(s.plan?.items)s.plan.items=s.plan.items.filter(x=>x.id!==it.id);},'plan list remove')}><X size={13}/></button>
   </li>;})}</ul>
   {items.length>3&&<button type="button" className="text-button hz-more" onClick={()=>setAll(!all)}>{all?'Show fewer':`+${items.length-3} more`}</button>}
-  {!items.length&&<p className="hz-empty">{empty}</p>}
   <form className="hz-add-form" onSubmit={e=>{e.preventDefault();const v=text.trim();if(!v)return;mutate(s=>addItem(s,scope,period,v),'plan list add');setText('');}}>
-   <Plus size={16}/><input aria-label={`Add to ${title}`} value={text} maxLength={140} placeholder={placeholder} onChange={e=>setText(e.target.value)}/><button className="button secondary" disabled={!text.trim()}>Add</button></form>
+   <Plus size={16}/><input aria-label={`Add to ${title}`} value={text} maxLength={140} placeholder={items.length?placeholder:empty} onChange={e=>setText(e.target.value)}/><button className="button secondary" disabled={!text.trim()}>Add</button></form>
  </section>;
 }
 
@@ -106,27 +105,27 @@ function MonthShelf({state,mutate,goals,now,monthNext,setMonthNext}:CampProps){
  const month=monthNext?nextMonth(now):monthOf(now),nm=nextMonth(now),left=Math.round((parse(`${nm}-01`).getTime()-parse(now).getTime())/864e5);
  const ritual=left<=3&&!monthNext?(left===1?`${monthName(nm)} starts tomorrow. Plan it before it begins.`:`${monthName(nm)} starts in ${left} days. Plan it before it begins.`):undefined;
  return <Shelf kicker="This month" title={monthName(month)} scope="month" period={month} state={state} mutate={mutate} goals={goals} ritual={ritual}
-  toggle={{labels:['This month','Next month'],next:monthNext,set:setMonthNext}} empty={`What has to happen in ${monthName(month)}? Write all of it down.`} placeholder="Add to the month…"
+  toggle={{labels:['This month','Next month'],next:monthNext,set:setMonthNext}} empty={`What happens in ${monthName(month)}?`} placeholder="Add to the month…"
   move={{label:'To this week',target:'week',run:(s,id)=>itemToWeek(s,id,weekOf(now)),moved:it=>it.sentTo?'In this week':''}}/>;
 }
 function WeekShelf({state,mutate,goals,now,evening}:CampProps){
  const dow=parse(now).getDay(),weekend=dow===0||dow===6,[weekNext,setWeekNext]=useState(false),week=weekNext?nextWeek(now):weekOf(now),day=evening?addDays(now,1):now;
  return <Shelf kicker="This week" title={`Week of ${label(week)}`} scope="week" period={week} state={state} mutate={mutate} goals={goals} ritual={weekend&&!weekNext?'It’s the weekend. Plan next week now.':undefined}
-  toggle={{labels:['This week','Next week'],next:weekNext,set:setWeekNext}} empty="What will you get done this week? Pull it from the month." placeholder="Add to the week…"
+  toggle={{labels:['This week','Next week'],next:weekNext,set:setWeekNext}} empty="What gets done this week?" placeholder="Add to the week…"
   move={{label:evening?'Do tomorrow':'Do today',target:'today',run:(s,id)=>itemToDay(s,id,day),moved:it=>(state.todos??[]).some(t=>t.fromPlan===it.id&&!t.done&&t.date>=now)?'On your list':''}}/>;
 }
-function TodayShelf({state,mutate,goals,goal,now,onDoToday}:CampProps){
+function TodayShelf({state,mutate,goals,goal,now,evening,onDoToday}:CampProps){
  const ids=new Set([...goals.flatMap(g=>g.steps.map(x=>x.id)),...(state.plan?.items??[]).map(x=>x.id)]);
- const todos=(state.todos??[]).filter(t=>t.date===now&&t.fromPlan&&ids.has(t.fromPlan)&&!t.dismissed),next=goal?nextStep(goal):undefined,late=new Date().getHours()>=19;
+ const todos=(state.todos??[]).filter(t=>t.date===now&&t.fromPlan&&ids.has(t.fromPlan)&&!t.dismissed),next=goal?nextStep(goal):undefined,late=new Date().getHours()>=19&&periodItems(state,'week',weekOf(now)).some(x=>!x.done);
  const [all,setAll]=useState(false),shown=all?todos:todos.slice(0,3);
  return <section className="hz-shelf hz-today" data-shelf="today" aria-label="Today, from your horizon" tabIndex={-1}>
   {late&&<Ritual text="Plan tomorrow tonight. Pick it from this week."/>}
-  <header className="hz-shelf-head"><p className="hz-kicker">Today</p><h3>From your horizon</h3></header>
+  <header className="hz-shelf-head"><h3>Today</h3></header>
   <ul className="hz-items">{shown.map(t=><li key={t.id} className={t.done?'done':''}>
    <button type="button" className={`check-action ${t.done?'checked':''}`} aria-pressed={t.done} onClick={()=>mutate(s=>{const x=s.todos?.find(y=>y.id===t.id);if(!x)return;x.done=!x.done;x.doneAt=x.done?new Date().toISOString():undefined;syncStepFromTodo(s,t.id);},'todo')}><span className="check-box">{t.done&&<Check size={13}/>}</span><span className="hz-item-text">{t.text}</span></button>
    <ShelfNo n={goalNoOf(state,goals,t)}/><span className="hz-moved"><Mountains size={14}/>On your list</span>
   </li>)}</ul>
   {todos.length>3&&<button type="button" className="text-button hz-more" onClick={()=>setAll(!all)}>{all?'Show fewer':`+${todos.length-3} more`}</button>}
-  {!todos.length&&<div className="hz-empty"><p>Nothing from your horizon on today’s list yet.</p>{next&&<button type="button" className="button secondary" onClick={e=>onDoToday(next,e.currentTarget)}>Do the next step today</button>}</div>}
+  {!todos.length&&<div className="hz-empty"><p>Nothing from your horizon on today’s list yet.</p>{next&&<button type="button" className="button secondary" onClick={e=>onDoToday(next,e.currentTarget)}>{evening?'Do the next step tomorrow':'Do the next step today'}</button>}</div>}
  </section>;
 }

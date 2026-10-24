@@ -1,7 +1,7 @@
 // The skyline: one peak per goal, in your order. The one is the tallest; shading rises inside each peak as its steps
 // get done. The SVG is decoration; every peak is a real button laid over it.
-import {useId,useLayoutEffect,useMemo,useRef} from 'react';
-import {gsap,whenMotionOK} from './motion';
+import {useEffect,useId,useLayoutEffect,useMemo,useRef} from 'react';
+import {gsap,motionOK} from './motion';
 import type {State,PlanGoal} from '../model';
 import {Rough,sk,seedOf} from '../Sketch';
 import {catmullRom,hillPolygon,hatchTop,layoutLabels,type Band,type Ridge as RidgeT} from './geometry';
@@ -11,7 +11,7 @@ import {Check,Plus} from '../icons';
 export function Ridge({state,goals,ridge,band,width,focusId,phone,now,hatchDur=.6,onFocus,onAdd}:{state:State;goals:PlanGoal[];ridge:RidgeT;band:Band;width:number;focusId:string;phone:boolean;now:string;hatchDur?:number;onFocus:(id:string)=>void;onAdd:(anchor:HTMLElement)=>void}){
  const uid=useId().replace(/:/g,''),btns=useRef<(HTMLButtonElement|null)[]>([]);
  const {v,measure}=useMeasure('500 16px "Cormorant Garamond"');
- const labels=useMemo(()=>phone||!width?[]:layoutLabels(ridge.peaks.map(p=>({x:p.x,bottom:p.summit-46,text:goals[p.index].text,priority:p.one?1:0})),{maxWidth:Math.min(190,1.8*ridge.slot),lineHeight:19,rowStep:40,gap:10,bandWidth:width,measure,
+ const labels=useMemo(()=>phone||!width?[]:layoutLabels(ridge.peaks.map(p=>({x:p.x,bottom:p.summit-46,text:goals[p.index].text,priority:p.one?1:0})),{maxWidth:Math.min(190,1.8*ridge.slot),lineHeight:19,rowStep:42,gap:10,bandWidth:width,measure,
   obstacles:[...ridge.peaks.map(p=>({l:p.x-2,r:p.x+30,t:p.summit-46,b:p.summit})),...ridge.peaks.filter(p=>p.one).map(p=>({l:p.x+12,r:p.x+80,t:p.summit-6,b:p.summit+18})),...(ridge.add?[{l:ridge.add.x-50,r:ridge.add.x+50,t:ridge.add.summit-74,b:ridge.add.summit}]:[])]}),
   // eslint-disable-next-line react-hooks/exhaustive-deps
   [phone,width,ridge,goals.map(g=>g.text).join('\n'),v]);
@@ -26,23 +26,25 @@ export function Ridge({state,goals,ridge,band,width,focusId,phone,now,hatchDur=.
  const svg=useRef<SVGSVGElement>(null),tops=useRef(new Map<string,number>());
  useLayoutEffect(()=>{const prev=tops.current,next=new Map<string,number>();
   svg.current?.querySelectorAll<SVGRectElement>('.hz-hatch-clip').forEach(r=>{const id=r.dataset.goal!,y=Number(r.dataset.final),was=prev.get(id);next.set(id,y);
-   if(was!==undefined&&Math.abs(was-y)>.5)whenMotionOK(()=>{gsap.fromTo(r,{attr:{y:was,height:band.base-was+2}},{attr:{y,height:band.base-y+2},duration:hatchDur,ease:'enter',overwrite:'auto'});});});
+   if(was!==undefined&&Math.abs(was-y)>.5&&motionOK())gsap.fromTo(r,{attr:{y:was,height:band.base-was+2}},{attr:{y,height:band.base-y+2},duration:hatchDur,ease:'enter',overwrite:'auto'});});
   tops.current=next;});
  // A flag planted while you watch: the pennant rises and the red seal is pressed on.
  const reachedIds=goals.filter(g=>isReached(state,g)).map(g=>g.id).join(),seen=useRef<string|null>(null);
  useLayoutEffect(()=>{const before=seen.current;seen.current=reachedIds;if(before===null)return;const old=new Set(before.split(','));
   for(const id of reachedIds.split(',').filter(x=>x&&!old.has(x))){const btn=svg.current?.parentElement?.querySelector(`.hz-peak[data-goal="${id}"]`);const wax=btn?.querySelector('.hz-wax'),pen=btn?.querySelector('.hz-pennant');if(!wax)continue;
-   if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){gsap.fromTo(wax,{opacity:0},{opacity:1,duration:.15,clearProps:'opacity'});continue;}
+   if(!motionOK()){gsap.fromTo(wax,{opacity:0},{opacity:1,duration:.15,clearProps:'opacity'});continue;}
    if(pen)gsap.fromTo(pen,{y:18,opacity:.4},{y:0,opacity:1,duration:.5,ease:'enter',clearProps:'opacity,transform'});
    gsap.fromTo(wax,{scale:2.4,rotation:-30,opacity:0},{scale:1,rotation:-8,opacity:1,duration:.42,delay:.2,ease:'stamp',clearProps:'opacity,transform'});}
  },[reachedIds]);
+ useEffect(()=>()=>{const s=svg.current?.parentElement;if(s)gsap.killTweensOf(s.querySelectorAll('.hz-hatch-clip,.hz-wax,.hz-pennant'));},[]);
  const move=(i:number,by:number)=>{const j=(i+by+goals.length)%goals.length;btns.current[j]?.focus();onFocus(goals[j].id);};
  return <div className={`hz-ridge ${phone?'is-phone':''}`} style={{height:H}}>
   <svg ref={svg} className="hz-ridge-svg" width={W} height={H} viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
    <defs>{ridge.peaks.map(p=>{const g=goals[p.index],st=g.steps,done=st.filter(x=>x.done).length,top=isReached(state,g)?p.summit-2:hatchTop(p,done,st.length);
-    return <clipPath key={g.id} id={`${uid}-c${p.index}`}><rect className="hz-hatch-clip" data-goal={g.id} data-final={top} x={p.left} y={top} width={p.right-p.left} height={Math.max(0,p.base-top)+2}/></clipPath>;})}</defs>
+    return <g key={g.id}><clipPath id={`${uid}-c${p.index}`}><rect className="hz-hatch-clip" data-goal={g.id} data-final={top} x={p.left} y={top} width={p.right-p.left} height={Math.max(0,p.base-top)+2}/></clipPath>
+     <clipPath id={`${uid}-h${p.index}`}><path d={catmullRom(hillPolygon(p.hill,p.base),.35)+' Z'}/></clipPath></g>;})}</defs>
    {ridge.peaks.map(p=><path key={goals[p.index].id} className={`hz-hill ${p.one?'one':''} ${goals[p.index].id===focusId?'focused':''}`} d={catmullRom(hillPolygon(p.hill,p.base),.35)+' Z'}/>)}
-   {ridge.peaks.map(p=><g key={goals[p.index].id} clipPath={`url(#${uid}-c${p.index})`}><Rough className="hz-hatch" shape={shapes.hatch[p.index]}/></g>)}
+   {ridge.peaks.map(p=><g key={goals[p.index].id} clipPath={`url(#${uid}-h${p.index})`}><g clipPath={`url(#${uid}-c${p.index})`}><Rough className="hz-hatch" shape={shapes.hatch[p.index]}/></g></g>)}
    {ridge.add&&<path className="hz-add-hill" d={catmullRom(ridge.add.hill,.4)}/>}
    <Rough className="hz-ridge-line" shape={shapes.line}/>
    {shapes.one&&<Rough className="hz-one-outline" shape={shapes.one}/>}

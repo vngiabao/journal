@@ -1,6 +1,6 @@
 // Horizon: the long game in one picture. Distance is time: the ten goals stand on the skyline, a single trail climbs
 // from your feet to the peak you're focused on, and base camp (this month, this week, today) sits up close.
-// Views: Horizon (the landscape), Map (all goals as a mind map) and Year (the next twelve months).
+// Views: Horizon (the landscape), Life (a wheel of every life area, from this year out to 40) and Year (the next twelve months).
 import {useCallback,useEffect,useLayoutEffect,useMemo,useRef,useState} from 'react';
 import './horizon.css';
 import type {State,PlanGoal,PlanStep} from '../model';
@@ -15,20 +15,20 @@ import {BaseCamp} from './BaseCamp';
 import {StonePopover,type StoneAction} from './StonePopover';
 import {StepsDrawer} from './StepsDrawer';
 import {YearView} from './YearView';
-import {MapView} from './MapView';
-import {ridgeLayout,BAND_DESKTOP,BAND_PHONE} from './geometry';
-import {SkyLine,Popover,UndoBar,Bond,ss,useWidth,usePhone,useMaxOpen,SHORTCUT_SKIP,type BondPose} from './shared';
+import {LifeMap} from './LifeMap';
+import {ridgeLayout,BAND_DESKTOP,BAND_PHONE,BAND_SHORT} from './geometry';
+import {SkyLine,Popover,UndoBar,Bond,ss,useWidth,usePhone,useShort,useMaxOpen,SHORTCUT_SKIP,type BondPose} from './shared';
 import {gsap,whenMotionOK,useGSAP,motionOK,flyChip,CLEAR_DASH} from './motion';
 
 type View='horizon'|'map'|'year';
-const VIEWS:[View,string][]=[['horizon','Horizon'],['map','Map'],['year','Year']];
+const VIEWS:[View,string][]=[['horizon','Horizon'],['map','Life'],['year','Year']];
 const FOCUS_KEY='reboot-horizon-focus',VIEW_KEY='reboot-horizon-view',ARRIVED_KEY='reboot-horizon-arrived';
 const CENTRE_FOUR:[string,string][]=[['16','Get a job'],['15','A girlfriend'],['21','Reach 75 kg'],['22','Land an investor or accelerator']];
 
 type Pop={kind:'stone';stepId:string;anchor:HTMLElement}|{kind:'goal';anchor:HTMLElement|null;text?:string;board?:string}|{kind:'step';anchor:HTMLElement|null};
 
 export function Horizon({state,mutate,now,go:_go}:{state:State;mutate:Mutate;now:string;go:(p:string)=>void}){
- const goals=planGoals(state),pets=usePocketPets(),pet=pets!=='off',phone=usePhone(),maxOpen=useMaxOpen();
+ const goals=planGoals(state),pets=usePocketPets(),pet=pets!=='off',phone=usePhone(),short=useShort(),maxOpen=useMaxOpen();
  const [view,setViewState]=useState<View>(()=>{const v=ss.get(VIEW_KEY);return v==='map'||v==='year'?v:'horizon';});
  const [focusId,setFocusId]=useState(()=>ss.get(FOCUS_KEY)??'');
  const focus=goals.find(g=>g.id===focusId)??goals.find(g=>g.one)??goals[0]??null,fi=focus?goals.indexOf(focus):-1;
@@ -39,7 +39,7 @@ export function Horizon({state,mutate,now,go:_go}:{state:State;mutate:Mutate;now
  const evening=new Date().getHours()>=17;
  const root=useRef<HTMLDivElement>(null),stage=useRef<HTMLDivElement>(null),ridgeRef=useRef<HTMLDivElement>(null),trailCol=useRef<HTMLDivElement>(null);
  const stageKey=`${view}-${goals.length>0}`,stageW=useWidth(stage,1000,stageKey),trailW=useWidth(trailCol,600,stageKey);
- const band=phone?BAND_PHONE:BAND_DESKTOP,oneIndex=goals.findIndex(g=>g.one);
+ const band=phone?BAND_PHONE:short?BAND_SHORT:BAND_DESKTOP,oneIndex=goals.findIndex(g=>g.one);
  const ridge=useMemo(()=>ridgeLayout(goals.length,Math.max(1,stageW),oneIndex,band),[goals.length,stageW,oneIndex,band]);
  const peak=focus&&ridge.peaks[fi]?{x:ridge.peaks[fi].x,y:ridge.peaks[fi].base-6}:null;
  const action=useRef<'pointer'|'key'>('pointer'),lastVia=useRef<'pointer'|'key'>('pointer');
@@ -54,7 +54,7 @@ export function Horizon({state,mutate,now,go:_go}:{state:State;mutate:Mutate;now
   mutate(s=>{stepToToday(s,focus.id,st.id,day);},'plan step to today');if(day===now)flyChip(st.text,anchor,document.querySelector('[data-shelf="today"]'));pose('tilt');};
  const pending=useRef<(()=>void)|null>(null);
  useEffect(()=>()=>{pending.current?.();},[]);
- const complete=(st:PlanStep,anchor:Element|null)=>{if(!focus)return;lastVia.current=action.current;const gid=focus.id;const run=()=>{pending.current=null;mutate(s=>toggleStep(s,gid,st.id),'plan step');};
+ const complete=(st:PlanStep,anchor:Element|null)=>{if(!focus||pending.current)return;lastVia.current=action.current;const gid=focus.id;const run=()=>{pending.current=null;mutate(s=>toggleStep(s,gid,st.id),'plan step');};
   const stone=anchor?.closest('.hz-stone')??root.current?.querySelector(`.hz-stone[data-step="${st.id}"]`);
   if(st.done||action.current==='key'||!motionOK()||!stone){run();return;}
   const r=stone.getBoundingClientRect();inkStamp(r.left+r.width/2+60,r.top+r.height/2,'Done');
@@ -86,7 +86,7 @@ export function Horizon({state,mutate,now,go:_go}:{state:State;mutate:Mutate;now
   if(e.ctrlKey||e.metaKey||e.altKey||t?.closest(SHORTCUT_SKIP)||t?.closest('.hz-popover,.hz-drawer'))return;
   const {goals:gs,focus:f,pop:p,drawer:d,view:v}=latest.current;if(p||d)return;const k=e.key.toLowerCase();
   const stoneFocus=t?.closest('[data-step]') as HTMLElement|null,stepOf=()=>{const id=stoneFocus?.dataset.step;return f?(id?f.steps.find(x=>x.id===id):nextStep(f)):undefined;};
-  const stones=()=>[...(root.current?.querySelectorAll<HTMLElement>(v==='map'?'.hz-twig-label[data-step]':'.hz-stone[data-step]')??[])];
+  const stones=()=>[...(root.current?.querySelectorAll<HTMLElement>(v==='map'?'.lm-next-text[data-step]':'.hz-stone[data-step]')??[])];
   if(k==='y'){e.preventDefault();setView(v==='year'?'horizon':'year');return;}
   if(/^[0-9]$/.test(k)){const n=k==='0'?9:Number(k)-1;if(gs[n]){e.preventDefault();focusGoal(gs[n].id);}return;}
   if(k==='g'&&gs.length<10){e.preventDefault();setPop({kind:'goal',anchor:root.current?.querySelector('.hz-add')??null});return;}
@@ -123,14 +123,17 @@ export function Horizon({state,mutate,now,go:_go}:{state:State;mutate:Mutate;now
   return()=>{window.removeEventListener('pointerdown',skip,true);window.removeEventListener('keydown',skip,true);tl?.progress(1);mm.revert();};
  },{scope:root,dependencies:[view,goals.length>0]});
 
- // Refocus: the new trail draws up from your feet, the stones and the goal card come in through a soft blur.
+ // Year comes in with a short fade.
+ useGSAP(()=>{if(view!=='year')return;const mm=whenMotionOK(()=>{gsap.from(root.current,{opacity:0,duration:.2,ease:'enter',clearProps:'opacity'});});return()=>mm.revert();},{scope:root,dependencies:[view]});
+
+ // Refocus: the new trail draws up from your feet, the stones and the goal card rise in.
  const lastFocus=useRef(focus?.id);
  useLayoutEffect(()=>{if(lastFocus.current===focus?.id)return;const first=lastFocus.current===undefined;lastFocus.current=focus?.id;if(first||view!=='horizon')return;
   const mm=whenMotionOK(()=>{const q=(s:string)=>gsap.utils.toArray<Element>(s,root.current);
    gsap.from(q('.hz-trail-line path'),{drawSVG:'0%',duration:.45,ease:'move',overwrite:'auto',clearProps:CLEAR_DASH});
    gsap.from(q('.hz-connector path'),{drawSVG:'0%',duration:.35,delay:.2,ease:'move',overwrite:'auto',clearProps:CLEAR_DASH});
-   gsap.from(q('.hz-stone-row, .hz-stone-art, .hz-behind'),{opacity:0,y:8,filter:'blur(4px)',duration:.2,stagger:.03,overwrite:'auto',clearProps:'opacity,transform,filter'});
-   gsap.from(q('[data-card]'),{opacity:0,filter:'blur(4px)',duration:.2,overwrite:'auto',clearProps:'opacity,filter'});});
+   gsap.from(q('.hz-stone-row, .hz-stone-art, .hz-behind'),{opacity:0,y:8,duration:.2,stagger:.03,overwrite:'auto',clearProps:'opacity,transform'});
+   gsap.from(q('[data-card]'),{opacity:0,y:6,duration:.2,overwrite:'auto',clearProps:'opacity,transform'});});
   return()=>{mm.revert();};
  },[focus?.id]);
 
@@ -141,7 +144,7 @@ export function Horizon({state,mutate,now,go:_go}:{state:State;mutate:Mutate;now
  const heading=<div className="page-heading hz-heading">
   <h1>Horizon<span className="title-period">.</span></h1>
   <p>Where you’re headed, and the next step from here.</p>
-  {goals.length>0&&<div className="segmented hz-views" role="tablist" aria-label="Horizon views">{VIEWS.map(([v,n])=><button key={v} type="button" role="tab" aria-selected={view===v} className={view===v?'selected':''} onClick={()=>setView(v)}>{n}</button>)}</div>}
+  {goals.length>0&&<div className="segmented hz-views" role="group" aria-label="Horizon views">{VIEWS.map(([v,n])=><button key={v} type="button" aria-pressed={view===v} className={view===v?'selected':''} onClick={()=>setView(v)}>{n}</button>)}</div>}
  </div>;
 
  return <>{heading}
@@ -160,7 +163,7 @@ export function Horizon({state,mutate,now,go:_go}:{state:State;mutate:Mutate;now
        onDoToday={doToday} onEditTrail={()=>setDrawer(true)} onRemoveGoal={dropGoal} onPlant={plant} onAddStep={anchor=>setPop({kind:'step',anchor})}/>
      </div>
     </div></>
-   :view==='map'&&focus?<MapView state={state} mutate={mutate} goals={goals} focusId={focus.id} now={now} onFocus={focusGoal} onTwig={(anchor,st)=>setPop({kind:'stone',stepId:st.id,anchor})} onMore={()=>setDrawer(true)} onAddStep={anchor=>setPop({kind:'step',anchor})}/>
+   :view==='map'&&focus?<LifeMap state={state} mutate={mutate} goals={goals} focusId={focus.id} now={now} onFocus={focusGoal} onTwig={(anchor,st)=>setPop({kind:'stone',stepId:st.id,anchor})} onAddStep={anchor=>setPop({kind:'step',anchor})}/>
    :<YearView state={state} mutate={mutate} goals={goals} now={now} onOpenMonth={openYearMonth} onSetDeadline={openDeadline}/>}
   </div>
   {pop?.kind==='stone'&&focus&&popStep&&<StonePopover state={state} goal={focus} step={popStep} now={now} anchor={pop.anchor} evening={evening} onClose={()=>setPop(null)}
@@ -212,8 +215,8 @@ function FirstRun({state,mutate,band,phone,stage,ridgeRef,stageW,onAdd}:{state:S
 // The flag moment: Bond cheers in place when he's out; otherwise a quiet toast carries the line.
 function HzToast({text,pet,onDone}:{text:string;pet:boolean;onDone:()=>void}){
  const el=useRef<HTMLDivElement>(null);
- useEffect(()=>{const t=window.setTimeout(onDone,3400);return()=>clearTimeout(t);},[onDone]);
- useGSAP(()=>{const mm=whenMotionOK(()=>{gsap.from(el.current,{y:24,opacity:0,duration:.4,ease:'enter',clearProps:'opacity,transform'});});return()=>mm.revert();},{scope:el});
+ useEffect(()=>{const t=window.setTimeout(()=>{if(motionOK()&&el.current)gsap.to(el.current,{opacity:0,y:8,duration:.2,ease:'enter',onComplete:onDone});else onDone();},3400);return()=>{clearTimeout(t);if(el.current)gsap.killTweensOf(el.current);};},[onDone]);
+ useGSAP(()=>{const mm=whenMotionOK(()=>{gsap.from(el.current,{y:16,opacity:0,duration:.24,ease:'enter',clearProps:'opacity,transform'});});return()=>mm.revert();},{scope:el});
  return <div ref={el} className="hz-toast" role="status">{pet&&<Bond pose="flag"/>}<p>{text}</p></div>;
 }
 

@@ -4,7 +4,7 @@ import {seed} from '../src/seed';
 import {validateImport} from '../src/storage';
 import type {State,PlanGoal} from '../src/model';
 import {addGoal,addStep,toggleStep,stepToToday,stepToPeriod,toggleItem,itemToWeek,itemToDay,syncStepFromTodo,reorderStep,reachGoal,unreachGoal,linkBoard,removeGoal,restoreGoal,removeStep,restoreStep,stepPlace,stepTag,weekOf,monthOf,setStepDue,isLate} from '../src/plan';
-import {peakSlots,ridgeLayout,summitOf,hatchTop,hillPolygon,wrapText,layoutLabels,catmullRom,foldSteps,trailLayout,taperedOutline,mapLayout,BAND_DESKTOP,BAND_PHONE} from '../src/horizon/geometry';
+import {peakSlots,ridgeLayout,summitOf,hatchTop,hillPolygon,wrapText,layoutLabels,catmullRom,foldSteps,trailLayout,taperedOutline,BAND_DESKTOP,BAND_PHONE} from '../src/horizon/geometry';
 
 const NOW='2026-10-23';
 const fresh=()=>{const s=seed('2026-05-04');s.todos=[];return s;};
@@ -111,13 +111,4 @@ describe('Horizon geometry: the trail',()=>{
 
 describe('Horizon geometry: the map',()=>{
  it('tapers a branch from thick to thin',()=>{const o=taperedOutline([0,0],[30,0],[60,0],[100,0],20,2,10);expect(o).toHaveLength(22);expect(Math.abs(o[0][1]-o[21][1])).toBeCloseTo(20,0);expect(Math.abs(o[10][1]-o[11][1])).toBeCloseTo(2,0);});
- it('uses two sides on wide screens, goal 1 at the top right, and keeps branches still when focus moves',()=>{
-  const a=mapLayout({n:9,focus:0,twigs:7,width:1200,oneIndex:5}),b=mapLayout({n:9,focus:5,twigs:3,width:1200,oneIndex:5});
-  expect(a.mode).toBe('both');expect(a.branches.filter(x=>x.side===1)).toHaveLength(5);expect(a.branches[0].tip[1]).toBeLessThan(a.branches[1].tip[1]);
-  expect(a.branches.map(x=>x.tip)).toEqual(b.branches.map(x=>x.tip));expect(a.twigs).toHaveLength(7);expect(b.twigs).toHaveLength(3);
-  for(const t of a.twigs){expect(t.tip[1]).toBeGreaterThanOrEqual(0);expect(t.tip[1]).toBeLessThanOrEqual(a.height);}
-  for(const br of a.branches){expect(br.tip[0]).toBeGreaterThan(0);expect(br.tip[0]).toBeLessThan(1200);}
- });
- it('falls back to a trunk layout on a phone and grows with the twigs',()=>{const m=mapLayout({n:10,focus:2,twigs:7,width:358,oneIndex:0});expect(m.mode).toBe('stack');expect(m.twigs).toHaveLength(7);for(const t of m.twigs)expect(t.label.x+t.label.width).toBeLessThanOrEqual(358);expect(m.height).toBeGreaterThan(mapLayout({n:10,focus:2,twigs:0,width:358,oneIndex:0}).height);});
- it('handles no goals',()=>{const m=mapLayout({n:0,focus:0,twigs:0,width:1000,oneIndex:-1});expect(m.branches).toHaveLength(0);});
 });

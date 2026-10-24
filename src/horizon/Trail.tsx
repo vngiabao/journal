@@ -1,6 +1,6 @@
 // The trail: one path, never a tree. The next step is the stone at your feet; later steps climb toward the focused
 // peak; done steps collapse into a small pile behind you. One foothill curve carries the path up into the ridge.
-import {useLayoutEffect,useMemo,useRef,useState,type RefObject} from 'react';
+import {useEffect,useLayoutEffect,useMemo,useRef,useState,type RefObject} from 'react';
 import type {State,PlanGoal,PlanStep} from '../model';
 import {Rough,sk,seedOf} from '../Sketch';
 import {catmullRom,foldSteps,trailLayout,bez,type Pt} from './geometry';
@@ -8,7 +8,7 @@ import {stepTag,stepPlace,isLate} from '../plan';
 import {Bond,type BondPose} from './shared';
 import {Count} from '../Count';
 import {ArrowRight,Plus} from '../icons';
-import {gsap,whenMotionOK} from './motion';
+import {gsap,motionOK} from './motion';
 
 export interface TrailProps{state:State;goal:PlanGoal;gi:number;now:string;phone:boolean;maxOpen:number;expanded:boolean;onExpand:(v:boolean)=>void;
  peak:{x:number;y:number}|null;ridgeRef:RefObject<HTMLDivElement|null>;width:number;pet:boolean;bondPose:BondPose;evening:boolean;
@@ -35,9 +35,11 @@ export function Trail(p:TrailProps){
  const lastBond=useRef<DOMRect|null>(null),lastNext=useRef(next?.id);
  useLayoutEffect(()=>{const el=bond.current,changed=lastNext.current!==next?.id;lastNext.current=next?.id;
   if(el&&changed&&lastBond.current){const now2=el.getBoundingClientRect(),dx=lastBond.current.left-now2.left,dy=lastBond.current.top-now2.top;
-   whenMotionOK(()=>{if(Math.abs(dx)+Math.abs(dy)>2){el.classList.add('walking');gsap.fromTo(el,{x:dx,y:dy},{x:0,y:0,duration:.5,ease:'move',clearProps:'transform',onComplete:()=>el.classList.remove('walking')});}
-    const s=root.current?.querySelector('.hz-stone.next');if(s)gsap.fromTo(s,{scale:.82},{scale:1,duration:.3,ease:'enter',clearProps:'transform'});});}
+   if(motionOK()){if(Math.abs(dx)+Math.abs(dy)>2){el.classList.add('walking');gsap.fromTo(el,{x:dx,y:dy},{x:0,y:0,duration:.5,ease:'move',clearProps:'transform',onComplete:()=>el.classList.remove('walking')});}
+    const s=root.current?.querySelector('.hz-stone.next');if(s)gsap.fromTo(s,{scale:.82},{scale:1,duration:.3,ease:'enter',clearProps:'transform'});}}
   lastBond.current=el?.getBoundingClientRect()??null;});
+ // Nothing keeps animating after the trail goes away.
+ useEffect(()=>()=>{const r=root.current;if(r)gsap.killTweensOf(r.querySelectorAll('.hz-trail-bond,.hz-stone'));},[]);
  const label=(st:PlanStep)=>{const tag=stepTag(state,st,now);return `Step ${number(st)} of ${g.steps.length}: ${st.text}.${tag?` ${tag}.`:''}${isLate(st,now)?' Late.':''}${st===next?' Next step.':''}`;};
  const onToday=next?stepPlace(state,next,now)==='today':false;
  return <div ref={root} className={`hz-trail ${phone?'is-phone':''}`} style={{height:L.height,'--gutter':`${gutter}px`} as React.CSSProperties}>
@@ -65,6 +67,6 @@ export function Trail(p:TrailProps){
    <p>No trail yet. List every step it takes to get there - about 10 minutes.</p>
    <button type="button" className="button secondary" onClick={e=>p.onAddStep(e.currentTarget)}><Plus size={16}/>Add the first step</button></div>}
   {doneCount>0&&<p className="hz-behind" style={{left:L.head[0]+30,top:L.height-34}}><Count value={doneCount} duration={.5}/> behind you</p>}
-  {pet&&<span ref={bond} className="hz-trail-bond" aria-hidden="true" style={next?{left:Math.max(0,L.stones[0][0]-28-70),top:L.stones[0][1]-50}:{left:Math.max(0,L.head[0]-96),top:L.height-82}}><Bond pose={!g.steps.length?'sniff':p.bondPose}/></span>}
+  {pet&&phone&&<span ref={bond} className="hz-trail-bond" aria-hidden="true" style={next?{left:Math.max(0,L.stones[0][0]-28-70),top:L.stones[0][1]-50}:{left:Math.max(0,L.head[0]-96),top:L.height-82}}><Bond pose={!g.steps.length?'sniff':p.bondPose}/></span>}
  </div>;
 }

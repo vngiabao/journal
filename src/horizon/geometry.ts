@@ -8,6 +8,8 @@ export const peakSlots=(n:number,canAdd=true)=>Math.max(1,n+(canAdd&&n<10?1:0));
 export interface Band{height:number;base:number;one:number;high:number;low:number}
 // Desktop leaves headroom above the summits for two-line labels; the phone band shows numbered pennants only.
 export const BAND_DESKTOP:Band={height:224,base:206,one:100,high:132,low:154};
+// Short windows (1366x768): a lower band so the next stone and its action stay above the fold.
+export const BAND_SHORT:Band={height:198,base:182,one:82,high:108,low:128};
 export const BAND_PHONE:Band={height:132,base:118,one:40,high:66,low:84};
 export interface Peak{index:number;x:number;summit:number;base:number;left:number;right:number;one:boolean;hill:Pt[]}
 export interface Ridge{peaks:Peak[];add:{x:number;summit:number;hill:Pt[]}|null;line:Pt[];slot:number}
@@ -69,9 +71,10 @@ export function layoutLabels(items:LabelIn[],o:{maxWidth:number;lineHeight:numbe
  for(const i of order){const it=items[i];
   const two=wrapText(it.text,o.maxWidth,o.measure,2),w2=Math.ceil(Math.max(...two.lines.map(o.measure),1));
   const one=wrapText(it.text,o.maxWidth,o.measure,1),w1=Math.ceil(Math.max(...one.lines.map(o.measure),1));
-  const tries:[typeof two,number,number][]=[[two,w2,0],[two,w2,1],[one,w1,0],[one,w1,1]];
+  const three=wrapText(it.text,o.maxWidth*.78,o.measure,3),w3=Math.ceil(Math.max(...three.lines.map(o.measure),1));
+  const tries:[typeof two,number,number][]=[[two,w2,0],[two,w2,1],...(two.lines.length>1&&!three.truncated?[[three,w3,0],[three,w3,1]] as [typeof two,number,number][]:[]),[one,w1,0],[one,w1,1]];
   let done=false;
-  for(const [wr,w,row] of tries){const q=box(it.x,w,it.bottom,wr.lines.length,row);if(!hits(q)){placed.push(q);out[i]={left:q.l,top:q.t,width:w,lines:wr.lines,truncated:wr.truncated||wr!==two&&two.lines.length>1,row};done=true;break;}}
+  for(const [wr,w,row] of tries){const q=box(it.x,w,it.bottom,wr.lines.length,row);if(!hits(q)){placed.push(q);out[i]={left:q.l,top:q.t,width:w,lines:wr.lines,truncated:wr.truncated||wr===one&&two.lines.length>1,row};done=true;break;}}
   if(done)continue;
   // Last resort: one line, as wide as the free gap around its own x on row 0.
   const b0=it.bottom,t0=b0-o.lineHeight,row=placed.filter(p=>t0<p.b&&b0>p.t);
@@ -116,40 +119,54 @@ export function taperedOutline(p0:Pt,c1:Pt,c2:Pt,p3:Pt,w0:number,w1:number,sampl
   left.push([p[0]+nx*w,p[1]+ny*w]);right.push([p[0]-nx*w,p[1]-ny*w]);}
  return [...left,...right.reverse()];
 }
-export interface MapBranch{index:number;side:1|-1;p0:Pt;c1:Pt;c2:Pt;tip:Pt;w0:number;label:{x:number;y:number;width:number;align:'left'|'right';below?:boolean}}
-export interface MapTwig{p0:Pt;c1:Pt;c2:Pt;tip:Pt;label:{x:number;y:number;width:number;align:'left'|'right'}}
-export interface MapLayout{mode:'both'|'stack';width:number;height:number;centre:{x:number;y:number;w:number;h:number};branches:MapBranch[];twigs:MapTwig[]}
-// Two-sided radial map on wide screens (goal 1 at the top right, clockwise); on narrow screens a trunk down the
-// left with goals growing right. Twigs hang off the focused goal only. Positions of goals never depend on focus,
-// so refocusing never moves the branches, only the twigs.
-export function mapLayout({n,focus,twigs,width,oneIndex}:{n:number;focus:number;twigs:number;width:number;oneIndex:number}):MapLayout{
- const W=Math.max(280,width),cw=Math.max(170,Math.min(240,W*.18)),half=W/2,bl=Math.min(330,half-cw/2-56-170);
-  // Each side keeps 170px beyond the tips for the focused goal's twigs; below 170px of branch, switch to the trunk layout.
- if(bl>=170&&n>0){
-  const right=Math.ceil(n/2),m=Math.max(right,n-right),H=Math.max(460,m*96+96,twigs*32+120),cx=half,cy=H/2;
-  const branches:MapBranch[]=[];
-  for(let i=0;i<n;i++){const side:1|-1=i<right?1:-1,k=side===1?i:n-1-i,count=side===1?right:n-right;
-   const gapY=count>1?Math.min(104,(H-110)/(count-1)):0,dy=(k-(count-1)/2)*gapY,ty=cy+dy;
-   const p0:Pt=[cx+side*cw*.44,cy+dy*.2],tip:Pt=[cx+side*(cw/2+bl-Math.abs(dy)*.1),ty];
-   const c1:Pt=[p0[0]+side*bl*.09,p0[1]],c2:Pt=[p0[0]+side*bl*.07,ty];
-   const from=p0[0]+side*bl*.1,lw=Math.abs(tip[0]-from);
-   branches.push({index:i,side,p0,c1,c2,tip,w0:i===oneIndex?20:15,label:{x:side===1?from:tip[0],y:ty,width:lw,align:side===1?'right':'left',below:dy>1}});}
-  const tw:MapTwig[]=[],b=branches[focus];
-  if(b&&twigs>0){const gap=32,span=(twigs-1)*gap;let y0=b.tip[1]-span/2;y0=Math.max(24,Math.min(H-24-span,y0));
-   for(let j=0;j<twigs;j++){const ty=y0+j*gap,p0:Pt=[b.tip[0]-b.side*4,b.tip[1]],tip:Pt=[b.tip[0]+b.side*46,ty];
-    const lx=tip[0]+b.side*8,lw=b.side===1?W-lx-8:lx-8;
-    tw.push({p0,c1:[p0[0]+b.side*18,p0[1]],c2:[tip[0]-b.side*20,ty],tip,label:{x:b.side===1?lx:8,y:ty,width:Math.min(lw,260),align:b.side===1?'left':'right'}});}}
-  return {mode:'both',width:W,height:H,centre:{x:cx,y:cy,w:cw,h:118},branches,twigs:tw};
- }
- // Narrow: a trunk down the left edge, each goal a branch growing right, the focused one's twigs hanging below it.
- const x0=18,row=66,twigGap=36,branches:MapBranch[]=[],tw:MapTwig[]=[];let y=48;
- for(let i=0;i<n;i++){
-  const ty=y,L=Math.min(W-x0-56,340),p0:Pt=[x0,ty-row*.55],tip:Pt=[x0+L,ty];
-  branches.push({index:i,side:1,p0,c1:[x0+2,ty-6],c2:[x0+26,ty],tip,w0:i===oneIndex?13:10,label:{x:x0+26,y:ty,width:L-26,align:'left'}});
-  y+=row;
-  if(i===focus&&twigs>0){for(let j=0;j<twigs;j++){const yy=ty+12+(j+1)*twigGap-8,a:Pt=[x0+40,ty+2],tip2:Pt=[x0+66,yy];
-   tw.push({p0:a,c1:[x0+42,ty+12],c2:[x0+46,yy],tip:tip2,label:{x:x0+74,y:yy,width:W-x0-74-8,align:'left'}});}
-   y+=twigs*twigGap+6;}
- }
- return {mode:'stack',width:W,height:Math.max(y-row+40,120),centre:{x:x0,y:0,w:0,h:0},branches,twigs:tw};
+
+// ---------------------------------------------------------------------------------------------- life map
+// A life wheel: angle is the area of life, distance from the centre is time. Rings (inner to outer): this year,
+// 5 years, 10 years, at 40. Drawn as ellipses so the wheel uses a wide window instead of leaving empty margins.
+export const LIFE_RING_F=[.46,.65,.83,1];
+// Odd counts put the first area at the top; even counts turn by half a slot. Either way the bottom of the wheel
+// falls between two branches, which is where the ring names sit.
+export const areaAngle=(i:number,n:number)=>-Math.PI/2+(n%2===0?Math.PI/n:0)+i*2*Math.PI/Math.max(1,n);
+export interface LifeBranch{index:number;angle:number;cos:number;sin:number;p0:Pt;c1:Pt;c2:Pt;tip:Pt;cross:Pt[]}
+export interface LifeGeo{width:number;height:number;cx:number;cy:number;rx:number;ry:number;rings:{rx:number;ry:number}[];centre:{w:number;h:number};branches:LifeBranch[]}
+export function lifeLayout({areas:n,width,height,padX=220,padTop=88,padBottom=40}:{areas:number;width:number;height:number;padX?:number;padTop?:number;padBottom?:number}):LifeGeo{
+ // Never taller than wide: when the width runs out first, the wheel stays round and only takes the height it needs.
+ const W=Math.max(320,width),rxA=Math.max(110,(W-2*padX)/2),ry=Math.max(110,Math.min(rxA,(Math.max(320,height)-padTop-padBottom)/2)),rx=Math.min(rxA,ry*1.75),H=padTop+2*ry+padBottom;
+ const cx=W/2,cy=padTop+ry,rings=LIFE_RING_F.map(f=>({rx:rx*f,ry:ry*f}));
+ const at=(f:number,a:number):Pt=>[cx+rx*f*Math.cos(a),cy+ry*f*Math.sin(a)];
+ const er=(p:Pt)=>Math.hypot((p[0]-cx)/rx,(p[1]-cy)/ry);
+ const branches:LifeBranch[]=[];
+ for(let i=0;i<n;i++){const a=areaAngle(i,n),bend=(i%2?1:-1)*.07;
+  const p0=at(.2,a),c1=at(.5,a+bend),c2=at(.8,a-bend*.6),tip=at(1.045,a);
+  // Where the branch meets each ring: sample the curve and take the first point at or past the ring.
+  const cross=LIFE_RING_F.map(f=>{let prev=p0;for(let k=1;k<=60;k++){const p=bez(p0,c1,c2,tip,k/60);if(er(p)>=f){const r0=er(prev),r1=er(p),t=r1===r0?1:(f-r0)/(r1-r0);return [prev[0]+(p[0]-prev[0])*t,prev[1]+(p[1]-prev[1])*t] as Pt;}prev=p;}return at(f,a);});
+  branches.push({index:i,angle:a,cos:Math.cos(a),sin:Math.sin(a),p0,c1,c2,tip,cross});}
+ return {width:W,height:H,cx,cy,rx,ry,rings,centre:{w:Math.min(300,rx*.6),h:Math.min(176,ry*.5)},branches};
+}
+// Which side of its ring crossing a label sits on. Labels on the outer ring above or below the centre stack
+// over or under the point; everything else reads outward, to the right or the left.
+export function nodeSide(cos:number,sin:number,outer:boolean):'left'|'right'|'up'|'down'{if(outer&&Math.abs(cos)<.3)return sin<0?'up':'down';return cos>=-.05?'right':'left';}
+// A closed, slightly irregular ellipse for rough.js to trace (a hand-drawn ring, never a perfect circle).
+export function ellipsePoints(cx:number,cy:number,rx:number,ry:number,seed=0,n=36):Pt[]{return Array.from({length:n+3},(_,i)=>{const a=i/n*Math.PI*2+seed*.37,w=1+Math.sin(i*1.7+seed)*.006;return [cx+Math.cos(a)*rx*w,cy+Math.sin(a)*ry*w] as Pt;});}
+
+export interface NodeIn{key:string;anchor:Pt;side:'left'|'right'|'up'|'down';variants:{w:number;h:number}[];gap?:number;lane?:Box;alt?:'left'|'right';altFrom?:number}
+export interface NodeOut{key:string;variant:number;box:Box;overlap:boolean;side:NodeIn['side']}
+// Places labels next to their ring crossings in the order given (most important first). Each node tries its richest
+// variant first, nudged a little along its side; if nothing fits it folds to a smaller variant ("+2"). Boxes stay
+// inside the canvas and never overlap each other or the obstacles unless even the smallest variant cannot fit.
+// A node's `lane` (the first line's spot beside its own point) is kept free for it until it is placed, so an earlier,
+// taller label on the same branch cannot swallow a later ring's point.
+export function placeNodes(nodes:NodeIn[],o:{width:number;height:number;gap?:number;pad?:number;obstacles?:Box[]}):NodeOut[]{
+ const pad=o.pad??6,placed:Box[]=[...(o.obstacles??[])],out:NodeOut[]=[];
+ const boxAt=(n:NodeIn,w:number,h:number,shift:number,side=n.side):Box=>{const [x,y]=n.anchor,gap=n.gap??o.gap??14;let l:number,t:number;
+  if(side==='right'){l=x+gap;t=y-h/2+shift;}else if(side==='left'){l=x-gap-w;t=y-h/2+shift;}else if(side==='up'){l=x-w/2+shift;t=y-gap-h;}else{l=x-w/2+shift;t=y+gap;}
+  l=Math.max(0,Math.min(o.width-w,l));t=Math.max(0,Math.min(o.height-h,t));return {l,t,r:l+w,b:t+h};};
+ const lanes=new Map(nodes.filter(n=>n.lane).map(n=>[n.key,n.lane!]));
+ const over=(q:Box,p:Box)=>q.l<p.r+pad&&q.r+pad>p.l&&q.t<p.b+pad&&q.b+pad>p.t;
+ const hits=(q:Box,self:string)=>placed.some(p=>over(q,p))||[...lanes].some(([k,p])=>k!==self&&over(q,p));
+ for(const n of nodes){let done=false;lanes.delete(n.key);const shifts=n.side==='left'||n.side==='right'?[0,-14,14,-28,28,-44,44,-60,60]:[0,-24,24,-48,48,-72,72];
+  // A label may read to the other side of its branch when the outward side is taken (from variant `altFrom` on).
+  for(let v=0;v<n.variants.length&&!done;v++){const {w,h}=n.variants[v];for(const side of n.alt&&v>=(n.altFrom??0)?[n.side,n.alt]:[n.side]){for(const s of shifts){const q=boxAt(n,w,h,s,side);if(!hits(q,n.key)){placed.push(q);out.push({key:n.key,variant:v,box:q,overlap:false,side});done=true;break;}}if(done)break;}}
+  if(!done){const v=n.variants.length-1,q=boxAt(n,n.variants[v].w,n.variants[v].h,0);placed.push(q);out.push({key:n.key,variant:v,box:q,overlap:true,side:n.side});}}
+ return out;
 }

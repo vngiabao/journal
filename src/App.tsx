@@ -129,7 +129,7 @@ export default function App(){
     {error&&<div className="error-banner" role="alert">{error}<button onClick={()=>setError('')}>Dismiss</button></div>}
     {page==='Reboot Board'?<Board state={state} mutate={mutate} now={now}/>
     :page==='Journey'||page==='Review'?<><div className="page-heading"><h1>Progress<span className="title-period">.</span></h1><p>{page==='Journey'?'Doubt, small wins, restarts, breakthroughs. The line is uneven on purpose.':'Consistency, effort, results, and how it felt. None of it is a score.'}</p></div>
-     <div className="segmented progress-tabs" role="tablist" aria-label="Progress views">{([['Journey','Your line'],['Review','Review']] as const).map(([k,n])=><button key={k} role="tab" aria-selected={page===k} className={page===k?'selected':''} onClick={()=>go(k)}>{n}</button>)}</div>
+     <div className="segmented progress-tabs" role="group" aria-label="Progress views">{([['Journey','Your line'],['Review','Review']] as const).map(([k,n])=><button key={k} type="button" aria-pressed={page===k} className={page===k?'selected':''} onClick={()=>go(k)}>{n}</button>)}</div>
      {page==='Journey'?<Journey state={state} mutate={mutate} now={now}/>:<Review state={state} mutate={mutate} now={now}/>}</>
     :page==='Journal'?<Journal state={state} mutate={mutate} now={now}/>
     :page==='Horizon'?<Horizon state={state} mutate={mutate} now={now} go={go}/>
