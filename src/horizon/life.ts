@@ -1,6 +1,6 @@
 // The life map's data: areas of life, present-tense visions at 5 years, 10 years and 40, and which area each goal
 // belongs to. Pure functions on State, so the wheel and the phone ladder share one source of truth.
-import type {State,LifeArea,Vision,VisionWhen,PlanGoal} from '../model';
+import type {State,LifeArea,Vision,VisionWhen,PlanGoal,LifeHorizon} from '../model';
 import {uid} from '../model';
 
 export const DEFAULT_AREAS:LifeArea[]=[
@@ -10,10 +10,28 @@ export const DEFAULT_AREAS:LifeArea[]=[
 // What each default area means, shown under its name the first time.
 export const AREA_HINTS:Record<string,string>={connection:'Family and friends',ownership:'Money and the things you own'};
 export const AREA_MIN=5,AREA_MAX=8;
-// Far to near, the order the ladder reads in.
-export const WHENS:VisionWhen[]=['40','10y','5y'];
-export const WHEN_LABEL:Record<VisionWhen,string>={'40':'At 40','10y':'In 10 years','5y':'In 5 years'};
-export const WHEN_SHORT:Record<VisionWhen|'year',string>={year:'This year','5y':'5 years','10y':'10 years','40':'At 40'};
+// Horizons: "This year" (where the goals live) and the vision horizons. The defaults can't be removed; Bao can add
+// his own ("15 years", "At 50"). Near to far: "N years" by N, then "At N" by age, then anything else in the order added.
+export const DEFAULT_HORIZONS:LifeHorizon[]=[{id:'year',label:'This year'},{id:'5y',label:'5 years'},{id:'10y',label:'10 years'},{id:'40',label:'At 40'}];
+export const isDefaultHorizon=(id:string)=>DEFAULT_HORIZONS.some(h=>h.id===id);
+export function horizonRank(label:string){const t=label.trim().toLowerCase();if(t==='this year')return 0;
+ let m=t.match(/^(?:in\s+)?(\d+(?:\.\d+)?)\s*(?:years?|yrs?|y)$/);if(m)return Number(m[1]);m=t.match(/^at\s+(\d+)$/);if(m)return 1000+Number(m[1]);return Infinity;}
+export function lifeHorizons(s:State):LifeHorizon[]{const custom=s.plan?.horizons??[],all=[...DEFAULT_HORIZONS,...custom];
+ return all.map((h,i)=>({h,i,r:horizonRank(h.label)})).sort((a,b)=>a.r===b.r?a.i-b.i:a.r-b.r).map(x=>x.h);}
+// The vision horizons, far to near: the order the ladder reads in.
+export const visionHorizons=(s:State)=>lifeHorizons(s).filter(h=>h.id!=='year').reverse();
+export const horizonOf=(s:State,id:string)=>lifeHorizons(s).find(h=>h.id===id);
+// "In 5 years" / "At 40" / "This year" as a heading; the phrase under "Me": "in 5 years", "at 40", "this year".
+export const horizonTitle=(h?:LifeHorizon)=>!h?'':/^\d/.test(h.label.trim())?`In ${h.label.trim()}`:h.label.trim();
+export const horizonPhrase=(h?:LifeHorizon)=>{const t=horizonTitle(h);return t?t.charAt(0).toLowerCase()+t.slice(1):'';};
+export const WHEN_LABEL:Record<string,string>={'40':'At 40','10y':'In 10 years','5y':'In 5 years'};
+export function addHorizon(s:State,label:string){const l=label.trim();if(!l||lifeHorizons(s).some(h=>h.label.trim().toLowerCase()===l.toLowerCase()))return undefined;const h={id:uid(),label:l};(plan(s).horizons??=[]).push(h);return h;}
+export function renameHorizon(s:State,id:string,label:string){const h=(s.plan?.horizons??[]).find(x=>x.id===id),l=label.trim();if(h&&l)h.label=l;}
+// Removing a custom horizon takes its visions with it; undo puts both back.
+export function removeHorizon(s:State,id:string){const list=s.plan?.horizons;if(!list||isDefaultHorizon(id))return undefined;const index=list.findIndex(h=>h.id===id);if(index<0)return undefined;
+ const [horizon]=list.splice(index,1),p=plan(s),visions=(p.visions??[]).filter(v=>v.when===id);p.visions=(p.visions??[]).filter(v=>v.when!==id);return {horizon,index,visions};}
+export function restoreHorizon(s:State,r:{horizon:LifeHorizon;index:number;visions:Vision[]}){const list=plan(s).horizons??=[];if(list.some(h=>h.id===r.horizon.id))return;
+ list.splice(Math.min(r.index,list.length),0,r.horizon);const p=plan(s);(p.visions??=[]).push(...r.visions.filter(v=>!p.visions!.some(x=>x.id===v.id)));}
 
 const plan=(s:State)=>s.plan??={goals:[]};
 // Areas are seeded lazily: reading never writes, the first edit stores the defaults.
@@ -43,4 +61,4 @@ export function restoreVision(s:State,vision:Vision,index:number){const list=pla
 
 export function setGoalArea(s:State,goalId:string,area?:string){const g=(s.plan?.goals??[]).find(x=>x.id===goalId);if(!g)return;ensureAreas(s);if(area)g.area=area;else delete g.area;}
 // The furthest vision written for an area (at 40, else 10 years, else 5), for one-line summaries.
-export function furthestVision(s:State,area:string){for(const w of WHENS){const v=visionsAt(s,area,w)[0];if(v)return v;}return undefined;}
+export function furthestVision(s:State,area:string){for(const {id:w} of visionHorizons(s)){const v=visionsAt(s,area,w)[0];if(v)return v;}return undefined;}

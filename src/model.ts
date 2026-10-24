@@ -34,10 +34,12 @@ export interface PlanItem {id:string; scope:'week'|'month'; period:string; text:
 // The life map: areas of life (angle on the wheel) and present-tense visions at 5 years, 10 years and 40 (distance).
 // `PlanGoal.area` places a goal on its area's branch in the "This year" ring.
 export interface LifeArea {id:string; name:string;}
-export type VisionWhen='5y'|'10y'|'40';
+// A horizon id: the defaults '5y' | '10y' | '40', or a custom one Bao adds ("15 years", "At 50"), listed in plan.horizons.
+export type VisionWhen=string;
+export interface LifeHorizon {id:string; label:string;}
 export interface Vision {id:string; area:string; when:VisionWhen; text:string;}
 export type ProofKind='win'|'attempt'|'lesson';
 export interface Proof {id:string; date:string; kind:ProofKind; text:string; createdAt:string;}
 export interface Achievement {id:string;goalId:string;run:number;date:string;criteria:Criteria;}
-export interface State {schema:1; goals:Goal[]; logs:Activity[]; journey:Movement[]; journals:Journal[]; edits:Edit[]; achievements:Achievement[]; proofs:Proof[]; todos?:Todo[]; quotes?:Quote[]; training?:{days:TrainingDay[]}; workouts?:Workout[]; plan?:{goals:PlanGoal[]; items?:PlanItem[]; areas?:LifeArea[]; visions?:Vision[]}; settings:{language:'en'|'both'|'vi';timezone:string;onboarded:boolean;identity?:string;name?:string;customTags?:string[];reminders?:{morning:string;evening:string;notify:boolean};};}
+export interface State {schema:1; goals:Goal[]; logs:Activity[]; journey:Movement[]; journals:Journal[]; edits:Edit[]; achievements:Achievement[]; proofs:Proof[]; todos?:Todo[]; quotes?:Quote[]; training?:{days:TrainingDay[]}; workouts?:Workout[]; plan?:{goals:PlanGoal[]; items?:PlanItem[]; areas?:LifeArea[]; visions?:Vision[]; horizons?:LifeHorizon[]}; settings:{language:'en'|'both'|'vi';timezone:string;onboarded:boolean;identity?:string;name?:string;customTags?:string[];reminders?:{morning:string;evening:string;notify:boolean};};}
 export function uid(){return crypto.randomUUID();}

@@ -4,7 +4,7 @@ import {seed} from '../src/seed';
 import {validateImport} from '../src/storage';
 import type {State} from '../src/model';
 import {addGoal} from '../src/plan';
-import {lifeAreas,ensureAreas,addVision,editVision,removeVision,restoreVision,visionsAt,addArea,renameArea,removeArea,restoreArea,setGoalArea,goalsIn,unassignedGoals,furthestVision,DEFAULT_AREAS,AREA_MAX,AREA_MIN} from '../src/horizon/life';
+import {lifeAreas,ensureAreas,addVision,editVision,removeVision,restoreVision,visionsAt,addArea,renameArea,removeArea,restoreArea,setGoalArea,goalsIn,unassignedGoals,furthestVision,lifeHorizons,visionHorizons,addHorizon,renameHorizon,removeHorizon,restoreHorizon,horizonRank,horizonTitle,horizonPhrase,DEFAULT_AREAS,AREA_MAX,AREA_MIN} from '../src/horizon/life';
 import {mindLayout,mindSizes,mindSplit,spinePath,branchPoints,taperedPoly,cloudPoints,bezLength,type MindAreaIn} from '../src/horizon/geometry';
 
 const fresh=()=>{const s=seed('2026-05-04');s.todos=[];return s;};
@@ -30,6 +30,21 @@ describe('Life map data',()=>{
   while(lifeAreas(s).length>AREA_MIN)removeArea(s,lifeAreas(s)[0].id);expect(removeArea(s,lifeAreas(s)[0].id)).toBeUndefined();
  });
  it('summarises an area by its furthest vision',()=>{const s=fresh();expect(furthestVision(s,'mind')).toBeUndefined();addVision(s,'mind','5y','I read daily');expect(furthestVision(s,'mind')!.when).toBe('5y');addVision(s,'mind','10y','I meditate');expect(furthestVision(s,'mind')!.when).toBe('10y');addVision(s,'mind','40','I am calm');expect(furthestVision(s,'mind')!.text).toBe('I am calm');});
+ it('keeps horizons in time order, with custom ones of your own',()=>{
+  const s=fresh();expect(lifeHorizons(s).map(h=>h.label)).toEqual(['This year','5 years','10 years','At 40']);
+  addHorizon(s,'At 50');addHorizon(s,'15 years');addHorizon(s,'Someday');addHorizon(s,'At 35');
+  expect(lifeHorizons(s).map(h=>h.label)).toEqual(['This year','5 years','10 years','15 years','At 35','At 40','At 50','Someday']);
+  expect(addHorizon(s,'15 YEARS')).toBeUndefined();expect(addHorizon(s,'  ')).toBeUndefined();
+  expect(visionHorizons(s)[0].label).toBe('Someday');expect(visionHorizons(s).some(h=>h.id==='year')).toBe(false);
+  expect(horizonRank('in 20 years')).toBe(20);expect(horizonTitle(lifeHorizons(s)[3])).toBe('In 15 years');expect(horizonPhrase(lifeHorizons(s)[5])).toBe('at 40');expect(horizonPhrase(lifeHorizons(s)[0])).toBe('this year');
+ });
+ it('renames and removes custom horizons with their visions, undo puts them back; defaults stay',()=>{
+  const s=fresh();const h=addHorizon(s,'15 years')!;addVision(s,'career',h.id,'I sold the company');renameHorizon(s,h.id,'20 years');expect(lifeHorizons(s).find(x=>x.id===h.id)!.label).toBe('20 years');
+  expect(removeHorizon(s,'40')).toBeUndefined();const r=removeHorizon(s,h.id)!;expect(visionsAt(s,'career',h.id)).toHaveLength(0);expect(lifeHorizons(s)).toHaveLength(4);
+  restoreHorizon(s,r);expect(visionsAt(s,'career',h.id)).toHaveLength(1);expect(lifeHorizons(s)).toHaveLength(5);
+  expect(()=>validateImport(structuredClone(s))).not.toThrow();
+  const bad=structuredClone(s) as State;bad.plan!.horizons![0].label='';expect(()=>validateImport(bad)).toThrow();
+ });
  it('places goals in their area; a goal whose area is gone waits in the tray',()=>{
   const s=fresh();const a=addGoal(s,'I work as a PM'),b=addGoal(s,'I read 20 books');setGoalArea(s,a.id,'career');
   expect(goalsIn(s,'career').map(g=>g.id)).toEqual([a.id]);expect(unassignedGoals(s).map(g=>g.id)).toEqual([b.id]);
@@ -38,7 +53,7 @@ describe('Life map data',()=>{
  it('new optional fields pass import validation and bad ones are refused',()=>{
   const s=fresh();const g=addGoal(s,'I weigh 75 kg');setGoalArea(s,g.id,'health');addVision(s,'health','40','I am strong at 40');
   expect(()=>validateImport(structuredClone(s))).not.toThrow();
-  const bad=structuredClone(s) as State;bad.plan!.visions![0].when='20y' as never;expect(()=>validateImport(bad)).toThrow();
+  const bad=structuredClone(s) as State;bad.plan!.visions![0].when='';expect(()=>validateImport(bad)).toThrow();
   const bad2=structuredClone(s) as State;(bad2.plan!.areas as unknown[])[0]={id:1};expect(()=>validateImport(bad2)).toThrow();
   const bad3=structuredClone(s) as State;(bad3.plan!.goals[0] as {area?:unknown}).area=5;expect(()=>validateImport(bad3)).toThrow();
  });

@@ -200,3 +200,90 @@
 :is(.mm-row,.mm-name,.mm-mini-name,.lm-vision,.lm-goal-text,.lm-next-text,.lm-area-row,.lm-acc-h button):active:not(:disabled){transform:scale(.98)}
 .lm-ladder h2:focus{outline:none}
 .lm-ladder h2:focus-visible{outline:2px solid var(--blue);outline-offset:4px;border-radius:var(--r-small)}
+
+/* One map per horizon: the switch sits centred above the map */
+.lm-switch-row{display:flex;justify-content:center;align-items:center;gap:var(--s-2);margin:0 0 var(--s-3);max-width:100%}
+.lm-switch{flex-wrap:wrap;justify-content:center}
+.lm-switch button{min-height:44px;padding:var(--s-2) var(--s-4);font-size:15px}
+.lm-switch-add{display:inline-flex;align-items:center;justify-content:center;gap:var(--s-1);min-width:44px;min-height:44px;padding:0 var(--s-4);border:1px dashed var(--line-strong);border-radius:var(--r-chip);background:transparent;color:var(--blue);font:550 15px var(--sans);transition:border-color 160ms var(--ease),transform 160ms var(--ease)}
+.lm-switch-add>span:first-child{font-size:19px;line-height:1}
+.lm-switch-add:focus-visible{outline:2px solid var(--blue);outline-offset:2px;box-shadow:0 0 0 4px var(--focus-halo)}
+.lm-switch-add:active{transform:scale(.95)}
+@media(hover:hover) and (pointer:fine){.lm-switch-add:hover{border-color:var(--blue)}}
+@media(hover:hover) and (pointer:fine){.lm-switch button:not(.selected):hover{color:var(--ink);background:var(--paper-40)}}
+.lm-switch button:focus-visible{outline:2px solid var(--blue);outline-offset:2px;box-shadow:0 0 0 4px var(--focus-halo)}
+.lm-switch button:active{transform:scale(.97)}
+
+/* "Me" is the biggest thing on the map: Me, the horizon, and who you're becoming in small print */
+.mm-centre{flex-direction:column;gap:2px;place-items:center;align-content:center}
+.mm-me{font:600 var(--mm-me,52px)/.95 var(--hand);color:var(--ink)}
+.mm-when{font:500 21px/1.15 var(--hand);color:var(--gold-text)}
+.mm.scale-l .mm-when{font-size:24px}
+.mm-centre .mm-sky{margin-top:2px}
+.mm-centre .mm-sky .hz-sky-text{font:400 15px/1.25 var(--sans);color:var(--ink-soft);min-height:44px;text-align:center;max-width:100%}
+.mm-centre .mm-sky .hz-sky-text.empty{font-size:14px}
+.mm-centre .mm-sky .hz-sun{display:none}
+
+/* The open area: a thicker branch, its name underlined. Nothing else is dimmed. */
+.mm-name.focused span{text-decoration-line:underline}
+.mm.scale-m .mm-row{font-size:18px;line-height:21px}
+.mm.scale-l .mm-row{font-size:21px;line-height:25px}
+.mm .mm-row.nextstep{font-size:16px;line-height:19px;color:var(--ink-soft)}
+.mm.scale-l .mm-row.nextstep{font-size:18px;line-height:21px}
+.mm-row.nextstep .mm-meta{margin-top:2px}
+.mm-row.nextstep .mm-meta.on{color:var(--green);font-weight:550}
+.mm .mm-row.more,.mm .mm-row.add{font:550 14px/24px var(--sans)}
+.mm .mm-row.add{color:var(--c)}
+.mm-twig.step .mm-fill{opacity:.8}
+
+/* Under the map: first steps, goals with no area yet, and the areas list */
+.lm-under{display:flex;flex-direction:column;align-items:center;gap:var(--s-4);margin-top:var(--s-4)}
+.lm-under>.lm-first{max-width:760px;width:100%;padding:var(--s-5);background:var(--sheet);border:1px solid var(--line);border-radius:var(--r-card)}
+.lm-under-tray{max-width:760px;width:100%}
+.lm-under .lm-edit-areas{align-self:center}
+
+/* The area sheet: over the map on the right (the map never reflows), a bottom sheet on a phone */
+.lm-sheet-root{position:fixed;inset:0;z-index:1100;pointer-events:none}
+.lm-sheet{pointer-events:auto;position:fixed;right:0;top:0;bottom:0;width:min(400px,100%);display:flex;flex-direction:column;gap:var(--s-4);padding:var(--s-5) var(--s-6) var(--s-7);
+ background:var(--sheet);border-left:1px solid var(--line);box-shadow:var(--shadow-lift);overflow:auto;overscroll-behavior:contain}
+.lm-sheet.from-left{right:auto;left:0;border-left:0;border-right:1px solid var(--line)}
+.lm-sheet-head{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--s-3)}
+.lm-sheet-head h2{font:600 32px/1.1 var(--serif);color:var(--c)}
+.lm-sheet-head h2:focus{outline:none}
+.lm-sheet-head h2:focus-visible{outline:2px solid var(--blue);outline-offset:4px;border-radius:var(--r-small)}
+.lm-sheet-head p{font-size:14px;color:var(--muted);margin-top:var(--s-1)}
+.lm-sheet-x{display:grid;place-items:center;flex:none;width:44px;height:44px;border:0;border-radius:var(--r-chip);background:transparent;color:var(--ink-soft);transition:background-color 160ms var(--ease),transform 160ms var(--ease)}
+.lm-sheet-x:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.lm-sheet-x:active{transform:scale(.94)}
+@media(hover:hover) and (pointer:fine){.lm-sheet-x:hover{background:var(--sheet-2)}}
+.lm-sheet .lm-rung{--lm-rung-col:96px}
+.lm-sheet-scrim{position:fixed;inset:0;border:0;background:var(--scrim);pointer-events:auto}
+.lm-sheet-root.is-phone .lm-sheet{top:auto;left:0;width:100%;max-height:88vh;border-left:0;border-radius:var(--r-card) var(--r-card) 0 0;padding:var(--s-4) var(--s-4) calc(var(--s-6) + env(safe-area-inset-bottom))}
+.lm-sheet-root.is-phone .lm-rung{--lm-rung-col:80px}
+
+/* Phone: the small map and one row per area for this horizon */
+.mm-phone{display:flex;flex-direction:column;gap:var(--s-3)}
+.mm-mini-me{display:flex;flex-direction:column;align-items:center;justify-content:center;width:auto}
+.mm-mini-me b{font:600 34px/1 var(--hand);color:var(--ink)}
+.mm-mini-me .mm-when{font-size:16px}
+.mm-mini-name{display:inline-flex;align-items:flex-end;justify-content:center;gap:4px;height:34px;padding-bottom:5px;font:600 18px/1 var(--hand);letter-spacing:.02em}
+.mm-mini-name small{font:600 12px/1 var(--sans);color:var(--muted)}
+.mm-mini-name[aria-pressed="true"]{text-decoration:underline 1.5px;text-underline-offset:4px}
+.lm-prows{list-style:none;margin:0;padding:0}
+.lm-prow{display:grid;gap:4px;width:100%;min-height:44px;padding:var(--s-3) 0;border:0;border-top:1px solid var(--line);background:transparent;text-align:left;color:var(--ink)}
+.lm-prows li:last-child .lm-prow{border-bottom:1px solid var(--line)}
+.lm-prow-items{display:flex;flex-direction:column;gap:4px}
+.lm-prow-item{display:flex;align-items:flex-start;gap:var(--s-2);font:500 18px/1.3 var(--serif)}
+.lm-prow-item .hz-mini-pennant{margin-top:3px}
+.lm-prow-item small{font:400 13px var(--sans);color:var(--muted)}
+.lm-prow-item small.late{color:var(--red);font-weight:550}
+.lm-prow-empty{font-size:14px;color:var(--muted)}
+.lm-prow:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:var(--r-small)}
+.lm-prow:active{transform:scale(.99)}
+.lm.is-phone .lm-switch-row{margin-bottom:var(--s-2)}
+.lm.is-phone .lm-switch-row{justify-content:flex-start}
+.lm.is-phone .lm-switch{flex:0 1 auto;min-width:0;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;justify-content:flex-start}
+.lm.is-phone .lm-switch button{padding:var(--s-2) 10px;font-size:14px;flex:none}
+.lm.is-phone .lm-switch-add{flex:none;width:44px;padding:0}
+.lm.is-phone .lm-add-word{display:none}
+@media(prefers-reduced-motion:reduce){.lm-sheet-x,.lm-switch button{transition:none}}
