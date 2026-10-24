@@ -129,7 +129,6 @@ export function Journal({state,mutate,now,reviewKind}:{state:State;mutate:Mutate
   </section>
 
   <div className="journal-below">
-   <details className="link-goals"><summary>Link goals or milestones{entry?.goals.length?` (${entry.goals.length})`:''}</summary><div>{state.goals.map(g=><label key={g.id} className="checkbox-label"><input type="checkbox" checked={entry?.goals.includes(g.id)??false} onChange={()=>update({goals:entry?.goals.includes(g.id)?entry.goals.filter(id=>id!==g.id):[...(entry?.goals??[]),g.id]})}/>{g.en}</label>)}</div></details>
    <section className="past-pages">
     <div className="past-head"><h2>Past pages</h2>
      <label className="search"><Search size={15}/><input aria-label="Search journal" placeholder="Search your entries" value={search} onChange={e=>setSearch(e.target.value)}/>{search&&<button className="icon-button" aria-label="Clear search" onClick={()=>setSearch('')}><X size={14}/></button>}</label>

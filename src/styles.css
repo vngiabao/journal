@@ -1917,3 +1917,15 @@ body.touring .pocket-pet .pb-bubble{display:none}
 .daily-ticks{padding:var(--s-5);background:var(--sheet);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow-1)}
 @media(max-width:1180px){.today-grid{display:flex;flex-direction:column;gap:var(--s-5)}.today-do,.today-checkin{display:contents}.today-list{order:1}.daily-ticks{order:2}.training{order:3}.promises{order:4}.guide-panel{order:5}}
 @media(max-width:650px){.today-grid{gap:var(--s-4)}.daily-ticks{padding:var(--s-4)}}
+
+/* Every day as a small tab: folded shows the count, dots and what's left */
+.dt-toggle{display:flex;align-items:center;gap:var(--s-2);width:100%;min-height:44px;padding:0;border:0;background:transparent;text-align:left;color:var(--ink)}
+.dt-toggle h2{margin:0;font:500 24px/1.2 var(--serif)}
+.dt-count{font:600 13px/1 var(--sans);color:var(--gold-text);font-variant-numeric:tabular-nums}
+.dt-dots{display:flex;gap:4px;margin-left:auto}
+.dt-dots b{width:8px;height:8px;border-radius:50%;background:var(--line-strong)}
+.dt-dots b.on{background:var(--green)}
+.dt-toggle svg{flex:none;color:var(--muted);transition:transform .2s cubic-bezier(.23,1,.32,1)}
+.dt-toggle[aria-expanded="true"] svg{transform:rotate(180deg)}
+.dt-left{margin:0;font-size:13.5px;line-height:1.45;color:var(--ink-soft)}
+.dt-board{margin:var(--s-1) 0 0;font-size:12.5px;color:var(--muted)}

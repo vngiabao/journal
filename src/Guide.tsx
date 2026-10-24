@@ -8,7 +8,8 @@ import {showMe} from './Quests';
 import {TomorrowFrog} from './Frog';
 import {oneGoal,periodItems,weekOf,nextWeek} from './plan';
 import {addDays,weekStart} from './dates';
-import {BookOpen,Trophy,TrendingUp,ChartNoAxesCombined,Target,Check,ArrowRight} from './icons';
+import {useState} from 'react';
+import {BookOpen,Trophy,TrendingUp,ChartNoAxesCombined,Target,Check,ArrowRight,ChevronDown} from './icons';
 
 const FELT:Record<string,string>={Great:'a big step forward',Good:'a step forward',Okay:'a steady day',Low:'a setback',Difficult:'a hard day'};
 type Place={id:string;title:string;sub:string;done:boolean;page:string;target:string;Icon:typeof BookOpen;before?:()=>void};
@@ -57,12 +58,19 @@ export function Guide({state,mutate,now,go}:{state:State;mutate:Mutate;now:strin
 export function DailyTicks({state,mutate,now}:{state:State;mutate:Mutate;now:string}){
  const daily=state.goals.filter(g=>g.type==='daily'),on=daily.filter(g=>g.status==='active').sort((a,b)=>Number(b.pinned)-Number(a.pinned)||a.priority-b.priority),off=daily.filter(g=>g.status==='not-started');
  const kept=on.filter(g=>dayState(g,state.logs,now)==='success').length,risk=new Set(atRiskStreaks(state,now).map(r=>r.g.id));
+ const [open,setOpen]=useState(()=>{try{return localStorage.getItem('reboot-daily-open')==='1';}catch{return false;}});
  return <section className="daily-ticks" aria-label="Every day">
-  <div className="gp-head"><h2>Every day</h2>{on.length>0&&<span>{kept} of {on.length} kept</span>}</div>
+  <button type="button" className="dt-toggle" aria-expanded={open} onClick={()=>{setOpen(!open);try{localStorage.setItem('reboot-daily-open',open?'0':'1');}catch{/* fine */}}}>
+   <h2>Every day</h2>{on.length>0&&<span className="dt-count">{kept} of {on.length} kept</span>}<i className="dt-dots" aria-hidden="true">{on.map(g=><b key={g.id} className={dayState(g,state.logs,now)==='success'?'on':''}/>)}</i><ChevronDown size={16}/>
+  </button>
+  {!open&&on.length>kept&&<p className="dt-left">Still to tick: {on.filter(g=>dayState(g,state.logs,now)!=='success').map(g=>goalName(g,state)).join(' · ')}</p>}
+  {open&&<>
   {on.length?<ul className="dt-list">{on.map(g=>{const st=stats(g,state.logs,now),ds=dayState(g,state.logs,now);return <li key={g.id} className={`dt-row ${ds}`}>
    <div className="dt-text"><strong>{goalName(g,state)}</strong><small>{st.current?`${st.current}-day streak`:'Start today'}{risk.has(g.id)&&ds!=='success'&&<b> · today keeps it going</b>}</small></div>
    <GoalControls g={g} state={state} date={now} mutate={mutate} quick/>
   </li>;})}</ul>:<p className="muted">No daily promises yet. Turn one on below.</p>}
+  <p className="dt-board">Big milestones are logged on the Reboot Board.</p>
   {off.length>0&&<details className="dt-more"><summary>More daily goals on your board ({off.length})</summary><ul>{off.map(g=><li key={g.id}><span>{goalName(g,state)}</span><button type="button" className="text-button" onClick={()=>mutate(s=>{const x=s.goals.find(y=>y.id===g.id);if(x){x.status='active';if(x.start>now)x.start=now;}},`goal ${g.id} status`)}>Track daily</button></li>)}</ul></details>}
+  </>}
  </section>;
 }
