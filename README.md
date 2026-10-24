@@ -100,6 +100,29 @@ Each page has a short tour (`src/Tour.tsx`): Today, Journal (with weekly and mon
 
 The Today tour is a one-minute walkthrough. It spotlights each part of the screen in turn: who you're becoming, the frog, tasks and priorities, promises, the check-in, the four places, Settings and reminders, and Bond. It runs once by itself. To replay it, press **?**, click "Show me around" in the sidebar, or use Settings → Take the tour.
 
+## Today's list, the right side, and planning
+
+**One list.** The daily routine is added to Today's list every morning, ranked:
+- "Plan today" (A);
+- "Write today's page" (B);
+- "Choose tomorrow's frog" (C);
+- on gym days, "Gym · session" (B);
+- "Rewrite yesterday's" (A) when you have leftovers.
+
+These tasks tick themselves when you do the real thing. Tapping one takes you there, and removing one hides it for the day. The add box has a Today / Tomorrow switch, and tomorrow's tasks fold under the list.
+
+**The right side of Today.**
+- "Every day" holds your daily promises, to tick. "More daily goals" turns another one on.
+- "Where to next" leads to what you haven't done yet: today's journal page, a win or shot, your line, the weekly and monthly reviews when due, your week's list and your one goal. Tomorrow's frog closes the day.
+
+**Journal.** How today felt, what's already on the record (frog, tasks, workout, promises), and today's win, shot or lesson all sit on the book's left page.
+
+**Plan (Board → Plan).** The book's first chapter:
+- Write ten goals as if already true, star the one with the greatest impact, and give it a deadline, a reason and every step. View it as a list or a hand-drawn map, and put the next step on today's list.
+- Below that, plan the month before it starts, move items into the week, and move the week's items onto today's (or, in the evening, tomorrow's) list. Everything stays ticked in step.
+
+The language streak goal now reads "Kiyo / Shiori 90+ day streak"; saved boards are renamed on load.
+
 ## Training plan
 
 The weekly gym and soccer plan (`src/training.ts`, `src/TrainingCard.tsx`) shows today's session on Today, with each exercise's sets × reps to tick off, or the whole session at once. A finished gym day counts toward "Gym 4+ times a week". "See the week" shows all seven days; "Edit plan" changes any day, one exercise per line ("Goblet squat 3 × 10–12").

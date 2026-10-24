@@ -1,46 +1,36 @@
-// Today's routine: the few things worth doing every day, in order, ticked off automatically when you do them.
-// A weekly review joins on Friday to Sunday, a monthly one in the last days of the month. Folded, it shows
-// what's next; open, the whole list with "Show me" on each.
-import {useState} from 'react';
-import type {State} from './model';
-import {addDays,weekStart,daysBetween} from './dates';
-import {dayState} from './engine';
-import {showMe} from './Quests';
-import {dayPlan,finished,isTrainingDay} from './training';
-import {leftovers,rewrittenOn} from './frog-rules';
-import {Check,ArrowRight,ChevronDown} from './icons';
+// The daily routine lives in the to-do list as tasks added for you, each with a priority. They tick themselves
+// off when you do the real thing (pick the frog, check in, write the review), and tapping one takes you there.
+// Deleting one hides it for the day. The gym session is added the same way, by training.ts; reviews live in Where to next.
+import type {State,Todo,Priority} from './model';
+import {addDays,weekStart} from './dates';
+import {leftovers} from './frog-rules';
 
-type Step={id:string;title:string;page:string;target:string;done:boolean};
-export function routine(s:State,now:string):Step[]{
- const todos=(s.todos??[]).filter(t=>t.date===now),frog=todos.find(t=>t.frog),tasks=todos.filter(t=>!t.frog&&!t.done);
- const entry=s.journals.find(j=>j.date===now&&j.kind==='daily'),daily=s.goals.filter(g=>g.status==='active'&&g.type==='daily');
+export type RoutineId='rewrite'|'plan'|'checkin'|'tomorrow'|'weekly'|'monthly';
+type Wanted={id:RoutineId;text:string;priority:Priority;done:boolean;page:string;target:string};
+
+export function routineTasks(s:State,now:string):Wanted[]{
+ const todays=(s.todos??[]).filter(t=>t.date===now),frog=todays.find(t=>t.frog),tasks=todays.filter(t=>!t.frog&&!t.done&&!t.auto);
+ const entry=s.journals.find(j=>j.date===now&&j.kind==='daily'),left=leftovers(s.todos??[],now).length;
  const dow=new Date(`${now}T12:00:00`).getDay(),[y,m]=now.split('-').map(Number),lastDay=new Date(y,m,0).getDate(),day=Number(now.slice(8)),ws=weekStart(now);
- const left=leftovers(s.todos??[],now).length,settled=rewrittenOn(s.todos??[],now);
- const steps:Step[]=[
-  ...(left+settled>0?[{id:'rewrite',title:left?`Rewrite yesterday’s unfinished tasks (${left})`:'Rewrite yesterday’s unfinished tasks',page:'Today',target:'.rewrite, .rewrite-done',done:left===0}]:[]),
-  {id:'frog',title:'Pick today’s frog',page:'Today',target:'.frog-pick, .frog-card, .today-list .todo-add',done:!!frog},
-  {id:'label',title:'Label today’s tasks A to E',page:'Today',target:'.todo-list .prio-chip, .today-list .todo-add',done:todos.length>0&&tasks.every(t=>!!t.priority)},
-  {id:'eat',title:'Eat your frog',page:'Today',target:'.frog-card, .frog-pick',done:!!frog?.done},
-  ...(daily.length?[{id:'promises',title:'Keep today’s promises',page:'Today',target:'.promises',done:daily.every(g=>dayState(g,s.logs,now)==='success')}]:[]),
-  ...(isTrainingDay(dayPlan(s,now))?[{id:'workout',title:dayPlan(s,now).kind==='gym'?`Do today’s workout: ${dayPlan(s,now).title}`:`${dayPlan(s,now).title} today`,page:'Today',target:'.training',done:finished(s,now)}]:[]),
-  {id:'checkin',title:'Check in: how was today?',page:'Today',target:'.checkin .mood-row',done:!!entry?.mood},
-  {id:'journal',title:'Write a line in your journal',page:'Today',target:'.checkin-line, .checkin-wrote',done:!!entry?.text.trim()},
-  {id:'tomorrow',title:'Choose tomorrow’s frog',page:'Today',target:'.close-day, .checkin',done:(s.todos??[]).some(t=>t.date===addDays(now,1)&&t.frog)},
- ];
- if(dow===5||dow===6||dow===0)steps.push({id:'weekly',title:'Write your weekly review',page:'Journal',target:'.room-tabs',done:s.journals.some(j=>j.kind==='weekly'&&!!j.text.trim()&&daysBetween(ws,j.date)>=0&&j.date<=addDays(ws,6))});
- if(lastDay-day<3||day===1)steps.push({id:'monthly',title:'Write your monthly review',page:'Journal',target:'.room-tabs',done:s.journals.some(j=>j.kind==='monthly'&&!!j.text.trim()&&j.date.slice(0,7)===(day===1?addDays(now,-1):now).slice(0,7))});
- return steps;
+ const had=(id:RoutineId)=>todays.some(t=>t.routine===id);
+ const out:Wanted[]=[];
+ if(left>0||had('rewrite'))out.push({id:'rewrite',text:'Rewrite yesterday’s unfinished tasks',priority:'A',done:left===0,page:'Today',target:'.rewrite, .rewrite-done'});
+ out.push({id:'plan',text:'Plan today: pick your frog, label tasks A to E',priority:'A',done:!!frog&&tasks.every(t=>!!t.priority),page:'Today',target:'.frog-pick, .frog-card, .todo-list .prio-chip'});
+ out.push({id:'checkin',text:'Write today’s page: how it felt, and a few lines',priority:'B',done:!!entry?.mood&&!!entry.text.trim(),page:'Journal',target:'.verso .mood-picker'});
+ out.push({id:'tomorrow',text:'Choose tomorrow’s frog',priority:'C',done:(s.todos??[]).some(t=>t.date===addDays(now,1)&&t.frog),page:'Today',target:'.tomorrow-frog'});
+ return out;
 }
 
-export function Routine({state,now,go}:{state:State;now:string;go:(p:string)=>void}){
- const steps=routine(state,now),done=steps.filter(x=>x.done).length,next=steps.find(x=>!x.done),[open,setOpen]=useState(false);
- const show=(x:Step)=>{if(x.id==='weekly'||x.id==='monthly')try{sessionStorage.setItem('reboot-journal-kind',x.id);}catch{/* fine */}showMe({id:x.id,title:x.title,how:'',page:x.page,target:x.target,done:x.done},go);};
- return <section className={`routine ${done===steps.length?'complete':''}`} aria-labelledby="routine-title">
-  <div className="routine-head">
-   <button type="button" className="routine-toggle" aria-expanded={open} onClick={()=>setOpen(!open)}><h2 id="routine-title">Today’s routine</h2><span className="routine-count">{done} of {steps.length}</span><ChevronDown size={16}/></button>
-   {!open&&(next?<p className="routine-next"><span>Next: <b>{next.title}</b></span><button type="button" className="text-button" onClick={()=>show(next)}>Show me <ArrowRight size={14}/></button></p>:<p className="routine-next"><b>All done for today.</b> That counts.</p>)}
-  </div>
-  <div className="routine-meter" aria-hidden="true"><em style={{transform:`scaleX(${done/steps.length})`}}/></div>
-  {open&&<ol className="routine-list">{steps.map(x=><li key={x.id} className={x.done?'done':''}><span className="quest-check" aria-hidden="true">{x.done&&<Check size={13}/>}</span><span className="routine-title">{x.title}</span>{!x.done&&<button type="button" className="text-button" onClick={()=>show(x)} aria-label={`Show me: ${x.title}`}>Show me <ArrowRight size={14}/></button>}</li>)}</ol>}
- </section>;
+// Adds today's routine tasks that are missing and keeps their ticks true. Returns whether anything changed.
+export function syncRoutine(s:State,now:string){
+ let changed=false;const list=s.todos??=[];
+ for(const w of routineTasks(s,now)){
+  const t=list.find(x=>x.date===now&&x.routine===w.id);
+  if(!t){list.push({id:crypto.randomUUID(),date:now,text:w.text,done:w.done,createdAt:new Date().toISOString(),priority:w.priority,routine:w.id,...(w.done?{doneAt:new Date().toISOString()}:{})});changed=true;continue;}
+  if(t.dismissed)continue;
+  if(t.done!==w.done){t.done=w.done;t.doneAt=w.done?new Date().toISOString():undefined;changed=true;}
+ }
+ return changed;
 }
+export const routineNeedsSync=(s:State,now:string)=>{const copy={todos:structuredClone(s.todos??[]),journals:s.journals,goals:s.goals} as State;return syncRoutine(copy,now);};
+export const routineTarget=(t:Todo,s:State,now:string)=>routineTasks(s,now).find(w=>w.id===t.routine);

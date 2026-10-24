@@ -35,13 +35,26 @@ function syncGoal(s:State,date:string){
  if(finished(s,date)){if(!s.logs.some(l=>mine(l)&&l.state==='success'))putActivity(s,g,date,{state:'success',note:`Workout: ${d.title}`});}
  else s.logs=s.logs.filter(l=>!(mine(l)&&l.note===`Workout: ${d.title}`));
 }
+// On a gym day the session appears in the to-do list by itself, labelled B, once. It stays in step with the
+// training card: finishing the workout ticks the task, and ticking the task marks the whole workout done.
+export const workoutTask=(s:State,date:string)=>(s.todos??[]).find(t=>t.date===date&&t.auto==='workout');
+export function ensureWorkoutTask(s:State,date:string){
+ const d=dayPlan(s,date);if(d.kind!=='gym')return false;
+ const list=s.workouts??=[];let w=list.find(x=>x.date===date);if(w?.task)return false;
+ if(!w){w={date,done:[]};list.push(w);}w.task=true;
+ const fin=finished(s,date);
+ s.todos=[...(s.todos??[]),{id:crypto.randomUUID(),date,text:`Gym · ${d.title}`,done:fin,createdAt:new Date().toISOString(),priority:'B',auto:'workout',...(fin?{doneAt:new Date().toISOString()}:{})}];
+ return true;
+}
+function syncTask(s:State,date:string){const t=workoutTask(s,date);if(!t)return;const fin=finished(s,date);if(t.done!==fin){t.done=fin;t.doneAt=fin?new Date().toISOString():undefined;}}
+export const needsWorkoutTask=(s:State,date:string)=>dayPlan(s,date).kind==='gym'&&!workoutOn(s,date)?.task;
 export function toggleExercise(s:State,date:string,name:string){
  const list=s.workouts??=[];let w:Workout|undefined=list.find(x=>x.date===date);
  if(!w){w={date,done:[]};list.push(w);}
  w.done=w.done.includes(name)?w.done.filter(n=>n!==name):[...w.done,name];
- syncGoal(s,date);
+ syncGoal(s,date);syncTask(s,date);
 }
 export function setAll(s:State,date:string,on:boolean){
  const list=s.workouts??=[];let w=list.find(x=>x.date===date);if(!w){w={date,done:[]};list.push(w);}
- w.done=on?dayPlan(s,date).exercises.map(e=>e.name):[];syncGoal(s,date);
+ w.done=on?dayPlan(s,date).exercises.map(e=>e.name):[];syncGoal(s,date);syncTask(s,date);
 }

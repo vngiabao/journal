@@ -17,13 +17,19 @@ export interface Quote {id:string; date:string; text:string;}
 export type Priority='A'|'B'|'C'|'D'|'E';
 export interface Slice {id:string; text:string; done:boolean;}
 // `frog` marks the day's one most important task; `slices` are its small first steps; `doneAt` records when it was finished.
-export interface Todo {id:string; date:string; text:string; done:boolean; createdAt:string; priority?:Priority; frog?:boolean; slices?:Slice[]; doneAt?:string; carried?:'rewritten'|'dropped'; carriedOn?:string;}
+export interface Todo {id:string; date:string; text:string; done:boolean; createdAt:string; priority?:Priority; frog?:boolean; slices?:Slice[]; doneAt?:string; carried?:'rewritten'|'dropped'; carriedOn?:string; auto?:'workout'; routine?:'rewrite'|'plan'|'checkin'|'tomorrow'|'weekly'|'monthly'; dismissed?:boolean; fromPlan?:string;}
 // A weekly training plan (Monday first) and which exercises were done on each date.
 export interface Exercise {name:string; dose:string;}
 export interface TrainingDay {kind:'gym'|'sport'|'rest'; title:string; exercises:Exercise[];}
-export interface Workout {date:string; done:string[];}
+// `task` records that the day's session was added to the to-do list once, so deleting it there sticks.
+export interface Workout {date:string; done:string[]; task?:boolean;}
+// The planning chapter: up to ten goals, one chosen, with a deadline, a reason and its steps.
+export interface PlanStep {id:string; text:string; done:boolean;}
+export interface PlanGoal {id:string; text:string; one?:boolean; deadline?:string; why?:string; steps:PlanStep[]; createdAt:string;}
+// The book's lists: one for the month before it starts, one for the week; items move down to the week, then to a day.
+export interface PlanItem {id:string; scope:'week'|'month'; period:string; text:string; done:boolean; sentTo?:string;}
 export type ProofKind='win'|'attempt'|'lesson';
 export interface Proof {id:string; date:string; kind:ProofKind; text:string; createdAt:string;}
 export interface Achievement {id:string;goalId:string;run:number;date:string;criteria:Criteria;}
-export interface State {schema:1; goals:Goal[]; logs:Activity[]; journey:Movement[]; journals:Journal[]; edits:Edit[]; achievements:Achievement[]; proofs:Proof[]; todos?:Todo[]; quotes?:Quote[]; training?:{days:TrainingDay[]}; workouts?:Workout[]; settings:{language:'en'|'both'|'vi';timezone:string;onboarded:boolean;identity?:string;name?:string;customTags?:string[];reminders?:{morning:string;evening:string;notify:boolean};};}
+export interface State {schema:1; goals:Goal[]; logs:Activity[]; journey:Movement[]; journals:Journal[]; edits:Edit[]; achievements:Achievement[]; proofs:Proof[]; todos?:Todo[]; quotes?:Quote[]; training?:{days:TrainingDay[]}; workouts?:Workout[]; plan?:{goals:PlanGoal[]; items?:PlanItem[]}; settings:{language:'en'|'both'|'vi';timezone:string;onboarded:boolean;identity?:string;name?:string;customTags?:string[];reminders?:{morning:string;evening:string;notify:boolean};};}
 export function uid(){return crypto.randomUUID();}

@@ -1,4 +1,4 @@
-import {useRef,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import {gsap,useGSAP,SplitText,whenMotionOK} from './motion';
 import {ArrowRight,Pin,PenLine} from './icons';
 import type {State,Goal} from './model';
@@ -7,9 +7,10 @@ import {stats,criteriaAt,dayState,promisesKept,proofCounts,atRiskStreaks} from '
 import {goalName} from './Board';
 import {GoalControls,type Mutate} from './GoalControls';
 import {TodayList} from './Todo';
-import {CheckIn} from './CheckIn';
-import {Routine} from './Routine';
+import {Guide,DailyTicks} from './Guide';
+import {routineNeedsSync,syncRoutine} from './Routine';
 import {TrainingCard} from './TrainingCard';
+import {needsWorkoutTask,ensureWorkoutTask} from './training';
 import {quests,QuestMeter,openQuests} from './Quests';
 import {usePocketPets} from './Pet';
 
@@ -17,6 +18,9 @@ import {usePocketPets} from './Pet';
 // beside "Check in" (how the day felt, one line, one win, closing the day). Charts and the board live one tap away.
 export function Today({state,mutate,now,go}:{state:State;mutate:Mutate;now:string;go:(p:string)=>void}){
  const active=state.goals.filter(g=>g.status==='active').sort((a,b)=>Number(b.pinned)-Number(a.pinned)||a.priority-b.priority);
+ // The routine and, on gym days, the session join the to-do list as tasks with priorities, kept ticked as you go.
+ useEffect(()=>{if(routineNeedsSync(state,now))mutate(s=>{syncRoutine(s,now);},'routine sync');},[state,now]);
+ useEffect(()=>{if(needsWorkoutTask(state,now))mutate(s=>{ensureWorkoutTask(s,now);},'workout task');},[now]);
  const daily=active.filter(g=>g.type==='daily'),hero=useRef<HTMLElement>(null),bond=usePocketPets()!=='off';
  // On the first visit of the day the statement rises in and the evidence counts up. Nothing else moves.
  useGSAP((_,contextSafe)=>{const mm=whenMotionOK(()=>{
@@ -38,12 +42,11 @@ export function Today({state,mutate,now,go}:{state:State;mutate:Mutate;now:strin
   <QuestMeter className="quest-row" list={quests(state,bond)} onOpen={openQuests}/>
   <div className="today-grid">
    <div className="today-do">
-    <Routine state={state} now={now} go={go}/>
     <TodayList state={state} mutate={mutate} now={now}/>
     <TrainingCard state={state} mutate={mutate} now={now}/>
     <Promises state={state} mutate={mutate} now={now} go={go} active={active}/>
    </div>
-   <aside className="today-checkin"><CheckIn state={state} mutate={mutate} now={now} go={go}/></aside>
+   <aside className="today-checkin"><DailyTicks state={state} mutate={mutate} now={now}/><Guide state={state} mutate={mutate} now={now} go={go}/></aside>
   </div>
  </>;
 }
@@ -53,12 +56,12 @@ function Promises({state,mutate,now,go,active}:{state:State;mutate:Mutate;now:st
  const daily=active.filter(g=>g.type==='daily'),weekly=active.filter(g=>g.type.startsWith('weekly'));
  const kept=daily.filter(g=>dayState(g,state.logs,now)==='success').length,risk=new Set(atRiskStreaks(state,now).map(r=>r.g.id));
  const daysLeft=7-daysBetween(weekStart(now),now);
+ if((daily.length||weekly.length)&&!weekly.length)return null;
  if(!daily.length&&!weekly.length)return <section className="promises empty-commitments"><h2>Choose what you’ll show up for.</h2><p>Your 36 commitments are waiting on the board. Turn on a handful, not all of them.</p><button className="button" onClick={()=>go('Reboot Board')}>Set up your board <ArrowRight size={16}/></button></section>;
  const row=(g:Goal,meta:string,flag?:string)=><li key={g.id} className={`promise ${dayState(g,state.logs,now)}`}><div className="promise-text"><strong>{g.pinned&&<Pin size={13} className="promise-pin"/>}{goalName(g,state)}</strong><small>{meta}{flag&&<b className="promise-flag">{flag}</b>}</small></div><GoalControls g={g} state={state} date={now} mutate={mutate} quick/></li>;
  return <section className="promises" aria-labelledby="promises-title">
-  <div className="section-title"><h2 id="promises-title">Promises</h2>{daily.length>0&&<span className="count-note">{kept} of {daily.length} kept today</span>}</div>
-  {daily.length>0&&<ul className="promise-list">{daily.map(g=>{const st=stats(g,state.logs,now);return row(g,st.current?`${st.current}-day streak · best ${st.best}`:'Start today',risk.has(g.id)?'Today keeps it going':undefined);})}</ul>}
-  {weekly.length>0&&<><h3 className="promise-sub">This week · {daysLeft} {daysLeft===1?'day':'days'} left</h3><ul className="promise-list">{weekly.map(g=>{const st=stats(g,state.logs,now),c=criteriaAt(g,now);
+  <div className="section-title"><h2 id="promises-title">This week</h2><span className="count-note">{daysLeft} {daysLeft===1?'day':'days'} left</span></div>
+  {weekly.length>0&&<><ul className="promise-list">{weekly.map(g=>{const st=stats(g,state.logs,now),c=criteriaAt(g,now);
    return row(g,g.type==='weekly-max'?`${fmt(st.period)} of under ${c.target} ${c.unit}${st.canQualify?'':' · limit reached'}`:`${fmt(st.period)} of ${c.target} ${c.unit}${st.period>=c.target?' · covered':''}`);})}</ul></>}
   <button className="text-button section-link" onClick={()=>go('Reboot Board')}>All {state.goals.length} commitments <ArrowRight size={16}/></button>
  </section>;

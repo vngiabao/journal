@@ -5,7 +5,9 @@ import {frogStats,frogOf,priorityRank,leftovers,rewrittenOn} from '../src/frog-r
 import {remindersIcs,dueReminder,isDue,DEFAULT_REMINDERS,remindersOf} from '../src/reminders';
 import {validateImport} from '../src/storage';
 import type {Todo} from '../src/model';
-import {parseLines,dayPlan,toggleExercise,setAll,finished,gymGoal,DEFAULT_PLAN} from '../src/training';
+import {syncRoutine,routineTasks} from '../src/Routine';
+import {addGoal,chooseOne,addStep,stepToToday,syncStepFromTodo,oneGoal,toggleStep,addItem,periodItems,itemToWeek,itemToDay,toggleItem,weekOf,nextMonth} from '../src/plan';
+import {parseLines,dayPlan,toggleExercise,setAll,finished,gymGoal,DEFAULT_PLAN,ensureWorkoutTask,workoutTask} from '../src/training';
 
 const todo=(date:string,p:Partial<Todo>={}):Todo=>({id:crypto.randomUUID(),date,text:'Task',done:false,createdAt:date,...p});
 
@@ -72,8 +74,69 @@ describe('Training plan',()=>{
 describe('Rewrite unfinished tasks',()=>{
  it('lists the past week’s unfinished tasks until each is rewritten or let go',()=>{
   const todos=[todo('2026-10-22',{text:'Send deck'}),todo('2026-10-22',{text:'Done one',done:true}),todo('2026-10-14',{text:'Too old'}),todo('2026-10-23',{text:'Today'})];
+  todos.push(todo('2026-10-22',{text:'Plan today',routine:'plan'}));
   expect(leftovers(todos,'2026-10-23').map(t=>t.text)).toEqual(['Send deck']);
   todos[0].carried='rewritten';todos[0].carriedOn='2026-10-23';
   expect(leftovers(todos,'2026-10-23')).toHaveLength(0);expect(rewrittenOn(todos,'2026-10-23')).toBe(1);
+ });
+});
+
+describe('Gym on the to-do list',()=>{
+ it('adds the gym session once as a B task and keeps it in step with the workout',()=>{
+  const s=seed('2026-10-01');
+  expect(ensureWorkoutTask(s,'2026-10-25')).toBe(false);
+  expect(ensureWorkoutTask(s,'2026-10-23')).toBe(true);expect(ensureWorkoutTask(s,'2026-10-23')).toBe(false);
+  const t=workoutTask(s,'2026-10-23')!;expect(t.priority).toBe('B');expect(t.text).toBe('Gym · Upper · Chest, Back, Arms');expect(t.done).toBe(false);
+  setAll(s,'2026-10-23',true);expect(workoutTask(s,'2026-10-23')!.done).toBe(true);
+  toggleExercise(s,'2026-10-23','Precor lat pulldown');expect(workoutTask(s,'2026-10-23')!.done).toBe(false);
+  s.todos=s.todos!.filter(x=>x.auto!=='workout');expect(ensureWorkoutTask(s,'2026-10-23')).toBe(false);
+ });
+});
+
+describe('Routine on the to-do list',()=>{
+ it('adds the daily routine as ranked tasks that tick themselves and stay hidden once removed',()=>{
+  const s=seed('2026-10-01');s.todos=[];
+  expect(syncRoutine(s,'2026-10-21')).toBe(true);
+  const ids=s.todos.map(t=>`${t.routine}:${t.priority}`);expect(ids).toEqual(['plan:A','checkin:B','tomorrow:C']);
+  expect(syncRoutine(s,'2026-10-21')).toBe(false);
+  s.todos.push(todo('2026-10-22',{frog:true}));expect(syncRoutine(s,'2026-10-21')).toBe(true);expect(s.todos.find(t=>t.routine==='tomorrow')!.done).toBe(true);
+  s.todos.find(t=>t.routine==='checkin')!.dismissed=true;s.journals.push({date:'2026-10-21',text:'x',mood:'Good',goals:[],attachments:[],kind:'daily',updatedAt:''});
+  syncRoutine(s,'2026-10-21');expect(s.todos.find(t=>t.routine==='checkin')!.done).toBe(false);
+  expect(routineTasks(s,'2026-10-23').map(w=>w.id)).not.toContain('weekly');
+ });
+});
+
+describe('Planning chapter',()=>{
+ it('chooses one goal, puts its next step on today as an A task, and keeps both in step',()=>{
+  const s=seed('2026-10-01');s.todos=[];const a=addGoal(s,'I work as a product manager');addGoal(s,'I run a half marathon');
+  chooseOne(s,a.id);expect(oneGoal(s)!.text).toBe('I work as a product manager');
+  addStep(s,a.id,'Rewrite my resume');const step=oneGoal(s)!.steps[0];
+  expect(stepToToday(s,a.id,step.id,'2026-10-23')).toBe(true);expect(stepToToday(s,a.id,step.id,'2026-10-23')).toBe(false);
+  const t=s.todos.find(x=>x.fromPlan===step.id)!;expect(t.priority).toBe('A');
+  t.done=true;syncStepFromTodo(s,t.id);expect(oneGoal(s)!.steps[0].done).toBe(true);
+  toggleStep(s,a.id,step.id);expect(s.todos.find(x=>x.fromPlan===step.id)!.done).toBe(false);
+  chooseOne(s,a.id);expect(oneGoal(s)).toBeUndefined();
+ });
+});
+
+describe('Language goal rename',()=>{
+ it('renames a saved Duolingo streak goal to Kiyo / Shiori',async()=>{
+  const {migrateRegistry}=await import('../src/seed');
+  const s=seed('2026-10-01');const g=s.goals.find(x=>x.en.startsWith('Kiyo'))!;
+  g.en='Duolingo 90+ day streak';g.vi='Duolingo streak 90+';g.originalName={...g.originalName,en:'Duolingo 90+ day streak',vi:'Duolingo streak 90+'};
+  expect(migrateRegistry(s)).toBe(true);expect(g.en).toBe('Kiyo / Shiori 90+ day streak');expect(g.originalName.en).toBe('Kiyo / Shiori 90+ day streak');
+  expect(()=>validateImport(structuredClone(s))).not.toThrow();
+ });
+});
+
+describe('Month and week lists',()=>{
+ it('moves a month item into the week, then onto a day, and ticks it everywhere',()=>{
+  const s=seed('2026-10-01');s.todos=[];expect(nextMonth('2026-12-29')).toBe('2027-01');
+  addItem(s,'month','2026-10','Finish the YC application');const m=periodItems(s,'month','2026-10')[0];
+  expect(itemToWeek(s,m.id,weekOf('2026-10-23'))).toBe(true);expect(itemToWeek(s,m.id,weekOf('2026-10-23'))).toBe(false);
+  const w=periodItems(s,'week','2026-10-19')[0];expect(w.text).toBe('Finish the YC application');
+  expect(itemToDay(s,w.id,'2026-10-24')).toBe(true);const t=s.todos.find(x=>x.fromPlan===w.id)!;expect(t.date).toBe('2026-10-24');expect(t.priority).toBe('A');
+  t.done=true;syncStepFromTodo(s,t.id);expect(periodItems(s,'week','2026-10-19')[0].done).toBe(true);expect(periodItems(s,'month','2026-10')[0].done).toBe(true);
+  toggleItem(s,w.id);expect(s.todos.find(x=>x.fromPlan===w.id)!.done).toBe(false);
  });
 });

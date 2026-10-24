@@ -10,6 +10,7 @@ import {CHECK_IN} from './mood';
 import {gsap,useGSAP,whenMotionOK} from './motion';
 
 import {FLAGS,flag} from './flags';
+import {oneGoal} from './plan';
 import {usePocketPets} from './Pet';
 export const openQuests=()=>window.dispatchEvent(new Event('reboot-quests'));
 
@@ -24,13 +25,14 @@ export function quests(s:State,bondAround:boolean):Quest[]{
   {id:'priority',title:'Organize with A–E',how:'Tap the A–E chip on a task: A must, B should, C nice to do, D hand off, E drop.',page:'Today',target:'.todo-list .prio-chip, .today-list .todo-add',done:todos.some(t=>!!t.priority)},
   {id:'eat',title:'Eat a frog',how:'Finish your frog first thing. “Eat it now” starts a focus timer.',page:'Today',target:'.frog-card, .frog-pick',done:frogs.some(t=>t.done)},
   {id:'training',title:'Train from your plan',how:'Tick off today’s exercises on Today. “Edit plan” changes your week.',page:'Today',target:'.training',done:(s.workouts??[]).some(w=>w.done.length>0)},
-  {id:'promise',title:'Keep a promise',how:'Tap “Mark done” on one of your promises.',page:'Today',target:'.promises',done:s.logs.some(l=>l.state==='success')},
-  {id:'checkin',title:'Check in on your day',how:'One tap on “How was today?” It also marks your Journey line.',page:'Today',target:'.checkin .mood-row',done:s.journals.some(j=>!!j.mood)||s.journey.some(d=>(d.moments??[]).some(m=>m.tag===CHECK_IN))},
+  {id:'promise',title:'Keep a promise',how:'Tick one under “Every day” on the right of Today.',page:'Today',target:'.daily-ticks',done:s.logs.some(l=>l.state==='success')},
+  {id:'checkin',title:'Check in on your day',how:'In your journal: one tap for how today was, then a few lines.',page:'Journal',target:'.verso .mood-picker',done:s.journals.some(j=>!!j.mood)||s.journey.some(d=>(d.moments??[]).some(m=>m.tag===CHECK_IN))},
   {id:'journal',title:'Write in your journal',how:'A line on Today’s check-in, or a full page in Journal.',page:'Journal',target:'.book .writing-area, .writing-room',done:s.journals.some(j=>!!j.text.trim())},
-  {id:'weekly',title:'Write a weekly review',how:'Once a week, a page with three questions: what improved, what didn’t, what you’ll change.',page:'Journal',target:'.room-tabs',done:s.journals.some(j=>j.kind==='weekly'&&!!j.text.trim())},
-  {id:'monthly',title:'Write a monthly review',how:'The same, for the whole month. Find it in Journal → Monthly review.',page:'Journal',target:'.room-tabs',done:s.journals.some(j=>j.kind==='monthly'&&!!j.text.trim())},
+  {id:'weekly',title:'Write a weekly review',how:'Once a week in Progress → Review: three questions on what improved, what didn’t, what you’ll change.',page:'Review',target:'#main .board-topline .button',done:s.journals.some(j=>j.kind==='weekly'&&!!j.text.trim())},
+  {id:'monthly',title:'Write a monthly review',how:'The same, for the whole month. Switch Review to Monthly, then write it.',page:'Review',target:'#main .board-topline .button',done:s.journals.some(j=>j.kind==='monthly'&&!!j.text.trim())},
+  {id:'plan',title:'Set your one goal',how:'Board → Plan: write ten goals, then pick the one with the greatest impact and list its steps.',page:'Reboot Board',target:'.plan-goals',done:!!oneGoal(s)},
   {id:'progress',title:'Look at your progress',how:'Your Journey line and the weekly review.',page:'Journey',target:'.progress-tabs',done:flag(FLAGS.progress)},
-  {id:'tomorrow',title:'Plan tomorrow’s frog',how:'In the evening, choose tomorrow’s frog under “Close the day”.',page:'Today',target:'.close-day, .checkin',done:frogs.some(t=>t.date>t.createdAt.slice(0,10))},
+  {id:'tomorrow',title:'Plan tomorrow’s frog',how:'Under “Close the day” on the right of Today.',page:'Today',target:'.tomorrow-frog',done:frogs.some(t=>t.date>t.createdAt.slice(0,10))},
   {id:'reminders',title:'Set your frog reminders',how:'Add the morning and evening reminders to your calendar.',page:'Settings',target:'.reminders',done:flag(FLAGS.calendar)||!!s.settings.reminders?.notify},
   {id:'bond',title:'Meet Bond',how:'Tap Bond at the bottom of the screen. He’ll remind you of a real win.',page:'Today',target:'.pocket-pet .pet-frame',done:flag(FLAGS.bond),optional:!bondAround},
  ].filter(q=>!q.optional);
@@ -39,7 +41,8 @@ export function quests(s:State,bondAround:boolean):Quest[]{
 // Open the page and point at the spot: it scrolls into view and pulses for a moment.
 export function showMe(q:Quest,go:(p:string)=>void){
  if(q.id==='tour'){startTour('today');return;}
- if(q.id==='weekly'||q.id==='monthly')try{sessionStorage.setItem('reboot-journal-kind',q.id);}catch{/* fine */}
+ if(q.id==='plan')try{sessionStorage.setItem('reboot-board-mode','plan');}catch{/* fine */}
+ if(q.id==='weekly'||q.id==='monthly')try{sessionStorage.setItem('reboot-review-write',q.id);}catch{/* fine */}
  go(q.page);
  window.setTimeout(()=>{const el=q.target?q.target.split(',').map(x=>document.querySelector(x.trim())).find(Boolean):null;if(!el)return;
   el.scrollIntoView({block:'center',behavior:'smooth'});el.classList.remove('quest-pulse');void (el as HTMLElement).offsetWidth;el.classList.add('quest-pulse');window.setTimeout(()=>el.classList.remove('quest-pulse'),2400);},380);

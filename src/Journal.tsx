@@ -3,8 +3,10 @@ import {Search,ArrowLeft,ArrowRight,ChevronDown,ImagePlus,Check,Plus,Maximize2,M
 import type {State,Journal as Entry} from './model';
 import type {Mutate} from './GoalControls';
 import {label,parse,addDays,weekStart} from './dates';
-import {dayState} from './engine';
 import {Count} from './Count';
+import {dayState} from './engine';
+import {ProofQuickAdd} from './Proof';
+import {dayPlan,finished} from './training';
 import {applyMood,setEntryText} from './mood';
 import {gsap,useGSAP,whenMotionOK} from './motion';
 
@@ -82,7 +84,6 @@ export function Journal({state,mutate,now,reviewKind}:{state:State;mutate:Mutate
     </div>}
    </div>
 
-   {!reviewKind&&<div className="room-tabs kind-switch">{KINDS.map(([k,n])=><button key={k} aria-pressed={kind===k} className={kind===k?'selected':''} onClick={()=>setKind(k)}>{n}</button>)}</div>}
    <div className="book">
     <article ref={paper} className="book-spread">
      <section className="book-page verso" aria-label="About this entry">
@@ -99,7 +100,9 @@ export function Journal({state,mutate,now,reviewKind}:{state:State;mutate:Mutate
       </div>
       <p className="ornament" aria-hidden="true"><span>✦</span></p>
       <blockquote className="epigraph"><p>{epigraph??'Progress isn’t linear. Keep showing up.'}</p><cite>{epigraph?'Today’s line':'A reminder'}</cite></blockquote>
-      <div className="mood-picker" role="radiogroup" aria-label="How are you feeling?"><span>Today felt</span>{MOODS.map(m=>{const on=entry?.mood===m;return <button key={m} role="radio" aria-checked={on} className={`${tone(m)} ${on?'selected':''}`} onClick={()=>{if(kind==='daily')mutate(s=>applyMood(s,date,on?'':m),'check-in mood');else update({mood:on?'':m});}}><i className="mood-swatch" aria-hidden="true"/>{m}</button>;})}</div>
+      <div className="mood-picker" role="radiogroup" aria-label="How are you feeling?"><span>{date===now?'How was today?':'How was this day?'}</span>{MOODS.map(m=>{const on=entry?.mood===m;return <button key={m} role="radio" aria-checked={on} className={`${tone(m)} ${on?'selected':''}`} onClick={()=>{if(kind==='daily')mutate(s=>applyMood(s,date,on?'':m),'check-in mood');else update({mood:on?'':m});}}><i className="mood-swatch" aria-hidden="true"/>{m}</button>;})}</div>
+      {kind==='daily'&&<OnRecord state={state} date={date}/>}
+      {kind==='daily'&&<div className="book-proof"><span>A win, a shot you took, or a lesson</span><ProofQuickAdd state={state} mutate={mutate} date={date}/></div>}
       <div className="prompt-list"><span>{reviewKind||kind!=='daily'?'Questions for this stretch':'Questions for tonight'}</span><ol>{prompts.map(p=><li key={p}><button onClick={()=>insertPrompt(p)}>{p}</button></li>)}</ol></div>
       <footer className="verso-foot">
        <label className="attachment-control"><ImagePlus size={15}/><span>Attach a photo</span><small>PNG, JPG or WebP, up to 3 MB</small><input className="visually-hidden" type="file" accept="image/png,image/jpeg,image/webp" onChange={attach}/></label>
@@ -141,3 +144,15 @@ export function Journal({state,mutate,now,reviewKind}:{state:State;mutate:Mutate
 }
 
 function hasEntry(state:State,d:string){return state.journals.some(j=>j.date===d&&j.text.trim());}
+
+// On the record: what the day already holds, from your own list, training and promises, to write from.
+function OnRecord({state,date}:{state:State;date:string}){
+ const todos=(state.todos??[]).filter(t=>t.date===date&&!t.dismissed&&!t.routine),frog=todos.find(t=>t.frog),done=todos.filter(t=>t.done&&!t.frog&&!t.auto).length;
+ const plan=dayPlan(state,date),trained=finished(state,date),daily=state.goals.filter(g=>g.status==='active'&&g.type==='daily'),kept=daily.filter(g=>dayState(g,state.logs,date)==='success').length;
+ const lines:string[]=[];
+ if(frog)lines.push(frog.done?`Ate the frog: ${frog.text}`:`Frog still waiting: ${frog.text}`);
+ if(done)lines.push(`${done} ${done===1?'task':'tasks'} done`);
+ if(trained)lines.push(plan.kind==='gym'?`Trained: ${plan.title}`:`${plan.title} done`);
+ if(daily.length)lines.push(`${kept} of ${daily.length} promises kept`);
+ return <div className="on-record"><span>On the record</span>{lines.length?<ul>{lines.map(l=><li key={l}>{l}</li>)}</ul>:<p>Nothing recorded yet. That’s fine; write what happened.</p>}</div>;
+}

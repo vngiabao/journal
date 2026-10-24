@@ -34,7 +34,7 @@ const rows:Seed[] = [
  ['Voice coaching, 60-day streak','Voice coach, chuỗi 60 ngày','Learning & skills','daily',{target:60,days:60,unit:'days',description:'Practice voice coaching or training for 60 days in a row.'}],
  ['Defined jawline & abs','Có jawline / múi','Health & wellbeing','milestone',{target:1,unit:'milestone',description:'A defined jawline and visible abs. Set your own criteria and add dated evidence.'}],
  ['Shower + brush teeth daily, 60+ streak','Không skip vệ sinh cá nhân (tắm + đánh răng), streak 60+','Health & wellbeing','daily',{target:60,days:60,unit:'days',checklist:['Shower','Brush teeth'],description:'Never skip showering or brushing your teeth. A streak of 60+ days.'}],
- ['Duolingo 90+ day streak','Duolingo streak 90+','Learning & skills','daily',{target:90,days:90,unit:'days',description:'Practice Duolingo for 90+ days in a row.'}],
+ ['Kiyo / Shiori 90+ day streak','Kiyo / Shiori streak 90+','Learning & skills','daily',{target:90,days:90,unit:'days',description:'Practice Japanese in Kiyo or Shiori for 90+ days in a row.'}],
  ['Veggies & fruit 5+ times a week','Ăn rau & trái cây 5+ lần/tuần, trong 1 tháng','Health & wellbeing','weekly-frequency',{target:5,months:1,unit:'occasions',description:'Eat vegetables and fruit five or more times a week, kept for one month.'}],
  ['Fly to 3 cities','Bay đến 3 thành phố','People & experiences','counter',{target:3,unit:'cities',distinct:true,description:'Fly to three different cities. The same city does not count twice.'}],
  ['Daily to-do list for 90 days','Lên daily to-do list trong 90 ngày','Mind & discipline','daily',{target:90,days:90,unit:'days',description:'Write a to-do list every day for 90 days.'}],
@@ -89,9 +89,11 @@ const legacyRows:Seed[] = [
 ];
 const MIGRATED_KEYS=['description','unit','target','stages'] as const;
 const crit=(c:Partial<Criteria>):Criteria=>({target:1,unit:'days',consecutive:true,description:'',...c});
+// The language streak first pointed at Duolingo; it now means Kiyo or Shiori. Saved boards with the old name are renamed.
+const PREV_LANGUAGE_GOAL:Seed=['Duolingo 90+ day streak','Duolingo streak 90+','Learning & skills','daily',{target:90,days:90,unit:'days',description:'Practice Duolingo for 90+ days in a row.'}];
 export function migrateRegistry(s:State){let changed=false;const same=(a:unknown,b:unknown)=>JSON.stringify(a)===JSON.stringify(b);
  for(const g of s.goals??[]){const i=Number(g.id)-1,now=rows[i],old=legacyRows[i];if(!now||!old)continue;
-  const variants:Seed[]=[old];if(g.id==='15')variants.push(['A girlfriend','Có người yêu',old[2],old[3],{...old[4],description:'Have a girlfriend; define what success means for you.'}]);
+  const variants:Seed[]=[old];if(now[0].startsWith('Kiyo / Shiori'))variants.push(PREV_LANGUAGE_GOAL);if(g.id==='15')variants.push(['A girlfriend','Có người yêu',old[2],old[3],{...old[4],description:'Have a girlfriend; define what success means for you.'}]);
   for(const v of variants){
    if(g.en===v[0]&&v[0]!==now[0]){g.en=now[0];changed=true;}if(g.vi===v[1]&&v[1]!==now[1]){g.vi=now[1];changed=true;}
    if(g.originalName){if(g.originalName.en===v[0]&&v[0]!==now[0]){g.originalName.en=now[0];changed=true;}if(g.originalName.vi===v[1]&&v[1]!==now[1]){g.originalName.vi=now[1];changed=true;}}
