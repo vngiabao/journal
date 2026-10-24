@@ -81,9 +81,9 @@ function PocketDog({dog,state,now,cheer,onCheerDone,lead,pos,speaks}:{dog:Dog;st
    // He stays put while the guided tour is open, so its spotlight can find him.
    if(document.body.classList.contains('touring')){if(shown!=='still'){L.running=false;show('still');}setX(P.x);return;}
    const dx=clampX(L.target)-P.x;
-   if(canMove()&&Math.abs(dx)>(lead?6:2)){const step=Math.sign(dx)*Math.min(Math.abs(dx),(L.running?10:3.4)*dt/16.67);P.x+=step;L.trail+=Math.abs(step);
+   if(canMove()&&Math.abs(dx)>(lead?6:2)){const step=Math.sign(dx)*Math.min(Math.abs(dx),(L.running?6.5:3.4)*dt/16.67);P.x+=step;L.trail+=Math.abs(step);
     show(L.running?'run':'walk');const f=Math.sign(dx);if(f!==P.face){P.face=f;el.dataset.face=f>0?'r':'l';}
-    if(L.running&&L.trail>30){L.trail=0;L.upper=!L.upper;pawPrint(P.x+W/2+(L.upper?6:-6),P.face,L.upper);}}
+    if(L.running&&L.trail>36){L.trail=0;L.upper=!L.upper;pawPrint(P.x+W/2+(L.upper?6:-6),P.face,L.upper);}}
    else if(shown!=='still'){const ran=L.running;L.running=false;show('still');
     // Arriving somewhere you tapped: a good sniff first.
     if(ran&&free()){a.setMood('sniff');settle('follow',1300);}}

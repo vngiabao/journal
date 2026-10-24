@@ -1066,7 +1066,7 @@ body{padding-bottom:env(safe-area-inset-bottom)}
 @keyframes pet-step-a{0%{opacity:1}50%{opacity:0}}
 @keyframes pet-step-b{0%{opacity:0}50%{opacity:1}}
 .pocket-pet.move-walk .pet-frame{animation:pet-bob .36s ease-in-out infinite alternate}
-.pocket-pet.move-run .pet-frame{animation:pet-gallop .2s ease-in-out infinite alternate}
+.pocket-pet.move-run .pet-frame{animation:pet-gallop .26s ease-in-out infinite alternate}
 @keyframes pet-bob{to{transform:translateY(-2px)}}
 @keyframes pet-gallop{from{transform:translateY(0) rotate(2deg)}to{transform:translateY(-7px) rotate(-3deg)}}
 .pocket-pet.is-hover .pet-frame{transform:translateY(-4px) scale(1.06)}
