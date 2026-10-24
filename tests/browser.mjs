@@ -16,7 +16,7 @@ for(const name of ['Meditate 10 min every night','Both face exercises, 60-day st
 await page.getByRole('button',{name:/Start with 5 active goals/}).click();await saved();
 await nav('Today');await page.getByRole('button',{name:'Exercise A',exact:true}).click();await saved();
 let s=await state();assert.deepEqual(s.logs.find(l=>l.goalId==='11').tasks,['Exercise A']);
-await page.getByRole('button',{name:'Exercise B',exact:true}).click();await page.getByRole('button',{name:'Mark done',exact:true}).first().click();await saved();
+await page.getByRole('button',{name:'Exercise B',exact:true}).click();await page.getByRole('button',{name:'Mark “Meditate 10 min every night” done',exact:true}).click();await saved();
 s=await state();assert.equal(s.logs.find(l=>l.goalId==='11').state,'success');assert.equal(s.journey.length,0);
 await page.screenshot({path:'.impeccable/review/desktop.png',fullPage:true});
 await page.getByRole('button',{name:'Write it',exact:true}).click();await page.getByRole('textbox',{name:'Who you’re becoming, in one sentence'}).fill('I keep the promises I make to myself.');await page.getByRole('button',{name:'Save',exact:true}).click();await saved();assert.equal((await state()).settings.identity,'I keep the promises I make to myself.');

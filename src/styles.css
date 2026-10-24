@@ -1929,3 +1929,27 @@ body.touring .pocket-pet .pb-bubble{display:none}
 .dt-toggle[aria-expanded="true"] svg{transform:rotate(180deg)}
 .dt-left{margin:0;font-size:13.5px;line-height:1.45;color:var(--ink-soft)}
 .dt-board{margin:var(--s-1) 0 0;font-size:12.5px;color:var(--muted)}
+
+/* Every day rows, matching the to-do list: a round check, the goal in serif, quiet small print */
+.daily-ticks .dt-list{margin:var(--s-2) 0 0;padding:0;list-style:none}
+.daily-ticks .dt-row{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start;gap:var(--s-3);min-height:58px;padding:var(--s-3) 0;border-bottom:1px solid var(--line)}
+.daily-ticks .dt-row:last-child{border-bottom:0}
+.dt-check{min-height:0;padding:2px 0 0;gap:0}
+.dt-check .check-box{width:28px;min-width:28px;height:28px}
+.daily-ticks .dt-text strong{display:block;font:400 18px/1.3 var(--serif);color:var(--ink)}
+.daily-ticks .dt-text small{display:block;margin-top:3px;font-size:12.5px;color:var(--muted)}
+.daily-ticks .dt-row.done .dt-text strong{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--green)}
+.daily-ticks .dt-row.idle .dt-text strong{color:var(--ink-soft)}
+.daily-ticks .dt-row.idle .check-box{border-style:dashed}
+.dt-parts{display:flex;flex-wrap:wrap;gap:var(--s-1) var(--s-4);margin-top:var(--s-2)}
+.dt-part{display:inline-flex;align-items:center;gap:7px;min-height:32px;padding:0;border:0;background:transparent;font:400 15px/1.2 var(--serif);color:var(--ink-soft)}
+.dt-part i{display:grid;place-items:center;width:17px;height:17px;border:1.5px solid var(--line-strong);border-radius:50%;color:var(--sheet)}
+.dt-part.on{color:var(--ink)}
+.dt-part.on i{border-color:var(--green);background:var(--green)}
+@media(hover:hover){.dt-part:hover i{border-color:var(--green)}}
+.dt-counter{display:inline-flex;align-items:center;gap:var(--s-2);margin-top:var(--s-2);font:400 15px/1 var(--serif);color:var(--ink-soft)}
+.dt-counter button{display:grid;place-items:center;width:30px;height:30px;padding:0;border:1px solid var(--line-strong);border-radius:50%;background:transparent;font:400 17px/1 var(--sans);color:var(--ink-soft)}
+.dt-counter button:disabled{opacity:.4}
+@media(hover:hover){.dt-counter button:not(:disabled):hover{border-color:var(--green);color:var(--green)}}
+.dt-counter span{font-variant-numeric:lining-nums tabular-nums}
+@media(max-width:650px){.dt-part{min-height:40px}.dt-counter button{width:40px;height:40px}}
