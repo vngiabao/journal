@@ -4,6 +4,8 @@ import {seed,migrateRegistry} from './seed';
 import {iso,parse} from './dates';
 let database:ReturnType<typeof openDB>|undefined;
 const db=()=>database??=openDB('project-reboot',1,{upgrade(db){db.createObjectStore('state');}});
+export async function readLocal<T>(key:string):Promise<T|undefined>{return (await db()).get('state',key);}
+export async function writeLocal(key:string,value:unknown){await (await db()).put('state',value,key);}
 export async function loadState(){const connection=await db(),existing=await connection.get('state','private') as State|undefined,s=existing??seed();const original=seed();let changed=!existing;if(!Array.isArray(s.proofs)){s.proofs=[];changed=true;}if(!Array.isArray(s.todos)){s.todos=[];changed=true;}if(!Array.isArray(s.quotes)){s.quotes=[];changed=true;}if(migrateRegistry(s))changed=true;for(const g of s.goals)if(!g.originalName){g.originalName=original.goals.find(x=>x.id===g.id)!.originalName;changed=true;}if(changed)await connection.put('state',s,'private');return s;}
 export async function saveState(s:State){await (await db()).put('state',s,'private');}
 export function validateImport(value:unknown):State {

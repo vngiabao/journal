@@ -14,7 +14,7 @@ export function Account(){
  if(!hosted)return null;
  return <section className="settings-section"><h2>Your account</h2>
   <p role="status">{error?'Your session could not be checked. Reload this page to sign in again.':email?<>Signed in as <strong>{email}</strong></>:'Checking your sign-in…'}</p>
-  <p className="muted">Cloudflare Access permits only gbao.n.vo@gmail.com. Your journal stays in this browser; signing in on another device does not sync your entries.</p>
+  <p className="muted">Cloudflare Access permits only gbao.n.vo@gmail.com. Enable sync below on each device to share your journal, plans and photos.</p>
   <a className="button secondary" href="/cdn-cgi/access/logout">Sign out</a>
   <p className="muted">Signing out ends access to the website. It does not erase entries saved in this browser profile.</p>
  </section>;

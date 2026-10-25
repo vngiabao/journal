@@ -14,6 +14,7 @@
     "not_found_handling": "single-page-application"
   },
   "vars": {
+    "SUPABASE_URL": "https://brepokoccawgqtxqxuwg.supabase.co",
     "ACCESS_TEAM_DOMAIN": "astoryapp.cloudflareaccess.com",
     "ACCESS_AUD": "adb8c959bd7634b1d02e72c60b5443372fec38045339fe33f6155873c6f0809e"
   },

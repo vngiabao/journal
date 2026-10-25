@@ -6,11 +6,11 @@ Source repository: [vngiabao/journal](https://github.com/vngiabao/journal). Prod
 
 ## Open the app
 
-The private hosted version is **https://journal.gbaonvo.com**. Sign in as **gbao.n.vo@gmail.com**; Cloudflare Access denies every other email. See [DEPLOYMENT.md](DEPLOYMENT.md) for deployment, security checks and moving existing localhost data with a JSON backup. Entries remain local to each browser and do not sync between devices.
+The private hosted version is **https://journal.gbaonvo.com**. Sign in as **gbao.n.vo@gmail.com**; Cloudflare Access denies every other email. See [DEPLOYMENT.md](DEPLOYMENT.md) for deployment, security checks and moving existing localhost data with a JSON backup. Enable cross-device sync in Settings → Across your devices on each device. Records and photos use the existing Shiori Supabase project; local IndexedDB remains available offline.
 
 Double-click **Start Project Reboot.cmd**, then open **http://127.0.0.1:5174**. Keep the terminal open while using the app. The fixed address matters: browser data belongs to this origin and browser profile.
 
-Alternatively, run `npm install` once, then `npm run dev`. For a production bundle, run `npm run build`. The local version needs no account. The hosted version uses Cloudflare Access and a verified account endpoint; journal data still stays in the browser, with no analytics or server-side journal storage.
+Alternatively, run `npm install` once, then `npm run dev`. For a production bundle, run `npm run build`. The local version needs no account. The hosted version uses Cloudflare Access and a verified account endpoint; journal data saves locally first, with optional private Supabase sync through the authenticated Worker.
 
 ## Start your board
 
@@ -55,7 +55,7 @@ Review shows recorded effort, observed-day consistency, closed qualifying weeks,
 
 Settings provides validated JSON backup/restore, activity and progress CSV exports, language selection, timezone changes, and confirmed personal-data reset. Restore previews record counts and requires an explicit replace action.
 
-Data stays in IndexedDB for the current browser profile and origin. The hosted website requires Cloudflare Access sign-in; local data is not synced or encrypted. Export backups regularly; clearing browser storage removes local records. The seed registry and supplied reference board remain available after a reset.
+Data stays in IndexedDB for the current browser profile and origin. The hosted website requires Cloudflare Access sign-in. Cloud sync is opt-in per device; local storage is not encrypted at the application level. Export backups regularly; clearing browser storage removes local records. The seed registry and supplied reference board remain available after a reset.
 
 ## Verification
 
@@ -202,3 +202,13 @@ Elsewhere (`src/delight.ts`):
 Animations use GSAP (all plugins are free and ship in the `gsap` package), set up in `src/motion.ts`. The Journey line and today's highlighter draw themselves in (DrawSVG); a mark tapped into today pops in; the Today greeting writes itself in letter by letter on the first visit of the day (SplitText); checked to-dos glide to the bottom (Flip) and finishing the list bursts gold confetti; completing a board goal stamps its wax seal; chibi Bao toasts bounce in with squash and stretch.
 
 Across the app: each page title rises word by word and its content settles in, while sections further down reveal as you scroll (ScrollTrigger; mark a list with `data-stagger` to stagger its items, a bar with `data-grow` to grow it, or a block with `data-own-motion` to opt out). The sidebar marker slides between pages (Flip). The Reboot Board deals its 36 squares in from the outer ring to the hard centre, then presses earned seals and draws bingo lines; opening a goal unfolds its detail. In the Journal, picking a day turns the page and writes "Dear me," and your signature in with the pen, and counting an entry presses a wax seal. Review numbers count up (`src/Count.tsx`) and the period comparison draws its bars. Everything runs through `gsap.matchMedia()`, so with Reduce Motion on the UI simply appears.
+
+## Cross-device sync
+
+Open Settings → Across your devices → Enable sync for this device after signing in as `gbao.n.vo@gmail.com`. Repeat on your other devices. The first device uploads its saved records; a fresh second device downloads them. The first enable keeps a local recovery backup. Independently used devices with different initial data pause for an explicit choice, with both copies available to download.
+
+Changes save locally immediately, then sync after a short delay, on reconnect/focus, and every 30 seconds while open. Independent records and fields merge against the last acknowledged state; competing edits pause for review. Normal conflict resolution keeps unrelated changes from both sides. Pause stops syncing this device without deleting cloud data. Full JSON export remains portable and includes photos.
+
+Reboot shares the Shiori Supabase project with separate `reboot_sync_state`, `reboot_sync_versions`, the `reboot_sync_write` RPC, and a private `reboot-photos` bucket. Shiori/Kiyo tables and Auth settings are unchanged. Credentials live only in a Cloudflare Worker secret; browser requests stay on this site. The cloud retains twenty previous document revisions. Photo uploads are limited to 3 MB each and metadata documents to 16 MB. Quotas are shared with the other apps; this does not create another Supabase project.
+
+`npm run test:sync` checks two isolated browser devices against the real client and Worker with a simulated Supabase backend. Database and live security verification are documented in DEPLOYMENT.md.

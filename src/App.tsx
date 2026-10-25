@@ -4,6 +4,8 @@ import {Horizon} from './horizon/Horizon';
 import type {State} from './model';
 import {uid} from './model';
 import {loadState,saveState} from './storage';
+import {startSync,requestSync} from './sync';
+import {CloudStatus} from './CloudSync';
 import {today} from './dates';
 import {completionRecords} from './engine';
 import {Board} from './Board';
@@ -79,10 +81,15 @@ export default function App(){
   window.addEventListener('hashchange',hash);return()=>{clearInterval(interval);window.removeEventListener('hashchange',hash);};
  },[]);
  useEffect(()=>{const warn=(e:BeforeUnloadEvent)=>{if(writing.current||pendingWrite.current){e.preventDefault();}};window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn);},[]);
+ useEffect(()=>{if(!loaded)return;return startSync(()=>stateRef.current,async next=>{if(!await persist(next))throw new Error('Local storage failed. Export a backup before continuing sync.');},flush);},[loaded]);
 
  // Only the newest state is written; intermediate keystrokes never queue up full database writes.
- async function flush(){if(writing.current)return;writing.current=true;while(pendingWrite.current){const s=pendingWrite.current;pendingWrite.current=null;try{await saveState(s);}catch{setSaved('Not saved');setError('Storage write failed. Export a JSON backup from Settings before closing this page.');}}writing.current=false;setSaved(v=>v==='Not saved'?v:'Saved on this device');}
- function persist(next:State){stateRef.current=next;setState(next);setSaved('Saving…');pendingWrite.current=next;void flush();}
+ const flushPromise=useRef<Promise<boolean>|null>(null);
+ function flush():Promise<boolean>{if(flushPromise.current)return flushPromise.current;writing.current=true;
+  const work=(async()=>{let ok=true;while(pendingWrite.current){const s=pendingWrite.current;pendingWrite.current=null;try{await saveState(s);}catch{ok=false;setSaved('Not saved');setError('Storage write failed. Export a JSON backup from Settings before closing this page.');}}return ok;})();
+  flushPromise.current=work.finally(()=>{writing.current=false;flushPromise.current=null;setSaved(v=>v==='Not saved'?v:'Saved on this device');});return flushPromise.current;
+ }
+ async function persist(next:State){stateRef.current=next;setState(next);setSaved('Saving…');pendingWrite.current=next;const ok=await flush();if(ok)requestSync();return ok;}
  const mutate:Mutate=(fn,entity='record update')=>{
   const previous=stateRef.current;if(!previous)return;const next=structuredClone(previous);fn(next);
   const changes=(a:State,b:State)=>({goals:a.goals.filter(x=>JSON.stringify(x)!==JSON.stringify(b.goals.find(y=>y.id===x.id))),logs:a.logs.filter(x=>JSON.stringify(x)!==JSON.stringify(b.logs.find(y=>y.id===x.id))),journey:a.journey.filter(x=>JSON.stringify(x)!==JSON.stringify(b.journey.find(y=>y.date===x.date))),journals:a.journals.filter(x=>JSON.stringify(x)!==JSON.stringify(b.journals.find(y=>y.date===x.date&&y.kind===x.kind))),proofs:a.proofs.filter(x=>JSON.stringify(x)!==JSON.stringify(b.proofs.find(y=>y.id===x.id))),settings:a.settings});
@@ -116,7 +123,7 @@ export default function App(){
    <p className="sidebar-caption">Make room for who you’re becoming.</p>
    <Chibi pose="avatar" className="sidebar-chibi"/>
    <nav aria-label="Main navigation">{[...nav,['Settings','Settings','Settings',SettingsIcon] as const].map(([key,name,,Icon])=>{const on=navKey(page)===key;return <button key={key} className={`${on?'current':''} ${key==='Settings'?'nav-settings':''}`} onClick={()=>go(key)} aria-current={on?'page':undefined}>{on&&<span className="nav-ink" data-flip-id="nav-ink" aria-hidden="true"/>}<Icon size={18} strokeWidth={1.5}/>{name}</button>;})}</nav>
-   <div className="sidebar-bottom"><p>Progress isn’t linear.<br/><em>Keep showing up.</em></p><span className={saved==='Not saved'?'error sidebar-status':'sidebar-status'} role="status"><Check size={13}/>{saved}</span><QuestMeter list={quests(state,pet)} onOpen={()=>setQuestsOpen(true)}/><button type="button" className="text-button sidebar-tour" onClick={()=>startTour()}>Show me around</button><span className="sidebar-private"><ShieldCheck size={14}/>Private on this device</span></div>
+   <div className="sidebar-bottom"><p>Progress isn’t linear.<br/><em>Keep showing up.</em></p><span className={saved==='Not saved'?'error sidebar-status':'sidebar-status'} role="status"><Check size={13}/>{saved}</span><CloudStatus/><QuestMeter list={quests(state,pet)} onOpen={()=>setQuestsOpen(true)}/><button type="button" className="text-button sidebar-tour" onClick={()=>startTour()}>Show me around</button><span className="sidebar-private"><ShieldCheck size={14}/>Private on this device</span></div>
   </aside>
   {pet&&<PocketPets choice={petChoice} state={state} now={now} cheer={cheer} onCheerDone={()=>setCheer(null)}/>}
   {touring&&<Tour key={touring} which={touring} onClose={()=>setTouring(null)}/>}

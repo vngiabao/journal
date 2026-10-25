@@ -53,11 +53,10 @@ API token is required for the completed deployment.
 
 Sign in as `gbao.n.vo@gmail.com`. Settings displays the verified account and a
 sign-out link. Account identity is checked by `/api/account`; no journal data
-is uploaded to that endpoint or to a server database.
+is uploaded to that identity endpoint. Enabled devices sync journal records and photos through the separate `/api/sync` endpoints.
 
 Journal entries, images, goals and progress remain in IndexedDB, scoped to the
-browser profile and origin. Authentication is not cross-device synchronization
-or encryption of local browser storage. Signing out does not erase local data.
+browser profile and origin. Authentication alone does not enable synchronization. Enable it in Settings on each device. Local browser storage is not encrypted at the application level. Signing out does not erase local data.
 
 To move existing localhost records, export a Full JSON backup from Settings at
 http://127.0.0.1:5174 and restore it from Settings at the production address.
@@ -80,3 +79,19 @@ and Settings confirms `gbao.n.vo@gmail.com` through `/api/account`. A handler
 argument bug that rejected authenticated requests was repaired and deployed.
 Account Settings rendering and error behavior were tested locally with a mocked
 identity endpoint at desktop and mobile widths (`tests/account-browser.mjs`).
+
+## Shared Supabase sync — October 25, 2026
+
+Project `brepokoccawgqtxqxuwg` (Shiori) also serves Kiyo. Applied `supabase/reboot-sync.sql` through the signed-in dashboard; it adds only Reboot tables/RPC and a private bucket. `supabase/verify-reboot-sync.sql` passed in the hosted SQL editor with fixtures rolled back: stale-write rejection, client privilege denial, private bucket, unchanged Shiori/Kiyo record counts. Browser clients cannot access the tables or RPC using anon/authenticated Supabase roles.
+
+The Worker still verifies the exact Cloudflare owner JWT before every sync/photo route. Writes additionally require a same-origin Origin header and `X-Reboot-Sync: 1`. A server-only Supabase key is stored with `wrangler secret put SUPABASE_SECRET_KEY`; it is never a VITE variable. The ignored `.env.sync` is for local operational setup only. `scripts/configure-sync.mjs` pipes the key to Wrangler over stdin without logging it. No secrets enter Git or the built assets.
+
+Client sync remains off until enabled in Settings. The first enable saves `sync-first-backup` in IndexedDB, then uploads or downloads the account. Competing initial device data requires review. Local-first edits merge three ways, including deletion and nested plan/training records; competing values pause with complete recovery copies. Revision compare-and-swap happens in a transaction. The server keeps twenty previous snapshots; photos are immutable, content-addressed, checksum-verified and private. A first backup and last conflict recovery remain on the device. Recovery copies downloaded from Settings are archives containing local/cloud/base states; choose a contained State object when doing a normal JSON restore.
+
+A reset or backup restore while sync is enabled propagates to the cloud. Pause sync before a device-only reset. Cloud snapshots and orphaned photos are retained for recovery; pausing/signing out is not deletion. Limits: 3 MB per photo and 16 MB per serialized metadata upload (photo bodies are externalized, including copies inside audit history). Shared project quotas still apply.
+
+`npm run test:sync` uses isolated browser contexts and a simulated backend, never production journals. It covers initial opt-in, two-device transfers, offline disjoint edits, private photo transport, concurrent journal conflicts, explicit recovery, persistence and mobile layout. `scripts/verify-supabase-sync.mjs` additionally verified the real private photo API and anon table/RPC/storage denial using an inert one-pixel object. No test journal was left in production.
+
+Cloudflare release: `c563d724-e3bf-42eb-81a3-a993f999f2c5`.
+
+Live acceptance: refreshed the existing owner Google session, loaded the new PWA, enabled sync in the owner’s existing Edge profile, and confirmed “Synced across your devices” in Settings. Supabase revision 1 contains the existing 36 goals, 3 activity records, 5 Journey days and 2 to-dos; the current profile had no journal entries. No fake activity was added. The automatic first-device recovery backup stays in IndexedDB. Other devices still need to enable sync after owner sign-in. A physical second device was not available; the two-device/offline/conflict/photo browser test used a simulated backend, while the owner upload, database isolation and private-storage checks used the real services.

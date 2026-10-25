@@ -1,4 +1,5 @@
 import {createRemoteJWKSet, jwtVerify} from 'jose';
+import {syncRequest} from './sync.mjs';
 
 export const OWNER_EMAIL = 'gbao.n.vo@gmail.com';
 const keySets = new Map();
@@ -37,6 +38,7 @@ export async function handleRequest(request,env,keys) {
  // All static files go through this check, even if the edge Access policy is removed.
  const auth=await authenticate(request,env,keys);
  if(auth.status!==200)return secured(new Response(auth.status===503?'Private journal access is being configured.':'Sign in through Cloudflare Access to open this private journal.',{status:auth.status}));
+ if(new URL(request.url).pathname.startsWith('/api/sync'))return secured(await syncRequest(request,env));
  if(new URL(request.url).pathname==='/api/account')return secured(Response.json({email:auth.email,provider:'Cloudflare Access',storage:'browser'}));
  if(!['GET','HEAD'].includes(request.method))return secured(new Response('Method not allowed',{status:405,headers:{Allow:'GET, HEAD'}}));
  return secured(await env.ASSETS.fetch(request));

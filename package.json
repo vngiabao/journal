@@ -9,6 +9,7 @@
     "test": "vitest run",
     "preview": "vite preview --host 127.0.0.1",
     "test:browser": "node tests/browser.mjs",
+    "test:sync": "node tests/sync-browser.mjs",
     "deploy": "npm run build && wrangler deploy",
     "test:access-live": "node scripts/verify-access.mjs"
   },

@@ -1,0 +1,9 @@
+import {describe,it,expect} from 'vitest';
+import {mergeDocuments} from '../src/sync-merge';
+describe('Offline cross-device merge',()=>{
+ it('combines different fields and independent records',()=>{const b={settings:{name:'Bao',language:'en'},todos:[{id:'a',text:'Read',done:false}]};const l=structuredClone(b),r=structuredClone(b);l.settings.name='B';r.settings.language='vi';l.todos[0].done=true;r.todos.push({id:'b',text:'Gym',done:false});const m=mergeDocuments(b,l,r);expect(m.conflicts).toEqual([]);expect(m.value).toEqual({settings:{name:'B',language:'vi'},todos:[{id:'a',text:'Read',done:true},{id:'b',text:'Gym',done:false}]});});
+ it('preserves deletions and detects delete versus edit',()=>{const b=[{id:'a',text:'Read'},{id:'b',text:'Gym'}];expect(mergeDocuments(b,b.slice(1),b).value).toEqual(b.slice(1));expect(mergeDocuments(b,b.slice(1),[{id:'a',text:'Changed'},b[1]]).conflicts).toHaveLength(1);});
+ it('does not silently overwrite competing journal text',()=>{const b={journals:[{date:'2026-10-25',kind:'daily',text:'Start'}]},l=structuredClone(b),r=structuredClone(b);l.journals[0].text='Laptop';r.journals[0].text='Phone';expect(mergeDocuments(b,l,r).conflicts).toEqual(['/journals/2026-10-25|daily/text']);});
+ it('merges independently added moments and derives their daily total',()=>{const b={date:'2026-10-25',delta:1,moments:[{id:'a',delta:1}]},l=structuredClone(b),r=structuredClone(b);l.moments.push({id:'b',delta:2});l.delta=3;r.moments.push({id:'c',delta:-1});r.delta=0;const m=mergeDocuments(b,l,r);expect(m.conflicts).toEqual([]);expect(m.value.delta).toBe(2);expect(m.value.moments).toHaveLength(3);});
+ it('rebases edits typed during an upload onto the received state',()=>{const sent={settings:{name:'Bao',language:'en'}},now={settings:{name:'New name',language:'en'}},remote={settings:{name:'Bao',language:'vi'}};expect(mergeDocuments(sent,now,remote).value).toEqual({settings:{name:'New name',language:'vi'}});});
+});
