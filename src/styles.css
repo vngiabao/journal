@@ -48,13 +48,16 @@ label{display:flex;flex-direction:column;gap:var(--s-2);font-size:var(--fs-meta)
 /* Buttons */
 .button{min-height:46px;padding:var(--s-2) var(--s-5);background:var(--blue);border:1px solid var(--blue);color:var(--sheet);border-radius:var(--r-control);display:inline-flex;align-items:center;justify-content:center;gap:var(--s-2);font-size:var(--fs-meta);font-weight:550;white-space:nowrap;box-shadow:var(--shadow-1)}
 .secondary{background:var(--sheet);color:var(--blue);border-color:var(--line-strong)}
-.icon-button{display:inline-flex;align-items:center;justify-content:center;width:40px;min-width:40px;height:40px;padding:0;border:0;border-radius:50%;background:transparent;color:var(--muted)}
-.text-button{display:inline-flex;align-items:center;gap:var(--s-2);border:0;background:transparent;color:var(--blue);padding:var(--s-2) 0;min-height:40px;font-size:var(--fs-meta);font-weight:550;text-align:left;white-space:nowrap}
+.icon-button{position:relative;display:inline-flex;align-items:center;justify-content:center;width:40px;min-width:40px;height:40px;padding:0;border:0;border-radius:50%;background:transparent;color:var(--muted)}
+.text-button{position:relative;display:inline-flex;align-items:center;gap:var(--s-2);border:0;background:transparent;color:var(--blue);padding:var(--s-2) 0;min-height:40px;font-size:var(--fs-meta);font-weight:550;text-align:left;white-space:nowrap}
 .text-button svg{transition:transform 200ms var(--ease)}
+/* Icon and text buttons look as small as their place needs, but always take a 44px tap: an invisible hit area
+   grows out of any side shorter than 44px (inset goes negative only by what is missing). */
+.icon-button::after,.text-button::after{content:'';position:absolute;inset:min(0px,calc((100% - 44px) / 2))}
 .danger-button{background:var(--red);border-color:var(--red)}
 .small-button{min-height:40px}
 @media(hover:hover) and (pointer:fine){
- .button:not([aria-disabled=true]):hover{background:var(--blue-hover);border-color:var(--blue-hover)}.secondary:hover{background:var(--sheet-hover);border-color:var(--blue)}.danger-button:hover{background:var(--red-hover);border-color:var(--red-hover)}
+ .button:not(:disabled):not([aria-disabled=true]):hover{background:var(--blue-hover);border-color:var(--blue-hover)}.secondary:hover{background:var(--sheet-hover);border-color:var(--blue)}.danger-button:hover{background:var(--red-hover);border-color:var(--red-hover)}
  .icon-button:hover{background:var(--paper-deep);color:var(--blue)}.text-button:hover svg{transform:translateX(3px)}
  .sidebar nav button:not(.current):hover,.sidebar-bottom button:not(.current):hover{background:var(--cover-hover);color:var(--sheet)}
 }
@@ -2144,3 +2147,27 @@ button.prio-chip:focus-visible{outline:3px solid var(--blue);outline-offset:0}
 /* The daily tick is a 44px target; the circle you see stays 28px, aligned with the words beside it. */
 .dt-row .dt-check{min-width:44px;min-height:44px;margin:calc(-1*var(--s-2)) 0 calc(-1*var(--s-2)) calc(-1*var(--s-2));padding:0;justify-content:center;align-items:center}
 .dt-row .dt-check::before{content:none}
+/* 44px targets outside the ritual. Where the look must stay small, an invisible hit area takes the tap instead. */
+.numeric-control input{min-height:44px}
+.numeric-control .icon-button{width:44px;min-width:44px;height:44px}
+.book .page-tools{gap:0}
+.book .page-tools .icon-button{width:44px;min-width:44px;height:44px}
+.book .page-tools input{min-height:44px}
+.book .proof-kinds button{position:relative}
+.book .proof-kinds button::after{content:'';position:absolute;inset:min(0px,calc((100% - 44px) / 2)) 0}
+.book .proof-add input{min-height:44px}
+.prompt-list button{min-height:44px}
+.today-chip{position:relative}
+.today-chip::after{content:'';position:absolute;inset:min(0px,calc((100% - 44px) / 2)) 0}
+.label-chip,.label-more,.label-own input{min-height:44px}
+.day-context>a{display:inline-flex;align-items:center;min-height:44px;margin-top:var(--s-1)}
+/* Phone: the week's seven days take the whole width (51px each); the week arrows move up beside the month. */
+@media(max-width:720px){
+ .date-strip{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center}
+ .date-strip>.strip-head{grid-column:1;grid-row:1}
+ .date-strip>.week-row{display:contents}
+ .date-strip .week-nav{grid-row:1;align-self:start;width:44px;min-width:44px;height:44px}
+ .date-strip .week-nav:first-child{grid-column:2}
+ .date-strip .week-nav:last-child{grid-column:3}
+ .date-strip .week-days{grid-column:1/-1;grid-row:2}
+}

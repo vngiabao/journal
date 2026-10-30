@@ -1,16 +1,17 @@
 // Life map: one hand-drawn Buzan mind map per horizon. "Me" always sits in the middle, in a soft cloud, with the
 // horizon under it ("this year", "in 5 years", "at 40"). Each area of life is a thick, tapering branch with its name
 // written along it; its twigs hold only that horizon's ideas. On "This year" they are the area's goals, each with its
-// next step and "Do today". Once a horizon has something on it, every branch ends in a short dashed "+ Add"; an empty
-// horizon shows no add twigs at all (the first question, or "tap an area", is the one action). Switch horizons above
-// the map; tap an area's name to open it across every horizon in a sheet, without moving the map.
+// next step and "Do today". Once a horizon has something on it, every branch can end in a short dashed "+ Add": with a
+// mouse it appears on the branch you point at (or tab to), so the map never repeats one promise seven times; on touch
+// it stays visible, so adding is still one tap. An empty horizon shows no add twigs at all (the question above the map
+// is the one action). Switch horizons above the map; an area's name opens it across every horizon in a sheet.
 import {Fragment,useEffect,useLayoutEffect,useMemo,useRef,useState,type ComponentType,type ReactNode,type RefObject} from 'react';
 import {createPortal} from 'react-dom';
 import './lifemap.css';
 import type {State,PlanGoal,PlanStep,Vision,VisionWhen,LifeArea,LifeHorizon} from '../model';
 import type {Mutate} from '../GoalControls';
 import {Rough,sk,seedOf} from '../Sketch';
-import {mindLayout,mindSizes,cloudPoints,spinePath,branchPoints,taperedPoly,taperedOutline,wrapText,ellipseLines,type Pt} from './geometry';
+import {mindLayout,mindSizes,mindCrop,fitHits,cloudPoints,spinePath,branchPoints,taperedPoly,taperedOutline,wrapText,ellipseLines,type Pt} from './geometry';
 import {AreaCareer,AreaEducation,AreaHealth,AreaRelationship,AreaConnection,AreaOwnership,AreaMind,AreaOther,ArrowRight,Check,ChevronRight,Plus,X} from '../icons';
 import {SkyLine,SKY_EMPTY,Popover,UndoBar,ss,useWidth,usePhone,useMeasure,deadlineText,HORIZON_KEY,OPEN_AREA_KEY} from './shared';
 import {stepTag,nextStep} from '../plan';
@@ -122,12 +123,12 @@ export function LifeMap({state,mutate,goals,now,actions}:{state:State;mutate:Mut
  return <div ref={root} className={`lm ${phone?'is-phone':''}`}>
   <HorizonSwitch horizons={horizons} current={horizon.id} onPick={pickHorizon} onManage={anchor=>setPop({kind:'horizons',anchor})}/>
   {firstRun&&<FirstAsk areas={areas} now={now} onAdd={actions.onFirstGoal}/>}
+  {emptyHere&&<VisionAsk horizon={horizon}/>}
   {phone?<PhoneMap state={state} areas={areas} goals={goals} horizon={horizon} now={now} sheet={sheet} actions={actions} bare={bare} addOnName={emptyHere} onArea={onName} onSwipe={step}
    onVision={(v,anchor)=>setPop({kind:'edit',id:v.id,anchor})} onAdd={onAddHere}/>
   :<MindMap state={state} mutate={mutate} areas={areas} goals={goals} horizon={horizon} focusArea={sheet} now={now} width={rootW} sheetOpen={!!sheet} actions={actions} bare={bare} addOnName={emptyHere}
    onArea={onName} onVision={(v,anchor)=>setPop({kind:'edit',id:v.id,anchor})} onAdd={onAddHere} onSwipe={step}/>}
   <div className="lm-under">
-   {emptyHere&&<p className="lm-hint">Nothing {horizonPhrase(horizon)} yet. Tap an area’s name and write it as if it’s already true: “I own my home.”</p>}
    {unassigned>0&&!phone&&<div className="lm-under-tray">{tray()}</div>}
    <button type="button" className="text-button lm-edit-areas" onClick={e=>setPop({kind:'areas',anchor:e.currentTarget})}>Edit areas</button>
   </div>
@@ -179,7 +180,7 @@ function useFillHeight(ref:RefObject<HTMLElement|null>,min:number,max:number,bel
 }
 
 // One idea on the map: its words sit on their own short line at the end of a twig.
-type MRow={key:string;kind:'vision'|'goal'|'step'|'more'|'add'|'addstep';horizon:number;lines:string[];w:number;h:number;base:number;v?:Vision;g?:PlanGoal;st?:PlanStep;n?:number;meta?:string[];late?:boolean;count?:number;tag?:string};
+type MRow={key:string;kind:'vision'|'goal'|'step'|'more'|'add'|'addstep';horizon:number;lines:string[];w:number;h:number;base:number;v?:Vision;g?:PlanGoal;st?:PlanStep;n?:number;meta?:string[];late?:boolean;count?:number;tag?:string;hu?:number;hh?:number;pad?:number;dh?:number};
 // Touch screens get taller rows so every line on the map is a full 44px target.
 const COARSE=typeof window!=='undefined'&&window.matchMedia?.('(pointer: coarse)').matches;
 // Wraps to the fewest lines that fit, then evens them out, so a long idea never leaves one word alone on its last line.
@@ -234,6 +235,8 @@ function MindMap({state,mutate,areas,goals,horizon,focusArea,now,width,sheetOpen
    if(vs.length>4){const t=`+${vs.length-3} more`;out.push({key:`${a.id}-more`,kind:'more',horizon:0,lines:[t],w:mC.measure(t)+8,base:ADD_ROW,h:ADD_ROW+G,count:vs.length-3});}
    // Once this horizon has something on it, every branch ends in a short invitation for it.
    else if(!bare)addRow('+ Add');}
+  // Every line keeps a 44px tap without overlapping the next (geometry.ts, fitHits).
+  fitHits(out.map(r=>({kind:r.kind,h:r.h,textH:r.kind==='step'?r.lines.length*FT.stepRow:0})),G).forEach((f,j)=>Object.assign(out[j],{h:f.h,hu:f.up,hh:f.hit,pad:f.pad,dh:f.doHit}));
   return out;}),
   // eslint-disable-next-line react-hooks/exhaustive-deps
   [state,goals,areas,now,horizon.id,sizes.rooms.join(),scale,actions.canAdd,bare,doWord,mV.v,mG.v,mSt.v,mS.v,mC.v]);
@@ -257,10 +260,24 @@ function MindMap({state,mutate,areas,goals,horizon,focusArea,now,width,sheetOpen
  const sky=useMemo(()=>showSky?ellipseLines(skyText,mSky.measure,{w:L.cloud.w,h:L.cloud.h,head:meSize*.95+FT.when*1.15+6,lineH:20,minH:44,maxLines:3}):null,
   // eslint-disable-next-line react-hooks/exhaustive-deps
   [skyText,showSky,L.cloud.w,L.cloud.h,meSize,FT.when,mSky.v]);
- const vars={height:L.height,'--mm-fs':`${FT.word}px`,'--mm-lh':`${FT.row}px`,'--mm-step-fs':`${FT.step}px`,'--mm-step-lh':`${FT.stepRow}px`,'--mm-chip-fs':`${FT.chip}px`,'--mm-when-fs':`${FT.when}px`} as React.CSSProperties;
+ // The map is only as tall as its drawing, so a big window never leaves empty paper above and below "Me".
+ const nameH=Math.max(44,FT.nameSize+20),iconS=scale==='l'?30:26;
+ const crop=useMemo(()=>mindCrop(L,{rowsH:rows.map(r=>r.map(x=>x.h)),rowUp:FT.gap,nameAbove:7+nameH,nameBelow:9+iconS+4,half:w0/2+4,pad:24}),
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  [L,rows,nameH,iconS,w0,FT.gap]);
+ // With a mouse, a branch's "+ Add" shows only on the branch you point at or tab into (and the area that's open).
+ // Each branch has an invisible zone under its words, so moving between them never flickers.
+ const [hov,setHov]=useState(-1),[foc,setFoc]=useState(-1);
+ const branchOf=(t:EventTarget|null)=>{const el=t instanceof Element?t.closest('[data-branch]'):null;return el?Number(el.getAttribute('data-branch')):-1;};
+ const hot=(i:number)=>i===hov||i===foc||i===fi;
+ const zones=useMemo(()=>L.branches.map((b,i)=>{const n=b.name,xs=[n.x-n.w/2-10,n.x+n.w/2+10,b.knee[0],b.tip[0]],ys=[n.y-7-nameH,n.y+9+iconS];
+  b.twigs.forEach((t,j)=>{const r=rows[i][j];if(!r)return;const l=b.side===1?t.x:t.x-t.len;xs.push(l,l+t.len);ys.push(t.top-(r.hu??0),t.top+r.h);});
+  const x0=Math.min(...xs)-10,x1=Math.max(...xs)+10,y0=Math.min(...ys)-6,y1=Math.max(...ys)+6;return {left:x0,top:y0,width:x1-x0,height:y1-y0};}),[L,rows,nameH,iconS]);
+ const vars={height:crop.height,'--mm-fs':`${FT.word}px`,'--mm-lh':`${FT.row}px`,'--mm-step-fs':`${FT.step}px`,'--mm-step-lh':`${FT.stepRow}px`,'--mm-chip-fs':`${FT.chip}px`,'--mm-when-fs':`${FT.when}px`} as React.CSSProperties;
  return <div ref={wrap} className={`mm scale-${scale} ${fi>=0?'has-focus':''} ${sheetOpen?'sheet-open':''}`} style={vars}>
+  <div className="mm-stage" style={{top:-crop.off,height:L.height}} onPointerOver={e=>setHov(branchOf(e.target))} onPointerLeave={()=>setHov(-1)} onFocus={e=>setFoc(branchOf(e.target))} onBlur={()=>setFoc(-1)}>
   <svg className="mm-svg" width={L.width} height={L.height} aria-hidden="true">
-   {L.branches.map((b,i)=><g key={areas[i].id} className={`mm-area ${i===fi?'focused':''}`} style={{'--c':ink(i)} as React.CSSProperties}>
+   {L.branches.map((b,i)=><g key={areas[i].id} className={`mm-area ${i===fi?'focused':''} ${hot(i)?'hot':''}`} style={{'--c':ink(i)} as React.CSSProperties}>
     <path className="mm-spine" d={spinePath(b)}/>
     {b.twigs.map((t,j)=><path key={j} className="mm-spine twig" d={twigPath(t)}/>)}
     <Rough className="mm-fill" shape={shapes.branch[i]}/>
@@ -273,29 +290,33 @@ function MindMap({state,mutate,areas,goals,horizon,focusArea,now,width,sheetOpen
    <span className="mm-me">Me</span><span className="mm-when">{horizonPhrase(horizon)}</span>
    {showSky&&<SkyLine state={state} mutate={mutate} className="mm-sky" lines={sky?.lines}/>}
   </div>
-  {L.branches.map((b,i)=>{const a=areas[i],Icon=AREA_ICON[a.id]??AreaOther,n=b.name,nameH=Math.max(44,FT.nameSize+20),nameTop=n.y-7-nameH,iconX=n.x+b.side*(n.w/2)-b.side*12;
+  {L.branches.map((b,i)=>{const a=areas[i],Icon=AREA_ICON[a.id]??AreaOther,n=b.name,nameTop=n.y-7-nameH,iconX=n.x+b.side*(n.w/2)-b.side*12;
    return <Fragment key={a.id}>
+   <div className="mm-zone" data-branch={i} style={zones[i]} aria-hidden="true"/>
    {/* The name is written level along its branch, just above the stroke. The whole name is the button. */}
-   <button type="button" className={`mm-name ${i===fi?'focused':''}`} data-area={i} style={{left:n.x-n.w/2-10,top:nameTop,width:n.w+20,height:nameH,fontSize:FT.nameSize,'--c':ink(i)} as React.CSSProperties}
+   <button type="button" className={`mm-name ${i===fi?'focused':''}`} data-area={i} data-branch={i} style={{left:n.x-n.w/2-10,top:nameTop,width:n.w+20,height:nameH,fontSize:FT.nameSize,'--c':ink(i)} as React.CSSProperties}
     aria-pressed={addOnName?undefined:i===fi} aria-label={addOnName?`Add to ${a.name}, ${horizonPhrase(horizon)}`:`${a.name}: open every horizon`} onClick={e=>onArea(a.id,b.side,e.currentTarget)}><span>{a.name.toUpperCase()}</span></button>
-   <span className={`mm-icon ${i%2?'tilt-l':'tilt-r'}`} style={{left:iconX-13,top:n.y+9,'--c':ink(i)} as React.CSSProperties} aria-hidden="true"><Icon size={scale==='l'?30:26}/></span>
-   {rows[i].map((r,j)=>{const t=b.twigs[j];if(!t)return null;const right=b.side===1,style={left:right?t.x+3:t.x-t.len+3,top:t.top,width:t.len-6,'--c':ink(i)} as React.CSSProperties,cls=`mm-row ${r.kind==='step'?'nextstep':r.kind} ${right?'side-r':'side-l'}`;
-    if(r.kind==='goal'&&r.g)return <button key={r.key} type="button" className={cls} style={style} data-goal={r.g.id} onClick={()=>onArea(a.id,b.side)} aria-label={`Goal ${r.n}: ${r.g.text}. ${r.meta?.join(', ')}. Open ${a.name}`}>
+   <span className={`mm-icon ${i%2?'tilt-l':'tilt-r'}`} style={{left:iconX-13,top:n.y+9,'--c':ink(i)} as React.CSSProperties} aria-hidden="true"><Icon size={iconS}/></span>
+   {rows[i].map((r,j)=>{const t=b.twigs[j];if(!t)return null;const right=b.side===1,px=(v?:number)=>`${v??0}px`,step=r.kind==='step';
+    const style={left:right?t.x+3:t.x-t.len+3,top:t.top,width:t.len-6,'--c':ink(i),...(step?{}:{'--hu':px(r.hu),'--hh':px(r.hh)})} as React.CSSProperties;
+    const cls=`mm-row ${step?'nextstep':r.kind} ${right?'side-r':'side-l'} ${r.kind==='add'&&hot(i)?'hot':''}`;
+    if(r.kind==='goal'&&r.g)return <button key={r.key} type="button" className={cls} style={style} data-goal={r.g.id} data-branch={i} onClick={()=>onArea(a.id,b.side)} aria-label={`Goal ${r.n}: ${r.g.text}. ${r.meta?.join(', ')}. Open ${a.name}`}>
      <span className="mm-goal"><span className={`hz-mini-pennant ${r.g.one?'one':''}`} aria-hidden="true">{r.n}</span><span className="mm-text">{r.lines.map((l,k)=><span key={k}>{l}</span>)}</span></span>
      <span className={`mm-meta ${r.late?'late':''}`}>{r.meta?.map((l,k)=><span key={k}>{l}</span>)}</span></button>;
     if(r.kind==='step'&&r.g&&r.st){const g=r.g,st=r.st,queued=isQueued(r.tag??'');
-     return <div key={r.key} className={cls} style={style} data-goal={g.id}>
-      <button type="button" className="mm-step" data-step={st.id} onClick={e=>actions.onStep(g,st,e.currentTarget)} aria-label={`Next step for goal ${r.n}: ${st.text}.${r.tag?` ${r.tag}.`:''} More options`}>
+     return <div key={r.key} className={cls} style={style} data-goal={g.id} data-branch={i}>
+      <button type="button" className="mm-step" data-step={st.id} style={{'--hu':px(r.hu),'--hh':px(r.hh)} as React.CSSProperties} onClick={e=>actions.onStep(g,st,e.currentTarget)} aria-label={`Next step for goal ${r.n}: ${st.text}.${r.tag?` ${r.tag}.`:''} More options`}>
        <span className="mm-text">{r.lines.map((l,k)=><span key={k}>{l}</span>)}</span></button>
-      <span className="mm-foot">{queued?<span className="mm-on"><Check size={15}/>{r.tag}</span>
-       :<><button type="button" className="mm-do" onClick={e=>actions.onDoToday(g,st,e.currentTarget)} aria-label={`${doWord}: ${st.text}`}>{doWord}<ArrowRight size={15}/></button>{r.tag&&<span className="mm-tag">{r.tag}</span>}</>}</span>
+      <span className="mm-foot" style={{marginTop:r.pad}}>{queued?<span className="mm-on"><Check size={15}/>{r.tag}</span>
+       :<><button type="button" className="mm-do" style={{'--hu':'0px','--hh':px(r.dh)} as React.CSSProperties} onClick={e=>actions.onDoToday(g,st,e.currentTarget)} aria-label={`${doWord}: ${st.text}`}>{doWord}<ArrowRight size={15}/></button>{r.tag&&<span className="mm-tag">{r.tag}</span>}</>}</span>
      </div>;}
-    if(r.kind==='addstep'&&r.g){const g=r.g;return <button key={r.key} type="button" className={cls} style={style} data-goal={g.id} onClick={e=>actions.onAddStep(g,e.currentTarget)} aria-label={`Add the first step for goal ${r.n}: ${g.text}`}>{r.lines[0]}</button>;}
-    if(r.kind==='vision'&&r.v)return <button key={r.key} type="button" className={cls} style={style} onClick={e=>onVision(r.v!,e.currentTarget)} aria-label={`${a.name}, ${horizonPhrase(horizon)}: ${r.v.text}. Edit`}>
+    if(r.kind==='addstep'&&r.g){const g=r.g;return <button key={r.key} type="button" className={cls} style={style} data-goal={g.id} data-branch={i} onClick={e=>actions.onAddStep(g,e.currentTarget)} aria-label={`Add the first step for goal ${r.n}: ${g.text}`}>{r.lines[0]}</button>;}
+    if(r.kind==='vision'&&r.v)return <button key={r.key} type="button" className={cls} style={style} data-branch={i} onClick={e=>onVision(r.v!,e.currentTarget)} aria-label={`${a.name}, ${horizonPhrase(horizon)}: ${r.v.text}. Edit`}>
      <span className="mm-text">{r.lines.map((l,k)=><span key={k}>{l}</span>)}</span></button>;
-    if(r.kind==='more')return <button key={r.key} type="button" className={cls} style={style} onClick={()=>onArea(a.id,b.side)} aria-label={`${plural(r.count??0,'more vision')} for ${a.name}. Show them all`}>{r.lines[0]}</button>;
-    return <button key={r.key} type="button" className={cls} style={style} onClick={e=>onAdd(a.id,e.currentTarget)} aria-label={year?`Add a goal for ${a.name}, this year`:`Add to ${a.name}, ${horizonPhrase(horizon)}`}>{r.lines[0]}</button>;})}
+    if(r.kind==='more')return <button key={r.key} type="button" className={cls} style={style} data-branch={i} onClick={()=>onArea(a.id,b.side)} aria-label={`${plural(r.count??0,'more vision')} for ${a.name}. Show them all`}>{r.lines[0]}</button>;
+    return <button key={r.key} type="button" className={cls} style={style} data-branch={i} onClick={e=>onAdd(a.id,e.currentTarget)} aria-label={year?`Add a goal for ${a.name}, this year`:`Add to ${a.name}, ${horizonPhrase(horizon)}`}>{r.lines[0]}</button>;})}
   </Fragment>;})}
+  </div>
  </div>;
 }
 
@@ -308,7 +329,7 @@ function PhoneMap({state,areas,goals,horizon,now,sheet,actions,bare,addOnName,on
  const doWord=actions.evening?'Do tomorrow':'Do today';
  useSwipe(wrap,onSwipe);
  const counts=areas.map(a=>year?goalsIn(state,a.id).length:visionsAt(state,a.id,horizon.id).length);
- const L=useMemo(()=>mindLayout(areas.map((a,i)=>({rows:[],minH:36,nameW:Math.ceil(mN.measure(a.name))+(counts[i]?26:2)})),{width:w,height:0,mode:'both',cloudW:Math.min(132,w*.36),branchLen:10,tail:2,nameGap:4,twig:0,stagger:0,gap:6,pad:4}),
+ const L=useMemo(()=>mindLayout(areas.map((a,i)=>({rows:[],minH:44,nameW:Math.ceil(mN.measure(a.name))+(counts[i]?26:2)})),{width:w,height:0,mode:'both',cloudW:Math.min(132,w*.36),branchLen:10,tail:2,nameGap:4,twig:0,stagger:0,gap:6,pad:14}),
   // eslint-disable-next-line react-hooks/exhaustive-deps
   [areas,w,mN.v,counts.join()]);
  const shapes=useMemo(()=>({cloud:sk.curve(cloudPoints(L.cloud.cx,L.cloud.cy,L.cloud.w,L.cloud.h,7),{roughness:.7,strokeWidth:1.5,fill:'F',fillStyle:'solid',seed:seedOf('me-mini')}),
@@ -412,6 +433,15 @@ function Ladder({state,area,index,goals,now,actions,onVision,onAdd,onPickArea}:L
     <button type="button" className="text-button lm-add" data-add={h.id} onClick={e=>onAdd(h.id,e.currentTarget)}><span aria-hidden="true">+</span> {vs.length?'Add another':h.id==='40'?'Who are you at 40?':'Add a vision'}</button>
    </li>;})}
   </ol>
+ </section>;
+}
+
+// An empty vision horizon asks its question above the map, the way "This year" does: no "+ Add" twigs, just the
+// question and how to answer it. The wording works for a mouse and a finger alike.
+function VisionAsk({horizon}:{horizon:LifeHorizon}){
+ return <section className="lm-ask" aria-labelledby="lm-ask-q">
+  <h2 id="lm-ask-q">Who are you {horizonPhrase(horizon)}?</h2>
+  <p>Choose an area’s name on the map and write it as if it’s already true: “I own my home.”</p>
  </section>;
 }
 
