@@ -82,9 +82,9 @@ export function bondLine(j:Journey,hour:number){
  return hour<17?'Bond’s waiting for you.':'Bond saved you a spot for tonight.';
 }
 
-// The big line: "Day 12 together" once you've shown up today, otherwise how many days so far.
+// The big line, always in one phrasing so it never changes wording mid-day: "4 days together", today included once
+// you've shown up. With nothing yet, day one is today.
 export function dayLine(j:Journey){
- if(j.today)return `Day ${j.total} together`;
  if(!j.total)return 'Day one is today';
  return `${j.total} ${j.total===1?'day':'days'} together`;
 }

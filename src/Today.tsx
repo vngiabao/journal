@@ -22,30 +22,35 @@ export function Today({state,mutate,now,go}:{state:State;mutate:Mutate;now:strin
  // On gym days the session joins the to-do list as a task, kept ticked as you go.
  useEffect(()=>{if(needsWorkoutTask(state,now))mutate(s=>{ensureWorkoutTask(s,now);},'workout task');},[now]);
  const hour=new Date().getHours(),ritual=activeRitual(state,now,hour);
- // Skipping the morning hides it for this visit only; it never counts as showing up, and it never nags.
- const skipKey=`reboot-ritual-skip-${now}`,[skipped,setSkipped]=useState(()=>{try{return sessionStorage.getItem(skipKey)==='1';}catch{return false;}});
- const skip=(v:boolean)=>{setSkipped(v);try{if(v)sessionStorage.setItem(skipKey,'1');else sessionStorage.removeItem(skipKey);}catch{/* private mode */}};
- const showCard=ritual==='evening'||(ritual==='morning'&&!skipped);
- // The doing view rises in once, right after a ritual finishes.
+ // Skipping a check-in hides it for this visit only; it never counts as showing up, and it never nags.
+ // Morning and evening are skipped separately, so skipping the morning doesn't hide the evening.
+ const skipKey=`reboot-ritual-skip-${now}-${ritual??'none'}`,[skips,setSkips]=useState<Record<string,boolean>>({});
+ const skipped=ritual?skips[skipKey]??(()=>{try{return sessionStorage.getItem(skipKey)==='1';}catch{return false;}})():false;
+ const skip=(v:boolean)=>{setSkips(m=>({...m,[skipKey]:v}));try{if(v)sessionStorage.setItem(skipKey,'1');else sessionStorage.removeItem(skipKey);}catch{/* private mode */}};
+ // While a check-in card shows, it is the whole page: a quiet header, Bond on one line, the card, a way out.
+ const showCard=!!ritual&&!skipped,closed=!!(state.rituals??[]).find(r=>r.date===now)?.evening;
+ // The doing view rises in once, right after a ritual finishes, from the top, so the frog is on the first screen.
  const [arrived,setArrived]=useState(0),doing=useRef<HTMLDivElement>(null);
- useGSAP(()=>{if(!arrived)return;const mm=whenMotionOK(()=>{gsap.from('.today-doing > *',{opacity:0,y:12,duration:.28,ease:'enter',stagger:.05,clearProps:'all'});});return()=>mm.revert();},{dependencies:[arrived],scope:doing,revertOnUpdate:true});
+ const done=()=>{setArrived(n=>n+1);window.scrollTo({top:0,behavior:'auto'});};
+ useGSAP(()=>{if(!arrived)return;const mm=whenMotionOK(()=>{gsap.from('.today-do > *, .today-side > *',{opacity:0,y:12,duration:.28,ease:'enter',stagger:.05,clearProps:'opacity,transform'});});return()=>mm.revert();},{dependencies:[arrived],scope:doing,revertOnUpdate:true});
  const gym=isTrainingDay(dayPlan(state,now));
- return <div className={`today-page ${showCard?'has-ritual':''} ${ritual==='morning'&&showCard?'ritual-only':''}`}>
+ return <div className={`today-page ${showCard?'has-ritual ritual-only':''} ${closed?'day-closed':''}`}>
   <header className="today-top today-head">
    <div className="tt-line"><p className="dateline">{label(now,{weekday:'long',month:'long',day:'numeric'}).toUpperCase()}</p><h1 className="tt-greet">{greeting(state.settings.name)}.</h1></div>
    <Identity state={state} mutate={mutate}/>
   </header>
-  <BondJourney state={state} mutate={mutate} now={now} size="strip"/>
-  {showCard&&ritual&&<RitualCard key={`${ritual}-${now}`} kind={ritual} state={state} mutate={mutate} now={now} go={go} hour={hour} onDone={()=>setArrived(n=>n+1)}/>}
-  {ritual==='morning'&&showCard?<p className="ritual-escape"><button type="button" className="text-button" onClick={()=>skip(true)}>Skip the plan and show my list</button></p>
+  <BondJourney state={state} mutate={mutate} now={now} size={showCard?'line':'strip'}/>
+  {showCard&&ritual&&<RitualCard key={`${ritual}-${now}`} kind={ritual} state={state} mutate={mutate} now={now} go={go} hour={hour} onDone={done}/>}
+  {showCard?<p className="ritual-escape"><button type="button" className="text-button" onClick={()=>skip(true)}>{ritual==='morning'?'Skip the plan and show my list':'Skip the check-in and show my list'}</button></p>
   :<div ref={doing} className="today-doing">
    <div className="today-do">
-    <TodayList state={state} mutate={mutate} now={now}/>
+    <TodayList state={state} mutate={mutate} now={now} closed={closed}/>
    </div>
    <aside className="today-side">
-    <RitualNote state={state} now={now} hour={hour} skipped={skipped&&ritual==='morning'} onOpen={()=>skip(false)}/>
+    {ritual==='evening'&&skipped?<p className="ritual-note"><span>Closing the day takes two minutes.</span><button type="button" className="button secondary" onClick={()=>skip(false)}>Close my day</button></p>
+    :<RitualNote state={state} now={now} hour={hour} skipped={skipped&&ritual==='morning'} onOpen={()=>skip(false)}/>}
     {gym&&<TrainingCard state={state} mutate={mutate} now={now}/>}
-    <DailyTicks state={state} mutate={mutate} now={now}/>
+    <DailyTicks state={state} mutate={mutate} now={now} closed={closed}/>
     <Promises state={state} mutate={mutate} now={now} go={go} active={active}/>
    </aside>
   </div>}

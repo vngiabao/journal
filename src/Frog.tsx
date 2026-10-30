@@ -25,7 +25,8 @@ export function FrogGlyph({className=''}:{className?:string}){return <img classN
 const timeOf=(iso?:string)=>iso?new Date(iso).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):'';
 
 const SHORT:Record<Priority,string>={A:'Must do',B:'Should do',C:'Nice to do',D:'Hand it off',E:'Drop it'};
-// The priority letter opens a small labelled menu: no letters to memorise.
+// The priority letter opens a small labelled menu: no letters to memorise. The button is a full 44px target; the
+// chip you see is the small face inside it.
 export function PriorityChip({t,onSet}:{t:Todo;onSet:(p?:Priority)=>void}){
  const [at,setAt]=useState<{left:number;top?:number;bottom?:number}|null>(null),chip=useRef<HTMLButtonElement>(null),menu=useRef<HTMLSpanElement>(null);
  // The menu floats above everything (cards clip their contents), below the chip or above it when the screen ends.
@@ -36,7 +37,7 @@ export function PriorityChip({t,onSet}:{t:Todo;onSet:(p?:Priority)=>void}){
   return()=>{document.removeEventListener('mousedown',down);window.removeEventListener('keydown',key);window.removeEventListener('resize',away);};},[at]);
  const pick=(p?:Priority)=>{onSet(p);setAt(null);chip.current?.focus();};
  return <span className="prio-wrap">
-  <button ref={chip} type="button" className={`prio-chip ${t.priority?`prio-${t.priority}`:'prio-none'}`} aria-haspopup="menu" aria-expanded={!!at} aria-label={t.priority?`Priority ${t.priority}, ${SHORT[t.priority].toLowerCase()}. Change it`:`Set a priority for “${t.text}”`} title={t.priority?PRIORITY_NAME[t.priority]:'Set a priority'} onClick={toggle}>{t.priority??'A–E'}</button>
+  <button ref={chip} type="button" className={`prio-chip ${t.priority?`prio-${t.priority}`:'prio-none'}`} aria-haspopup="menu" aria-expanded={!!at} aria-label={t.priority?`Priority ${t.priority}, ${SHORT[t.priority].toLowerCase()}. Change it`:`Set a priority for “${t.text}”`} title={t.priority?PRIORITY_NAME[t.priority]:'Set a priority'} onClick={toggle}><span className="prio-face">{t.priority??'A–E'}</span></button>
   {at&&createPortal(<span ref={menu} className="prio-menu" role="menu" style={{position:'fixed',left:at.left,top:at.top??'auto',bottom:at.bottom??'auto'}}>{PRIORITIES.map(p=><button key={p} type="button" role="menuitemradio" aria-checked={t.priority===p} onClick={()=>pick(p)}><b className={`prio-chip prio-${p}`} aria-hidden="true">{p}</b>{SHORT[p]}</button>)}{t.priority&&<button type="button" role="menuitem" className="prio-clear" onClick={()=>pick(undefined)}>No priority</button>}</span>,document.body)}
  </span>;
 }

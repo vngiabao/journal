@@ -6,7 +6,9 @@ import {gsap,useGSAP,whenMotionOK,motionOK} from '../motion';
 import {petChoice} from '../Pet';
 import {Rough,sk,seedOf} from '../Sketch';
 import {addDays,label,weekStart} from '../dates';
-import {journey,bondLine,dayLine,trailPose,keepsake,milestoneDue,milestoneKey,markCelebrated,type Journey} from './journey';
+import {journey,bondLine,dayLine,trailPose,keepsake,milestoneDue,milestoneKey,markCelebrated,milestoneAfter,type Journey} from './journey';
+// A keepsake stamp's width and the gap between stamps (bond.css .bond-stamp and .bf-stamps).
+const STAMP_W=150,STAMP_GAP=24;
 import {stripLayout,fullLayout} from './trail';
 import {bondArt,celebrateMilestone,greet} from './celebrate';
 
@@ -32,8 +34,8 @@ function BondFigure({pose,walking,className}:{pose:string;walking:boolean;classN
 }
 
 // This week, Monday to Sunday: a filled stone for each day you showed up. Missed days are just empty, never marked.
-function WeekStones({j,now,letters=false}:{j:Journey;now:string;letters?:boolean}){
- const ws=weekStart(now),d=letters?26:18,gap=letters?18:8,w=7*d+6*gap+4;
+function WeekStones({j,now,letters=false,small=false}:{j:Journey;now:string;letters?:boolean;small?:boolean}){
+ const ws=weekStart(now),d=letters?26:small?16:18,gap=letters?18:small?6:8,w=7*d+6*gap+4;
  return <span className={`bond-week ${letters?'big':''}`} role="img" aria-label={`${j.weekCount} of 7 days this week`}>
   <svg width={w} height={d+4} viewBox={`0 0 ${w} ${d+4}`} aria-hidden="true">
    {j.week.map((on,i)=>{const date=addDays(ws,i),cx=2+d/2+i*(d+gap),isToday=date===now,future=date>now;
@@ -51,10 +53,45 @@ function Flag({x,y,state,tall=56}:{x:number;y:number;state:'earned'|'next'|'late
  </g>;
 }
 
-// The strip: words on the left, one stretch of trail on the right, Bond on it, the next flag ahead.
-function Strip({state,mutate,now}:{state:State;mutate:Mutate;now:string}){
+// The strip at the top of Today. While a check-in card shows, Bond keeps to one quiet line (so the card is on the
+// first screen); in the doing view he gets the whole stretch of trail. Both open the same sheet with the full trail.
+function Strip({state,mutate,now,compact}:{state:State;mutate:Mutate;now:string;compact:boolean}){
  const j=useMemo(()=>journey(state,now),[state,now]);
- const pets=usePetsOn(),root=useRef<HTMLDivElement>(null),trailRef=useRef<HTMLSpanElement>(null),bondRef=useRef<HTMLSpanElement>(null),sheet=useRef<HTMLDialogElement>(null);
+ const root=useRef<HTMLDivElement>(null),sheet=useRef<HTMLDialogElement>(null);
+ // A milestone reached today is celebrated once, and remembered.
+ useEffect(()=>{const n=milestoneDue(state,now);if(!n)return;mutate(s=>markCelebrated(s,milestoneKey(n)),'bond milestone');celebrateMilestone(n,now);},[state,now]);
+ // Back after a few days away: the pocket pet says hello, once that day.
+ useEffect(()=>{if(j.today||!j.total||j.sinceLast===null||j.sinceLast<2||state.bond?.lastGreeted===now)return;
+  const t=window.setTimeout(()=>{if(greet('Bond missed you. Welcome back.'))mutate(s=>{(s.bond??(s.bond={})).lastGreeted=now;},'bond greeting');},900);return()=>clearTimeout(t);},[j.today,j.sinceLast,now]);
+ const {contextSafe}=useGSAP({scope:root});
+ const open=contextSafe(()=>{const d=sheet.current;if(!d)return;d.showModal();if(motionOK())gsap.fromTo(d,{opacity:0,y:24},{opacity:1,y:0,duration:.3,ease:'enter',clearProps:'opacity,transform'});});
+ return <div ref={root} className={`bond-strip-wrap ${compact?'is-line':''}`}>
+  {compact?<StripLine j={j} now={now} onOpen={open}/>:<StripTrail j={j} now={now} onOpen={open}/>}
+  <dialog ref={sheet} className="bond-sheet" aria-label="Bond’s trail" onClick={e=>{if(e.target===sheet.current)sheet.current.close();}}>
+   <div className="bond-sheet-in">
+    <button type="button" className="bond-sheet-close" onClick={()=>sheet.current?.close()}>Close</button>
+    <Full j={j} now={now}/>
+   </div>
+  </dialog>
+ </div>;
+}
+
+// One line: Bond sitting small, the count, this week's stones, and the way into the trail. No drawing, no walk.
+function StripLine({j,now,onOpen}:{j:Journey;now:string;onOpen:()=>void}){
+ const pose=trailPose(j),shown=pose==='walk-a'?'sit':pose==='stick'?'stick':pose==='tilt'?'tilt':'sit';
+ return <button type="button" className={`bond-line ${j.today?'is-today':''}`} onClick={onOpen} aria-haspopup="dialog" aria-label={`${dayLine(j)}. ${j.weekCount} of 7 this week. Open Bond’s trail.`}>
+  <img className="bl-dog" src={bondArt(shown)} alt=""/>
+  <span className="bl-words" aria-hidden="true">
+   <span className="bl-day">{dayLine(j)}</span>
+   <span className="bl-week"><WeekStones j={j} now={now} small/><span className="bl-week-text">{j.weekCount} of 7 this week</span></span>
+  </span>
+  <span className="bl-open" aria-hidden="true">See the trail</span>
+ </button>;
+}
+
+// The whole stretch: words on the left, one stretch of trail on the right, Bond on it, the next flag ahead.
+function StripTrail({j,now,onOpen}:{j:Journey;now:string;onOpen:()=>void}){
+ const pets=usePetsOn(),root=useRef<HTMLButtonElement>(null),trailRef=useRef<HTMLSpanElement>(null),bondRef=useRef<HTMLSpanElement>(null);
  const {w,h}=useSize(trailRef),L=useMemo(()=>w?stripLayout(j,w,h||124):null,[j,w,h]);
  const hour=new Date().getHours(),pose=trailPose(j),shownPose=pets?pose:pose==='walk-a'?'sit':pose;
  // In the flag pose Bond holds the flag himself, his pole standing where the drawn one would.
@@ -63,14 +100,6 @@ function Strip({state,mutate,now}:{state:State;mutate:Mutate;now:string}){
  const [walk,setWalk]=useState<{from:number;id:number}|null>(()=>j.today&&!walkedToday(now)&&motionOK()&&pets?{from:j.total-1,id:1}:null);
  const seen=useRef(j.total);
  useEffect(()=>{if(j.total>seen.current&&j.today&&motionOK()&&pets)setWalk({from:seen.current,id:Date.now()});seen.current=j.total;},[j.total]);
-
- // A milestone reached today is celebrated once, and remembered.
- useEffect(()=>{const n=milestoneDue(state,now);if(!n)return;mutate(s=>markCelebrated(s,milestoneKey(n)),'bond milestone');celebrateMilestone(n,now);},[state,now]);
- // Back after a few days away: the pocket pet says hello, once that day.
- useEffect(()=>{if(j.today||!j.total||j.sinceLast===null||j.sinceLast<2||state.bond?.lastGreeted===now)return;
-  const t=window.setTimeout(()=>{if(greet('Bond missed you. Welcome back.'))mutate(s=>{(s.bond??(s.bond={})).lastGreeted=now;},'bond greeting');},900);return()=>clearTimeout(t);},[j.today,j.sinceLast,now]);
-
- const {contextSafe}=useGSAP({scope:root});
  useGSAP(()=>{
   if(!L)return;
   whenMotionOK(()=>{gsap.from('.bs-words > *',{opacity:0,y:8,duration:.3,ease:'enter',stagger:.05,clearProps:'opacity,transform'});});
@@ -83,12 +112,8 @@ function Strip({state,mutate,now}:{state:State;mutate:Mutate;now:string}){
   gsap.fromTo(bondRef.current,{x:dx},{x:0,duration:Math.min(1.6,.5+Math.abs(dx)/160),ease:'move',delay:.25,onComplete:()=>{setWalk(null);
    const el=bondRef.current;if(el&&j.milestoneToday)gsap.timeline().to(el,{y:-14,duration:.2,ease:'power2.out',yoyo:true,repeat:1}).to(el,{y:0,duration:.35,ease:'elastic.out(1,.4)'});}});
  },{scope:root,dependencies:[walk?.id,!!L]});
-
- const open=contextSafe(()=>{const d=sheet.current;if(!d)return;d.showModal();if(motionOK())gsap.fromTo(d,{opacity:0,y:24},{opacity:1,y:0,duration:.3,ease:'enter',clearProps:'opacity,transform'});});
  const line=bondLine(j,hour),flagState=j.milestoneToday?'earned':'next';
-
- return <div ref={root} className="bond-strip-wrap">
-  <button type="button" className={`bond-strip ${j.today?'is-today':''} ${j.milestoneToday?'is-milestone':''}`} onClick={open} aria-haspopup="dialog" aria-label={`${dayLine(j)}. ${j.weekCount} of 7 this week. ${line} Open Bond’s trail.`}>
+ return <button ref={root} type="button" className={`bond-strip ${j.today?'is-today':''} ${j.milestoneToday?'is-milestone':''}`} onClick={onOpen} aria-haspopup="dialog" aria-label={`${dayLine(j)}. ${j.weekCount} of 7 this week. ${line} Open Bond’s trail.`}>
    <span className="bs-words" aria-hidden="true">
     <span className="bs-day">{dayLine(j)}</span>
     <span className="bs-week-row"><WeekStones j={j} now={now}/><span className="bs-week-text">{j.weekCount} of 7 this week</span></span>
@@ -111,14 +136,7 @@ function Strip({state,mutate,now}:{state:State;mutate:Mutate;now:string}){
     </>}
    </span>
    <span className="bs-open" aria-hidden="true">See the trail</span>
-  </button>
-  <dialog ref={sheet} className="bond-sheet" aria-label="Bond’s trail" onClick={e=>{if(e.target===sheet.current)sheet.current.close();}}>
-   <div className="bond-sheet-in">
-    <button type="button" className="bond-sheet-close" onClick={()=>sheet.current?.close()}>Close</button>
-    <Full j={j} now={now}/>
-   </div>
-  </dialog>
- </div>;
+  </button>;
 }
 
 // A keepsake: a little postage stamp with Bond on it, earned at a milestone.
@@ -136,6 +154,9 @@ function Full({j,now}:{j:Journey;now:string}){
  const pets=usePetsOn(),box=useRef<HTMLDivElement>(null),{w}=useSize(box),L=useMemo(()=>w?fullLayout(j,w):null,[j,w]);
  const pose=trailPose(j),shownPose=pose==='walk-a'?'walk-a':pose;
  const first=j.days[0];
+ // The keepsake row is filled to the edge: after the ones earned, the next few wait as dashed outlines with their day.
+ const perRow=w?Math.max(2,Math.floor((w+STAMP_GAP)/(STAMP_W+STAMP_GAP))):3,ahead:number[]=[];
+ for(let m=j.milestoneToday?j.total:j.prev,left=Math.max(1,perRow-j.earned.length%perRow||perRow);ahead.length<Math.min(left,4);){m=milestoneAfter(m);ahead.push(m);}
  return <section className="bond-full" aria-label="Bond’s trail">
   <header className="bf-head">
    <h2>Bond’s trail</h2>
@@ -162,14 +183,14 @@ function Full({j,now}:{j:Journey;now:string}){
    <h3>Keepsakes</h3>
    <div className="bf-stamps">
     {j.earned.map(e=><Stamp key={e.n} n={e.n} date={e.date}/>)}
-    {!j.milestoneToday&&<div className="bond-stamp-next"><b>{j.next}</b><span>days</span><em>{j.earned.length?`${j.toNext} to go`:`Your first keepsake comes at ${j.next} days.`}</em></div>}
+    {ahead.map((n,i)=><div key={n} className={`bond-stamp-next ${i?'later':''}`}><b>{n}</b><span>days</span><em>{i?'later':j.earned.length?`${j.toNext} to go`:`Your first keepsake comes at ${n} days.`}</em></div>)}
    </div>
   </div>
  </section>;
 }
 
-export function BondJourney({state,mutate,now,size='strip'}:{state:State;mutate:Mutate;now:string;size?:'strip'|'full'}){
+export function BondJourney({state,mutate,now,size='strip'}:{state:State;mutate:Mutate;now:string;size?:'strip'|'line'|'full'}){
  const j=useMemo(()=>journey(state,now),[state,now]);
  if(size==='full')return <Full j={j} now={now}/>;
- return <Strip state={state} mutate={mutate} now={now}/>;
+ return <Strip state={state} mutate={mutate} now={now} compact={size==='line'}/>;
 }

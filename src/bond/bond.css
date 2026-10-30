@@ -44,6 +44,31 @@
  .bs-open{top:var(--s-4)}
 }
 
+/* ---------- The one-line strip (while a check-in card shows) ---------- */
+.bond-line{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:var(--s-5);width:100%;min-height:72px;margin:0;padding:var(--s-2) var(--s-6) var(--s-2) var(--s-5);
+ border:1px solid var(--page-rule);border-radius:var(--r-card);background:var(--page-leaf);color:var(--ink);font:inherit;text-align:left;cursor:pointer;box-shadow:var(--shadow-1);
+ transition:background-color .2s var(--ease),border-color .2s var(--ease),transform .16s var(--ease)}
+.bond-line:active{transform:scale(.995)}
+.bond-line:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+@media(hover:hover) and (pointer:fine){
+ .bond-line:hover{background:var(--sheet-hover);border-color:var(--gold-soft)}
+ .bond-line:hover .bl-dog{transform:translateY(-3px)}
+ .bond-line:hover .bl-open{text-decoration:underline;text-underline-offset:4px}
+}
+.bl-dog{display:block;height:60px;width:auto;margin:-4px 0 -6px;transition:transform .25s var(--ease)}
+.bl-words{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s-1) var(--s-6);min-width:0}
+.bl-day{font:600 27px/1.1 var(--serif);color:var(--ink);letter-spacing:-.005em}
+.bl-week{display:flex;align-items:center;gap:var(--s-3)}
+.bl-week-text{font:600 var(--fs-meta)/1.2 var(--sans);color:var(--ink-soft)}
+.bl-open{font:600 var(--fs-meta)/1 var(--sans);color:var(--blue);white-space:nowrap}
+@media(max-width:650px){
+ .bond-line{gap:var(--s-3);min-height:64px;padding:var(--s-2) var(--s-4) var(--s-2) var(--s-3)}
+ .bl-dog{height:50px;margin:-2px 0 -4px}
+ .bl-words{flex-direction:column;align-items:flex-start;gap:4px}
+ .bl-day{font-size:22px}
+ .bl-week-text{display:none}
+}
+
 /* Hand-drawn marks (rough.js): S strokes and F fills, coloured here. */
 .rk-bt-path .s{stroke:var(--page-gutter);stroke-linecap:round}
 .rk-bt-walked .s{stroke:var(--gold);stroke-linecap:round}
@@ -93,7 +118,7 @@
 .bf-bond img{display:block;height:96px;width:auto}
 .bf-bond-pos.face-left .bf-bond{transform:translateX(-50%) scaleX(-1)}
 .bf-keepsakes h3{margin:0 0 var(--s-4);font:600 28px/1.1 var(--serif);color:var(--ink)}
-.bf-stamps{display:flex;flex-wrap:wrap;gap:var(--s-6);align-items:flex-start}
+.bf-stamps{display:flex;flex-wrap:wrap;gap:var(--s-6);align-items:center}
 @media(max-width:650px){
  .bond-sheet{width:100%;max-height:94dvh;margin:auto 0 0;border-radius:var(--r-sheet) var(--r-sheet) 0 0}
  .bond-sheet-in{padding:var(--s-6) var(--s-4) calc(var(--s-8) + env(safe-area-inset-bottom))}
@@ -120,6 +145,10 @@
 .bond-stamp-next b{font:600 40px/1 var(--serif);color:var(--ink-soft)}
 .bond-stamp-next span{font:600 var(--fs-meta)/1.2 var(--sans);color:var(--ink-soft)}
 .bond-stamp-next em{margin-top:var(--s-2);font:500 22px/1.1 var(--hand);font-style:normal;color:var(--ink-pen)}
+/* Keepsakes further ahead: the same outline, quieter, so the row reads as a path rather than empty space. */
+.bond-stamp-next.later{border-color:var(--page-gutter)}
+.bond-stamp-next.later b{font-size:34px;color:var(--ink-soft)}
+.bond-stamp-next.later em{color:var(--ink-soft)}
 
 /* ---------- Celebrations ---------- */
 .bond-pop{position:fixed;z-index:75;left:0;right:0;bottom:28px;width:max-content;max-width:calc(100% - 32px);margin:0 auto;display:flex;align-items:center;gap:var(--s-3);padding:var(--s-2) var(--s-6) var(--s-2) var(--s-3);
@@ -135,7 +164,6 @@
 .bond-moment-stage .bond-stamp{--tilt:-5deg;width:172px}
 .bond-moment-dog{position:absolute;right:-46px;bottom:-14px;height:124px;width:auto}
 .bond-moment-words{display:flex;flex-direction:column;align-items:flex-start;gap:var(--s-3)}
-.bond-moment-day{margin:0 0 var(--s-1);font:600 var(--fs-hand)/1.2 var(--hand);color:var(--gold-text)}
 .bond-moment-line{margin:0;font:600 36px/1.08 var(--serif);color:var(--ink);text-wrap:balance}
 .bond-moment-sub{margin:0;font:400 var(--fs-body)/1.4 var(--sans);color:var(--ink-soft)}
 .bond-moment-go{margin-top:var(--s-3);min-height:48px;font-size:var(--fs-ui);padding:0 var(--s-6)}

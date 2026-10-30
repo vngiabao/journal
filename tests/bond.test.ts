@@ -57,9 +57,10 @@ describe('journey()',()=>{
   expect(bondLine(j,8)).toBe('Bond’s waiting for you.');expect(bondLine(j,19)).toBe('Bond saved you a spot for tonight.');
   expect(dayLine(j)).toBe('3 days together');
  });
- it('day 12 reads as Day 12 once you check in',()=>{
+ it('reads in one phrasing before and after the check-in',()=>{
   const j=journey(streak(12),NOW);
-  expect(dayLine(j)).toBe('Day 12 together');expect(j).toMatchObject({next:14,prev:7,toNext:2});expect(trailPose(j)).toBe('walk-a');
+  expect(dayLine(j)).toBe('12 days together');expect(dayLine(journey(streak(11,1),NOW))).toBe('11 days together');
+  expect(dayLine(journey(streak(1),NOW))).toBe('1 day together');expect(j).toMatchObject({next:14,prev:7,toNext:2});expect(trailPose(j)).toBe('walk-a');
   expect(j.earned.map(e=>e.n)).toEqual([3,7]);
  });
  it('after a gap: no shame before the check-in, a welcome after it',()=>{

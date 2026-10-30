@@ -1,6 +1,5 @@
 // Bond reacts when you finish something. The hops use an elastic settle on purpose: they are rare, earned moments,
-// never everyday UI, which stays on 'enter' and 'move'.
-// Bond reacts when you finish something. A short moment over the page that never blocks a click for long:
+// never everyday UI, which stays on 'enter' and 'move'. A short moment over the page that never blocks a click for long:
 // any tap, Escape, or the button ends it. Milestones get a keepsake stamp pressed onto the page.
 // When the pocket pet is out, he does the cheering himself; when pets are off, the words still show, without the dog.
 import {gsap,motionOK} from '../motion';
@@ -30,10 +29,12 @@ function schedule(){clearTimeout(timer);timer=window.setTimeout(()=>{const p=pen
 let current:(()=>void)|null=null;
 function el<K extends keyof HTMLElementTagNameMap>(tag:K,cls:string,text?:string){const e=document.createElement(tag);e.className=cls;if(text)e.textContent=text;return e;}
 
-// The pocket pet, if he's on the page, cheers in place. Returns true when he took the moment.
+// The pocket pet, if he's out and in view, cheers in place. Returns true when he took the moment. He answers
+// synchronously: while he's stepped aside (over a ritual card, say), the words show as a small note instead.
 function pocketCheer(text:string,big:boolean){
  if(!dogOK()||!document.querySelector('.pocket-pet'))return false;
- window.dispatchEvent(new CustomEvent(BOND_EVENT,{detail:{text,big}}));return true;
+ const detail={text,big,taken:false};
+ window.dispatchEvent(new CustomEvent(BOND_EVENT,{detail}));return detail.taken;
 }
 
 function showMoment(m:BondMoment){
@@ -76,7 +77,8 @@ function showMilestone(n:number,date:string){
  const scrim=el('div','bond-moment');scrim.setAttribute('role','dialog');scrim.setAttribute('aria-modal','true');scrim.setAttribute('aria-label',`${n} days with Bond`);
  const card=el('div','bond-moment-card'),stamp=stampNode(n,date);
  const words=el('div','bond-moment-words');
- words.append(el('h2','bond-moment-line',k.line),el('p','bond-moment-day',`Day ${n} together`),el('p','bond-moment-sub','A keepsake for your trail. Bond keeps it with the others.'));
+ // The stamp already carries the number and the date, so the words don't say the day again.
+ words.append(el('h2','bond-moment-line',k.line),el('p','bond-moment-sub','A keepsake for your trail. Bond keeps it with the others.'));
  const btn=el('button','button bond-moment-go','Keep walking');btn.type='button';words.append(btn);
  const stage=el('div','bond-moment-stage');stage.append(stamp);
  // Bond cheers on the card itself (the pocket pet would sit under the scrim). Pets off: the stamp and the words only.

@@ -2136,3 +2136,47 @@ main.wide{max-width:2000px}
 
 /* Readability pass (2026-10-30): mono small print keeps one line on a phone once it is 14px */
 @media(max-width:720px){.folio-top,.running-head{letter-spacing:.05em}.folio-top{gap:var(--s-2)}}
+
+/* ---- Today after the design review (2026-10-30) ---- */
+/* While a check-in card shows it leads the page: on a phone the identity line steps aside until the doing view. */
+@media(max-width:650px){#main .today-page.has-ritual .today-top .rh-statement{display:none}}
+#main .today-page .ritual-escape .text-button{min-height:48px;padding-inline:var(--s-2);margin-left:calc(-1 * var(--s-2))}
+@media(hover:hover) and (pointer:fine){#main .today-page .ritual-escape .text-button:hover{color:var(--ink);text-decoration-color:var(--ink-soft)}}
+/* The doing view: the frog on its own card first, then the list. */
+#main .today-do>.frog-card{margin:0;padding:var(--s-5) var(--s-6) var(--s-5) var(--s-5);border-radius:var(--r-card)}
+#main .today-do>.frog-pick{margin:0;padding:var(--s-4) var(--s-5);border-radius:var(--r-card)}
+@media(max-width:650px){#main .today-do>.frog-card{padding:var(--s-4) var(--s-4) var(--s-4) var(--s-3)}}
+/* Every control on Today is a 44px target. */
+#main .today-page .text-button{min-height:44px}
+#main .today-page .todo-add .add-when button[role=radio]{min-height:44px;padding:4px var(--s-4)}
+#main .todo-list.big li.done{padding-left:calc(44px + var(--s-3))}
+/* The priority button is a full target; the chip you see is the face inside it. */
+button.prio-chip{background:transparent;border-color:transparent}
+button.prio-chip::before{content:none}
+#main .todo-list button.prio-chip{width:44px;min-width:44px;height:44px;padding:0;border:0;border-radius:10px}
+#main .todo-list button.prio-chip.prio-none{width:auto;min-width:44px}
+.prio-face{display:grid;place-items:center;min-width:32px;height:32px;padding:0 6px;border:1px solid var(--line);border-radius:8px;transition:transform .16s var(--ease),border-color .16s var(--ease)}
+button.prio-chip.prio-none .prio-face{border-style:dashed;border-color:var(--line-strong);color:var(--muted)}
+button.prio-chip.prio-A .prio-face{background:var(--red);border-color:var(--red);color:var(--sheet)}
+button.prio-chip.prio-B .prio-face{background:var(--gold-wash);border-color:var(--gold);color:var(--gold-text)}
+button.prio-chip.prio-C .prio-face{background:var(--sky);border-color:var(--sky-2);color:var(--blue)}
+button.prio-chip.prio-D .prio-face{background:var(--violet-wash);border-color:var(--violet);color:var(--violet-text)}
+button.prio-chip.prio-E .prio-face{color:var(--muted);text-decoration:line-through}
+button.prio-chip:active .prio-face{transform:scale(.94)}
+button.prio-chip:focus-visible{outline:3px solid var(--blue);outline-offset:0}
+@media(hover:hover) and (pointer:fine){button.prio-chip:hover .prio-face{border-color:var(--blue)}}
+/* What's left from a skipped evening: folded under the list, like tomorrow's tasks. */
+#main .today-page .rewrite.quiet{margin:var(--s-2) 0 0;padding:0;border:0;background:none}
+#main .today-page .rewrite.quiet.open{padding:var(--s-3) var(--s-4) var(--s-2);border:1px solid var(--gold-soft);background:var(--gold-wash)}
+#main .today-page .rewrite.quiet>p{margin:var(--s-1) 0 var(--s-2)}
+#main .today-page .rewrite-row .text-button{padding-inline:var(--s-2)}
+/* A closed day keeps no tally. */
+#main .today-page.day-closed .training-count{display:none}
+/* The pocket pet steps out of view when there's no room for him, and his bubble never covers a field. */
+.pocket-pet{transition:opacity .2s var(--ease)}
+.pocket-pet.is-away{opacity:0}
+.pb-bubble{translate:var(--nudge,0) 0}
+.pb-bubble.is-quiet{width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);border:0;white-space:nowrap;animation:none}
+/* The daily tick is a 44px target; the circle you see stays 28px, aligned with the words beside it. */
+.dt-row .dt-check{min-width:44px;min-height:44px;margin:-8px 0 -8px -8px;padding:0;justify-content:center;align-items:center}
+.dt-row .dt-check::before{content:none}
