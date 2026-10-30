@@ -122,14 +122,18 @@ export function bezLength(p0:Pt,c1:Pt,c2:Pt,p3:Pt,n=24){let len=0,prev=p0;for(le
 // (half the gap to the row before, or the whole gap when it hangs off its goal, whose own box is already taller than
 // 44px) and ends where the next row's begins, so neighbours never overlap. A short row grows its gap until it fits.
 // A next step has two targets: its words, then "Do today" under them; `pad` is the space that opens between the two.
+// The two split the space between them: "Do today" (a `doBox`-tall pill) takes a 44px hit centred on itself, starting
+// `doUp` px above its top, so a tap just above the pill still lands on it, and the words' hit area ends where it begins.
 export interface HitRowIn{kind:string;h:number;textH:number}
-export interface HitRow{h:number;up:number;hit:number;pad:number;doHit:number}
-export function fitHits(rows:HitRowIn[],gap:number,min=44):HitRow[]{
+export interface HitRow{h:number;up:number;hit:number;pad:number;doHit:number;doUp:number}
+export function fitHits(rows:HitRowIn[],gap:number,min=44,doBox=30):HitRow[]{
  const up=rows.map((r,j)=>(r.kind==='step'||r.kind==='addstep')&&rows[j-1]?.kind==='goal'?gap:gap/2);
+ const doUp=Math.max(0,Math.ceil((min-doBox)/2));
  return rows.map((r,j)=>{const next=j+1<rows.length?up[j+1]:gap/2;
-  if(r.kind==='step'){const pad=Math.max(0,Math.ceil(min-up[j]-r.textH)),h=Math.max(r.h+pad,r.textH+pad+min+next);
-   return {h,up:up[j],hit:up[j]+r.textH+pad,pad,doHit:h-r.textH-pad-next};}
-  const h=Math.max(r.h,min-up[j]+next);return {h,up:up[j],hit:h+up[j]-next,pad:0,doHit:0};});
+  // A one-line step is shorter than 44px, so its own hit area is centred on its words too: it reaches min/2 below their middle.
+  if(r.kind==='step'){const pad=Math.max(0,Math.ceil(min+doUp-up[j]-r.textH),r.textH<min?Math.ceil(min/2-r.textH/2+doUp):0),h=Math.max(r.h+pad,r.textH+pad+min-doUp+next);
+   return {h,up:up[j],hit:up[j]+r.textH+pad-doUp,pad,doHit:h-r.textH-pad-next+doUp,doUp};}
+  const h=Math.max(r.h,min-up[j]+next);return {h,up:up[j],hit:h+up[j]-next,pad:0,doHit:0,doUp:0};});
 }
 // The band of the map that has drawing in it, so the map is only as tall as what it shows: the cloud, every branch
 // (half its thickness either side), each name above its branch with the doodle under it, and every row's hit area.

@@ -2134,3 +2134,31 @@ button.prio-chip:focus-visible{outline:3px solid var(--blue);outline-offset:0}
  .date-strip .week-nav:last-child{grid-column:3}
  .date-strip .week-days{grid-column:1/-1;grid-row:2}
 }
+
+/* ---- Wide windows (2026-10-30): use the screen ----
+   From 1900px the column keeps growing with the window, 40px clear of the shell on each side, up to 2200px of content.
+   Sized against the shell (%), not the viewport, so the sidebar, scrollbar and any browser zoom are already counted.
+   Pages answer the extra width with more columns, not longer lines. */
+@media(min-width:1900px){
+ main,main.wide{max-width:max(1760px,min(2296px,calc(100% - 2 * var(--s-8))))}
+ /* Review: the commitments you're keeping read as two columns of rows instead of one row stretched across the page */
+ .review-rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:var(--s-8)}
+ .review-row:nth-last-child(2):nth-child(odd){border-bottom:0}
+}
+@media(min-width:2300px){
+ /* The open journal grows with the desk so it doesn't float in a wide navy field; each page stays under ~75ch */
+ .book{max-width:1360px}
+ /* The board's squares become 4:3 cards: the extra width goes across, so the 6 x 6 card isn't taller than before */
+ .bingo-card .goal-tile{aspect-ratio:4/3}
+}
+
+/* ---- 44px taps on the Board, Review and drawers ---- */
+/* Links and tallies that look small keep their size; an invisible hit area grows out of the short sides only. */
+.card-foot a,.board-footer a,.original-detail a,.proof-tally button,.goal-table .goal-name,button.week-cell{position:relative}
+.original-detail a{display:inline-block}
+.card-foot a::after,.board-footer a::after,.original-detail a::after,.goal-table .goal-name::after{content:'';position:absolute;inset:min(0px,calc((100% - 44px) / 2)) 0}
+.proof-tally button::after{content:'';position:absolute;inset:min(-4px,calc((100% - 48px) / 2)) 0}
+button.week-cell::after{content:'';position:absolute;inset:min(0px,calc((100% - 44px) / 2))}
+.status-select{min-height:44px}
+/* The drawer's tabs sit in a scrolling track (an outside hit area would be clipped), so the tab itself is 44px. */
+.tabs button{min-height:44px}

@@ -180,7 +180,7 @@ function useFillHeight(ref:RefObject<HTMLElement|null>,min:number,max:number,bel
 }
 
 // One idea on the map: its words sit on their own short line at the end of a twig.
-type MRow={key:string;kind:'vision'|'goal'|'step'|'more'|'add'|'addstep';horizon:number;lines:string[];w:number;h:number;base:number;v?:Vision;g?:PlanGoal;st?:PlanStep;n?:number;meta?:string[];late?:boolean;count?:number;tag?:string;hu?:number;hh?:number;pad?:number;dh?:number};
+type MRow={key:string;kind:'vision'|'goal'|'step'|'more'|'add'|'addstep';horizon:number;lines:string[];w:number;h:number;base:number;v?:Vision;g?:PlanGoal;st?:PlanStep;n?:number;meta?:string[];late?:boolean;count?:number;tag?:string;hu?:number;hh?:number;pad?:number;dh?:number;du?:number};
 // Touch screens get taller rows so every line on the map is a full 44px target.
 const COARSE=typeof window!=='undefined'&&window.matchMedia?.('(pointer: coarse)').matches;
 // Wraps to the fewest lines that fit, then evens them out, so a long idea never leaves one word alone on its last line.
@@ -236,7 +236,7 @@ function MindMap({state,mutate,areas,goals,horizon,focusArea,now,width,sheetOpen
    // Once this horizon has something on it, every branch ends in a short invitation for it.
    else if(!bare)addRow('+ Add');}
   // Every line keeps a 44px tap without overlapping the next (geometry.ts, fitHits).
-  fitHits(out.map(r=>({kind:r.kind,h:r.h,textH:r.kind==='step'?r.lines.length*FT.stepRow:0})),G).forEach((f,j)=>Object.assign(out[j],{h:f.h,hu:f.up,hh:f.hit,pad:f.pad,dh:f.doHit}));
+  fitHits(out.map(r=>({kind:r.kind,h:r.h,textH:r.kind==='step'?r.lines.length*FT.stepRow:0})),G,44,DO_ROW).forEach((f,j)=>Object.assign(out[j],{h:f.h,hu:f.up,hh:f.hit,pad:f.pad,dh:f.doHit,du:f.doUp}));
   return out;}),
   // eslint-disable-next-line react-hooks/exhaustive-deps
   [state,goals,areas,now,horizon.id,sizes.rooms.join(),scale,actions.canAdd,bare,doWord,mV.v,mG.v,mSt.v,mS.v,mC.v]);
@@ -308,7 +308,7 @@ function MindMap({state,mutate,areas,goals,horizon,focusArea,now,width,sheetOpen
       <button type="button" className="mm-step" data-step={st.id} style={{'--hu':px(r.hu),'--hh':px(r.hh)} as React.CSSProperties} onClick={e=>actions.onStep(g,st,e.currentTarget)} aria-label={`Next step for goal ${r.n}: ${st.text}.${r.tag?` ${r.tag}.`:''} More options`}>
        <span className="mm-text">{r.lines.map((l,k)=><span key={k}>{l}</span>)}</span></button>
       <span className="mm-foot" style={{marginTop:r.pad}}>{queued?<span className="mm-on"><Check size={15}/>{r.tag}</span>
-       :<><button type="button" className="mm-do" style={{'--hu':'0px','--hh':px(r.dh)} as React.CSSProperties} onClick={e=>actions.onDoToday(g,st,e.currentTarget)} aria-label={`${doWord}: ${st.text}`}>{doWord}<ArrowRight size={15}/></button>{r.tag&&<span className="mm-tag">{r.tag}</span>}</>}</span>
+       :<><button type="button" className="mm-do" style={{'--hu':px(r.du),'--hh':px(r.dh)} as React.CSSProperties} onClick={e=>actions.onDoToday(g,st,e.currentTarget)} aria-label={`${doWord}: ${st.text}`}>{doWord}<ArrowRight size={15}/></button>{r.tag&&<span className="mm-tag">{r.tag}</span>}</>}</span>
      </div>;}
     if(r.kind==='addstep'&&r.g){const g=r.g;return <button key={r.key} type="button" className={cls} style={style} data-goal={g.id} data-branch={i} onClick={e=>actions.onAddStep(g,e.currentTarget)} aria-label={`Add the first step for goal ${r.n}: ${g.text}`}>{r.lines[0]}</button>;}
     if(r.kind==='vision'&&r.v)return <button key={r.key} type="button" className={cls} style={style} data-branch={i} onClick={e=>onVision(r.v!,e.currentTarget)} aria-label={`${a.name}, ${horizonPhrase(horizon)}: ${r.v.text}. Edit`}>
