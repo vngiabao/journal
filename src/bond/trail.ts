@@ -29,6 +29,7 @@ export function trailMilestones(j:Journey){
  return out;
 }
 
+const MIN_GAP=30;
 export function fullLayout(j:Journey,w:number){
  const ms=trailMilestones(j),segs=ms.length-1;
  const per=w>=980?4:w>=620?3:2,rows=Math.ceil(segs/per),gap=w<620?150:140,top=64,pad=w<620?52:74;
@@ -44,9 +45,12 @@ export function fullLayout(j:Journey,w:number){
   if(r<rows-1){const edge=r%2===0?w-pad:pad,dir=r%2===0?1:-1,cy=top+r*gap+gap/2,R=gap/2;
    for(let k=1;k<12;k++){const a=-Math.PI/2+k/12*Math.PI;path.push({x:edge+dir*Math.cos(a)*R*.55,y:cy+Math.sin(a)*R});}}
  }
- const stones:Stone[]=[];
- for(let s=0;s<segs;s++){const len=ms[s+1]-ms[s],stride=Math.ceil(len/10);
-  for(let i=stride;i<len;i+=stride){const p=at(s+i/len);stones.push({...p,done:ms[s]+i<=j.total});}}
+ // Stones keep at least MIN_GAP px apart (a stone is 13px across), so a short stretch on a phone gets fewer stones
+ // rather than a row of stones touching.
+ const stones:Stone[]=[],segPx=span/per,room=Math.max(1,Math.floor(segPx/MIN_GAP));
+ for(let s=0;s<segs;s++){const len=ms[s+1]-ms[s],n=Math.min(len-1,room-1,9);
+  // A stone per day when they fit; otherwise n stones spread evenly, each lit once the days reach it.
+  for(let k=1;k<=n;k++){const f=k/(n+1),p=at(s+f);stones.push({...p,done:ms[s]+Math.round(f*len)<=j.total});}}
  const flags=ms.map((n,k)=>({n,k,...at(k),state:(n===0?'start':n<=j.total?'earned':n===j.next?'next':'later') as 'start'|'earned'|'next'|'later'}));
  // Bond stands where today's count falls between two flags.
  let s=0;while(s<segs-1&&ms[s+1]<=j.total&&!(ms[s+1]===j.total&&j.milestoneToday))s++;

@@ -4,6 +4,7 @@ import {seed} from '../src/seed';
 import {validateImport} from '../src/storage';
 import type {State,DayRitual} from '../src/model';
 import {addDays} from '../src/dates';
+import {fullLayout} from '../src/bond/trail';
 import {showUpDays,journey,milestoneAfter,isMilestone,milestonesUpTo,markCelebrated,celebrated,milestoneDue,milestoneKey,bondLine,dayLine,trailPose,keepsake,comingBack,weekWords,WELCOME} from '../src/bond/journey';
 
 const NOW='2026-10-30'; // a Friday
@@ -111,5 +112,15 @@ describe('backup validation for rituals and bond',()=>{
    s=>{(s as unknown as {bond:unknown}).bond=[];},
   ];
   for(const f of bad){const s=fresh();f(s);expect(()=>validateImport(JSON.parse(JSON.stringify(s)))).toThrow();}
+ });
+});
+
+describe('Bond’s whole trail',()=>{
+ it('keeps stones apart on a phone-width sheet, and still has one per day on a wide one',()=>{
+  const j=journey(streak(10),NOW);
+  const gaps=(w:number)=>{const L=fullLayout(j,w),rows=new Map<number,number[]>();for(const s of L.stones)rows.set(Math.round(s.y),[...(rows.get(Math.round(s.y))??[]),s.x]);
+   return [...rows.values()].flatMap(xs=>xs.sort((a,b)=>a-b).slice(1).map((x,i)=>x-xs[i]));};
+  expect(Math.min(...gaps(358))).toBeGreaterThanOrEqual(26);
+  const wide=fullLayout(j,1040);expect(wide.stones.filter(s=>s.done).length).toBeGreaterThanOrEqual(7);
  });
 });

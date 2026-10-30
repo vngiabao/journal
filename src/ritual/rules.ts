@@ -41,15 +41,22 @@ export function todaysList(s:State,date:string,closed=false){
  const mine=(s.todos??[]).filter(t=>t.date===date&&!t.dismissed&&!t.routine),settled=mine.filter(t=>t.carried&&!t.done);
  return {open:mine.filter(t=>!(t.carried&&!t.done)&&!(closed&&t.auto&&!t.done)),settled,again:settled.filter(t=>t.carried==='rewritten').length,dropped:settled.filter(t=>t.carried!=='rewritten').length};
 }
-// Candidates for the frog: undone tasks you could do today, best first. The gym session and hand-offs never qualify.
-export const frogCandidates=(s:State,date:string)=>todaysTasks(s,date).filter(t=>!t.done&&!t.auto&&t.priority!=='D'&&t.priority!=='E').sort((a,b)=>priorityRank(a)-priorityRank(b));
+// Candidates for the frog: undone tasks you could do today, best first, then what an unsettled evening left open (the
+// last seven days), so a closed day's leftovers come back as choices in the morning. The gym session and hand-offs never qualify.
+const frogWorthy=(t:Todo)=>!t.done&&!t.auto&&t.priority!=='D'&&t.priority!=='E';
+export const frogCandidates=(s:State,date:string)=>[...todaysTasks(s,date).filter(frogWorthy),...leftovers(s.todos??[],date).filter(frogWorthy)]
+ .sort((a,b)=>priorityRank(a)-priorityRank(b)||Number(a.date<date)-Number(b.date<date));
+// What a closed day leaves open without settling: today's unticked tasks plus older leftovers. The morning asks about them.
+export const stillOpen=(s:State,date:string)=>leftToSettle(s,date).length;
 // The suggested frog: the one already chosen (last night, say), otherwise the top task.
 export const suggestFrog=(s:State,date:string):Todo|undefined=>todaysTasks(s,date).find(t=>t.frog&&!t.done)??frogCandidates(s,date)[0];
 // The next tasks after the frog, best first. The first three are "today's three".
 export const afterFrog=(s:State,date:string)=>todaysTasks(s,date).filter(t=>!t.done&&!t.frog).sort((a,b)=>priorityRank(a)-priorityRank(b));
 
 // Makes one of today's tasks the frog (an A task), and remembers it as the morning's choice.
-export function chooseFrog(s:State,date:string,id:string){for(const t of s.todos??[])if(t.date===date)t.frog=t.id===id;const t=(s.todos??[]).find(x=>x.id===id);if(t)t.priority='A';setRitualFrog(s,date,id);}
+// A leftover chosen as the frog is a deliberate choice, so it moves into today as it is.
+export function chooseFrog(s:State,date:string,id:string){const t=(s.todos??[]).find(x=>x.id===id);if(t&&t.date<date)t.date=date;
+ for(const x of s.todos??[])if(x.date===date)x.frog=x.id===id;if(t)t.priority='A';setRitualFrog(s,date,id);}
 // A frog typed fresh in the morning: a new A task for today.
 export function newFrog(s:State,date:string,text:string){const t:Todo={id:uid(),date,text,done:false,createdAt:new Date().toISOString(),priority:'A'};s.todos=[...(s.todos??[]),t];chooseFrog(s,date,t.id);return t;}
 export function addTask(s:State,date:string,text:string){const t:Todo={id:uid(),date,text,done:false,createdAt:new Date().toISOString()};s.todos=[...(s.todos??[]),t];return t;}

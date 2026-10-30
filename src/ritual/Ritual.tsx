@@ -31,6 +31,8 @@ export function RitualCard({kind,state,mutate,now,go,onDone,hour}:{kind:RitualKi
  const commit=useRef<(()=>void)|null>(null);
  // A step can hold its primary button until it has what it needs (the frog step with an empty new frog).
  const [blocked,setBlocked]=useState<string|null>(null);
+ // The week step tells the card whether anything is written: an empty week is skipped, never praised or counted.
+ const [weekFilled,setWeekFilled]=useState(false);
  // A new step takes focus to its question, so keyboard and screen-reader users land where the eyes do.
  useGSAP(()=>{if(!i)return;card.current?.querySelector<HTMLElement>('#ritual-q')?.focus({preventScroll:true});const mm=whenMotionOK(()=>{gsap.from('.rs-in',{opacity:0,y:14,duration:.28,ease:'enter',stagger:.04,clearProps:'all'});});return()=>mm.revert();},{dependencies:[i],scope:card,revertOnUpdate:true});
  // After a long step the page may sit below the card's top; bring it back so "2 of 3" and the question are on screen.
@@ -54,7 +56,7 @@ export function RitualCard({kind,state,mutate,now,go,onDone,hour}:{kind:RitualKi
  useEffect(()=>()=>{pendingDone.current?.();},[]);
  const next=(e:React.MouseEvent<HTMLButtonElement>,save:boolean)=>{if(closing)return;if(save&&blocked)return;
   if(save)commit.current?.();commit.current=null;
-  if(step==='week'&&save){mutate(s=>markRitual(s,now,'week'),'ritual week');bondCelebrate('week-done');}
+  if(step==='week'&&save&&weekFilled){mutate(s=>markRitual(s,now,'week'),'ritual week');bondCelebrate('week-done');}
   if(last){finish(e.currentTarget);return;}setBlocked(null);setI(i+1);
  };
  const q=QUESTION[step](state,now);
@@ -74,12 +76,12 @@ export function RitualCard({kind,state,mutate,now,go,onDone,hour}:{kind:RitualKi
     {step==='ticks'&&<TicksStep state={state} mutate={mutate} now={now}/>}
     {step==='mood'&&<MoodStep state={state} mutate={mutate} now={now} commit={commit}/>}
     {step==='tomorrow'&&<TomorrowStep state={state} mutate={mutate} now={now}/>}
-    {step==='week'&&<WeekStep state={state} mutate={mutate} now={now} go={go} commit={commit}/>}
+    {step==='week'&&<WeekStep state={state} mutate={mutate} now={now} go={go} commit={commit} onFilled={setWeekFilled}/>}
    </div>
    {/* The one action follows the content; on a long step it stays pinned to the bottom of the screen. */}
    <div className="rs-foot">
-    <button type="button" className="button rs-primary" aria-disabled={closing||!!blocked} onClick={e=>next(e,true)}>{blocked??PRIMARY[step](last,kind,state,now)}{!last&&!blocked&&<ArrowRight size={18}/>}</button>
-    {!(last&&step==='go')&&<button type="button" className="text-button rs-skip" onClick={e=>next(e,false)}>{last?<>Skip<span className="rs-skip-more"> and close</span></>:'Skip'}</button>}
+    <button type="button" className="button rs-primary" aria-disabled={closing||!!blocked} onClick={e=>next(e,true)}>{blocked??(step==='week'&&!weekFilled&&!last?'Skip this week':PRIMARY[step](last,kind,state,now))}{!last&&!blocked&&<ArrowRight size={18}/>}</button>
+    {!(last&&step==='go')&&!(step==='week'&&!weekFilled&&!last)&&<button type="button" className="text-button rs-skip" onClick={e=>next(e,false)}>{last?<span>Skip<span className="rs-skip-more"> and close</span></span>:'Skip'}</button>}
     {i>0&&<button type="button" className="text-button rs-back" onClick={()=>{if(closing)return;commit.current=null;setBlocked(null);setI(i-1);}}><ArrowLeft size={16}/><span className="rs-back-label">Back</span></button>}
    </div>
   </div>
@@ -109,7 +111,7 @@ function FrogStep({state,mutate,now,commit,onBlock}:StepProps&{commit:React.Muta
  useEffect(()=>{onBlock(empty?'Write it first':null);},[empty]);
  commit.current=()=>{if(pick==='new'){const v=text.trim();if(v)mutate(s=>{newFrog(s,now,v);},'frog chosen');}else mutate(s=>chooseFrog(s,now,pick),'frog chosen');};
  return <div className="rs-frog">
-  {list.length>0&&<ul className="rs-choices" role="radiogroup" aria-label="Today’s frog">{list.map(t=><li key={t.id}><button type="button" role="radio" aria-checked={pick===t.id} className={`rs-choice ${pick===t.id?'on':''}`} onClick={()=>setPick(t.id)}><span className="rs-radio" aria-hidden="true">{pick===t.id&&<FrogGlyph/>}</span><span className="rs-choice-text">{t.text}</span>{t.priority&&<b className={`prio-chip prio-${t.priority}`} aria-label={`Priority ${t.priority}`}>{t.priority}</b>}</button></li>)}</ul>}
+  {list.length>0&&<ul className="rs-choices" role="radiogroup" aria-label="Today’s frog">{list.map(t=><li key={t.id}><button type="button" role="radio" aria-checked={pick===t.id} className={`rs-choice ${pick===t.id?'on':''}`} onClick={()=>setPick(t.id)}><span className="rs-radio" aria-hidden="true">{pick===t.id&&<FrogGlyph/>}</span><span className="rs-choice-text">{t.text}{t.date<now&&<small className="rs-choice-from">left from {label(t.date,{weekday:'long'})}</small>}</span>{t.priority&&<b className={`prio-chip prio-${t.priority}`} aria-label={`Priority ${t.priority}`}>{t.priority}</b>}</button></li>)}</ul>}
   <label className={`rs-write ${pick==='new'?'on':''}`}><span>{list.length?'Or write a new one':'Write it down'}</span><input value={text} maxLength={140} placeholder="The task you’d most like to put off" onFocus={()=>setPick('new')} onChange={e=>{setText(e.target.value);setPick('new');}}/></label>
   {!list.length&&<p className="rs-note">Today’s list is empty, so your frog becomes its first task.</p>}
  </div>;
@@ -203,11 +205,13 @@ function LeftRow({t,now,editing,onEdit,onCancel,onSave,onDrop}:{t:Todo;now:strin
 
 // Sunday: the week's three slots show at once, so you can see the shape of the week while you write it.
 const ORDINAL=['first','second','third'];
-function WeekStep({state,mutate,now,go,commit}:StepProps&{go:(p:string)=>void;commit:React.MutableRefObject<(()=>void)|null>}){
+function WeekStep({state,mutate,now,go,commit,onFilled}:StepProps&{go:(p:string)=>void;commit:React.MutableRefObject<(()=>void)|null>;onFilled:(filled:boolean)=>void}){
  const week=planWeek(now),items=periodItems(state,'week',week),month=planMonth(now),monthItems=periodItems(state,'month',month),monthEnd=isMonthEnd(now);
  const open=Math.max(0,3-items.length),[drafts,setDrafts]=useState<string[]>([]),slots=useRef<HTMLOListElement>(null);
  // The primary button keeps whatever is written but not yet entered.
  commit.current=()=>{const vs=drafts.slice(0,open).map(v=>v.trim()).filter(Boolean);if(vs.length)mutate(s=>{for(const v of vs)addItem(s,'week',week,v);},'week list');};
+ const filled=items.length>0||drafts.some(v=>v?.trim());
+ useEffect(()=>{onFilled(filled);},[filled]);
  const focusSlot=(k:number)=>requestAnimationFrame(()=>slots.current?.querySelectorAll<HTMLInputElement>('.rs-slot input')[k]?.focus());
  const enter=(k:number)=>{const v=(drafts[k]??'').trim();if(!v){focusSlot(k+1);return;}mutate(s=>addItem(s,'week',week,v),'week list');setDrafts(d=>d.filter((_,j)=>j!==k));focusSlot(k);};
  return <div className="rs-week">
@@ -235,6 +239,6 @@ export function RitualNote({state,now,hour,skipped,onOpen}:{state:State;now:stri
  const frog=tomorrowsFrog(state,now);
  if(r?.evening)return <p className="ritual-note closed"><Check size={18}/><span>Day closed at {at(r.evening)}.{frog?<> Tomorrow’s frog: <b>{frog.text}</b>.</>:' See you tomorrow.'}</span></p>;
  if(hour<17&&!r?.morning&&skipped)return <p className="ritual-note"><span>Your morning plan takes two minutes.</span><button type="button" className="button secondary" onClick={onOpen}>Plan my morning</button></p>;
- if(hour<17)return <p className="ritual-note">{r?.morning&&<Check size={18}/>}<span>{r?.morning?`Morning planned at ${at(r.morning)}. `:''}Evening check-in opens at 5 pm.</span></p>;
+ if(hour<17)return <p className="ritual-note">{r?.morning&&<Check size={18}/>}<span>{r?.morning?`Morning planned at ${at(r.morning)}. `:''}Evening check-in opens at 5:00 PM.</span></p>;
  return null;
 }

@@ -9,20 +9,28 @@ import {Check,ChevronDown} from './icons';
 
 // Every day: all the board's daily goals in one list, styled like the to-do list. Ticking one counts it, and starts
 // tracking it if it wasn't on yet. Two-part goals get two small checks; "2+ meals" gets a small counter.
-// Once the day is closed there is no tally: no "kept" count, no dots, no list of what's still unticked. Only what
-// you did keep is named.
+// Once the day is closed there is no tally: no "kept" count, no dots, no list of what's still unticked. It folds to
+// one line naming what you did keep (or leaves the page when nothing was), and the full list opens only when asked.
 export function DailyTicks({state,mutate,now,closed=false}:{state:State;mutate:Mutate;now:string;closed?:boolean}){
  const daily=state.goals.filter(g=>g.type==='daily'&&g.status!=='completed').sort((a,b)=>Number(b.status==='active')-Number(a.status==='active')||Number(b.pinned)-Number(a.pinned)||a.priority-b.priority);
  const on=daily.filter(g=>g.status==='active'),kept=daily.filter(g=>dayState(g,state.logs,now)==='success').length,risk=new Set(atRiskStreaks(state,now).map(r=>r.g.id));
  const [open,setOpen]=useState(()=>{try{return localStorage.getItem('reboot-daily-open')==='1';}catch{return false;}});
  const left=on.filter(g=>dayState(g,state.logs,now)!=='success'),keptNames=daily.filter(g=>dayState(g,state.logs,now)==='success').map(g=>goalName(g,state));
+ const [lateOpen,setLateOpen]=useState(false);
+ if(closed&&!lateOpen){if(!keptNames.length)return null;
+  return <section className="daily-ticks is-calm" aria-label="Every day">
+   <p className="dt-calm"><b>Every day</b><span>Kept today: {keptNames.join(' · ')}</span></p>
+   <button type="button" className="text-button" aria-expanded={false} onClick={()=>setLateOpen(true)}>Show all <ChevronDown size={14}/></button>
+  </section>;}
+ // Past this point a closed day has asked for the whole list, so it shows open; folding it returns to the one line.
+ const expanded=closed||open;
  return <section className="daily-ticks" aria-label="Every day">
-  <button type="button" className="dt-toggle" aria-expanded={open} onClick={()=>{setOpen(!open);try{localStorage.setItem('reboot-daily-open',open?'0':'1');}catch{/* fine */}}}>
+  <button type="button" className="dt-toggle" aria-expanded={expanded} onClick={()=>{if(closed){setLateOpen(false);return;}setOpen(!open);try{localStorage.setItem('reboot-daily-open',open?'0':'1');}catch{/* fine */}}}>
    <h2>Every day</h2>{!closed&&<><span className="dt-count">{kept} kept</span><i className="dt-dots" aria-hidden="true">{on.map(g=><b key={g.id} className={dayState(g,state.logs,now)==='success'?'on':''}/>)}</i></>}<ChevronDown size={16}/>
   </button>
-  {!open&&(closed?(keptNames.length?<p className="dt-left">Kept today: {keptNames.join(' · ')}</p>:null)
+  {!expanded&&(closed?(keptNames.length?<p className="dt-left">Kept today: {keptNames.join(' · ')}</p>:null)
    :left.length?<p className="dt-left">Still to tick: {left.map(g=>goalName(g,state)).join(' · ')}</p>:on.length?<p className="dt-left">Every daily promise kept today.</p>:null)}
-  {open&&<><ul className="dt-list">{daily.map(g=><DailyRow key={g.id} g={g} state={state} mutate={mutate} now={now} risk={risk.has(g.id)}/>)}</ul>
+  {expanded&&<><ul className="dt-list">{daily.map(g=><DailyRow key={g.id} g={g} state={state} mutate={mutate} now={now} risk={risk.has(g.id)}/>)}</ul>
 </>}
  </section>;
 }

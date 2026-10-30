@@ -1,7 +1,7 @@
-import {useLayoutEffect,useRef,useState} from 'react';
+import {useEffect,useLayoutEffect,useRef,useState} from 'react';
 import {gsap,useGSAP,Flip,motionOK} from './motion';
 import {inkStamp} from './delight';
-import {Check,Plus,X,ArrowRight,PenLine,Mountains} from './icons';
+import {Check,Plus,X,ArrowRight,PenLine,Mountains,Sun} from './icons';
 import type {State} from './model';
 import {uid} from './model';
 import {putActivity,type Mutate} from './GoalControls';
@@ -9,7 +9,7 @@ import {addDays,label} from './dates';
 import {dayState} from './engine';
 import {FrogCard,FrogFocus,FrogGlyph,PriorityChip,frogStats,priorityRank} from './Frog';
 import {leftovers} from './frog-rules';
-import {todaysList} from './ritual/rules';
+import {todaysList,stillOpen} from './ritual/rules';
 import {setAll} from './training';
 import {syncStepFromTodo} from './plan';
 import type {Priority} from './model';
@@ -20,15 +20,22 @@ export const TODO_GOAL='35';
 // Today's list: the frog first, on its own, then the list you work through. Once the day is closed the counts go
 // quiet: what's done stays ticked, and nothing tallies what wasn't. A task written again for tomorrow or let go in the
 // evening is settled: it leaves today's list and is named once, in one quiet line.
-export function TodayList({state,mutate,now,closed=false}:{state:State;mutate:Mutate;now:string;closed?:boolean}){
- const {open:todays,settled,again,dropped}=todaysList(state,now,closed),done=todays.filter(t=>t.done).length,unfinished=todays.length-done;
- const frog=todays.find(t=>t.frog),rest=todays.filter(t=>!t.frog),ordered=[...rest].sort((a,b)=>priorityRank(a)-priorityRank(b));
+// A closed day asks for nothing: only what you finished stays listed. Whatever is still open (today's and older
+// leftovers) folds to one line, and tomorrow morning's frog step offers it again. While the training card is on the page
+// the gym session isn't repeated as a list row.
+export function TodayList({state,mutate,now,closed=false,training=false}:{state:State;mutate:Mutate;now:string;closed?:boolean;training?:boolean}){
+ const list=todaysList(state,now,closed),{settled,again,dropped}=list,todays=training?list.open.filter(t=>!t.auto):list.open;
+ const done=todays.filter(t=>t.done).length,unfinished=todays.length-done,stillUp=closed?stillOpen(state,now):0;
+ const shown=closed?todays.filter(t=>t.done):todays;
+ const frog=shown.find(t=>t.frog),rest=shown.filter(t=>!t.frog),ordered=[...rest].sort((a,b)=>priorityRank(a)-priorityRank(b));
  const undone=ordered.filter(t=>!t.done),finished=ordered.filter(t=>t.done),[showAll,setShowAll]=useState(false);
  // The next three tasks are what you see, then everything you've finished; the rest of today folds away until asked for.
  const visible=[...(showAll||undone.length<=8?undone:undone.slice(0,7)),...finished],hidden=undone.length-(showAll||undone.length<=8?undone.length:7);
  const fs=frogStats(state.todos??[],now),[focus,setFocus]=useState(false),[nudge,setNudge]=useState(''),nudgeTimer=useRef(0);
   // One list, with a switch for adding to tomorrow. Tomorrow's tasks fold under the list and become today's at midnight.
- const tomorrow=addDays(now,1),later=(state.todos??[]).filter(t=>t.date===tomorrow&&!t.routine&&!t.auto),[addFor,setAddFor]=useState<'today'|'tomorrow'>('today'),[showLater,setShowLater]=useState(false);
+ const tomorrow=addDays(now,1),later=(state.todos??[]).filter(t=>t.date===tomorrow&&!t.routine&&!t.auto),[addFor,setAddFor]=useState<'today'|'tomorrow'>(closed?'tomorrow':'today'),[showLater,setShowLater]=useState(false);
+ // Once the day is closed, anything new is for tomorrow unless you say otherwise.
+ useEffect(()=>{if(closed)setAddFor('tomorrow');},[closed]);
  function add(text:string){const date=addFor==='tomorrow'?tomorrow:now;mutate(s=>{s.todos=[...(s.todos??[]),{id:uid(),date,text,done:false,createdAt:new Date().toISOString()}];
   // Writing the day's list is the habit itself, so the first line for today counts.
   const g=s.goals.find(x=>x.id===TODO_GOAL)!;if(date===now&&dayState(g,s.logs,now)!=='success')putActivity(s,g,now,{state:'success',note:'Wrote today’s to-do list'});
@@ -71,19 +78,20 @@ export function TodayList({state,mutate,now,closed=false}:{state:State;mutate:Mu
   <div className="tl-body">
    <AddTodo label={addFor==='today'?'Add something for today':'Add something for tomorrow'} placeholder={addFor==='tomorrow'?'Add something for tomorrow':todays.length?'Add something for today':'Start with your frog: the task you’d most like to put off'} onAdd={add} when={addFor} onWhen={setAddFor}/>
    <div role="status" className="abc-live">{nudge&&<p className="abc-nudge">{nudge}</p>}</div>
-   {ordered.length?<><ul className="todo-list big">{visible.map(t=><TodoItem key={t.id} t={t} onToggle={toggle} onRemove={remove} onPriority={p=>setPriority(t.id,p)}/>)}</ul>
-   {(hidden>0||(showAll&&undone.length>8))&&<div className="list-folds">{hidden>0&&<button type="button" className="text-button" onClick={()=>setShowAll(true)}>Also today ({hidden})</button>}{showAll&&undone.length>8&&<button type="button" className="text-button" onClick={()=>setShowAll(false)}>Show fewer</button>}</div>}</>:!frog&&<p className="tl-empty">Nothing on the list yet. What would make today a good day?</p>}
+   {ordered.length?<><ul className="todo-list big">{visible.map(t=><TodoItem key={t.id} t={t} quiet={closed} onToggle={toggle} onRemove={remove} onPriority={p=>setPriority(t.id,p)}/>)}</ul>
+   {(hidden>0||(showAll&&undone.length>8))&&<div className="list-folds">{hidden>0&&<button type="button" className="text-button" onClick={()=>setShowAll(true)}>Also today ({hidden})</button>}{showAll&&undone.length>8&&<button type="button" className="text-button" onClick={()=>setShowAll(false)}>Show fewer</button>}</div>}</>:!frog&&!closed&&<p className="tl-empty">Nothing on the list yet. What would make today a good day?</p>}
+   {stillUp>0&&<p className="tl-open"><Sun size={18}/>{stillUp} still open - the morning will ask about {stillUp===1?'it':'them'}.</p>}
    {focus&&frog&&<FrogFocus frog={frog} mutate={mutate} onClose={()=>setFocus(false)}/>}
    {settled.length>0&&<p className="tl-settled"><Check size={16}/>Settled tonight: {[again&&`${again} written for tomorrow`,dropped&&`${dropped} let go`].filter(Boolean).join(', ')}.</p>}
    {later.length>0&&<button type="button" className="text-button later-toggle" aria-expanded={showLater} onClick={()=>setShowLater(!showLater)}>{showLater?'Hide tomorrow':`Tomorrow (${later.length})`}</button>}
    {showLater&&later.length>0&&<ul className="later-list" aria-label="Tomorrow">{later.map(t=><li key={t.id}>{t.frog&&<FrogGlyph/>}<span>{t.text}</span><button type="button" className="text-button" onClick={()=>moveToToday(t.id)}>Do today</button><button type="button" className="icon-button" aria-label={`Remove “${t.text}”`} onClick={()=>remove(t.id)}><X size={14}/></button></li>)}</ul>}
-   <Rewrite state={state} mutate={mutate} now={now}/>
+   {!closed&&<Rewrite state={state} mutate={mutate} now={now}/>}
   </div>
  </section></>;
 }
 
-function TodoItem({t,onToggle,onRemove,onPriority}:{t:NonNullable<State['todos']>[number];onToggle:(id:string,e?:React.MouseEvent<HTMLElement>)=>void;onRemove:(id:string)=>void;onPriority:(p?:Priority)=>void}){
- return <li className={`${t.done?'done':''} ${t.priority?`is-${t.priority}`:''}`} data-flip-id={t.id}>{!t.done&&<PriorityChip t={t} onSet={onPriority}/>}<button className={`check-action ${t.done?'checked':''}`} aria-pressed={t.done} onClick={e=>onToggle(t.id,e)}><span className="check-box">{t.done&&<Check size={16}/>}</span><span className="todo-text">{t.text}{(t.routine||t.auto||t.fromPlan)&&<small className="todo-tag auto">{t.fromPlan?<><Mountains size={13}/> from your horizon</>:t.auto?'from your training':'ticks itself'}</small>}{t.priority==='D'&&<small className="todo-tag">hand it off</small>}{t.priority==='E'&&<small className="todo-tag">let it go</small>}</span></button><button className="icon-button" aria-label={`Remove “${t.text}”`} onClick={()=>onRemove(t.id)}><X size={14}/></button></li>;
+function TodoItem({t,quiet=false,onToggle,onRemove,onPriority}:{t:NonNullable<State['todos']>[number];quiet?:boolean;onToggle:(id:string,e?:React.MouseEvent<HTMLElement>)=>void;onRemove:(id:string)=>void;onPriority:(p?:Priority)=>void}){
+ return <li className={`${t.done?'done':''} ${t.priority?`is-${t.priority}`:''}`} data-flip-id={t.id}>{!t.done&&<PriorityChip t={t} onSet={onPriority}/>}<button className={`check-action ${t.done?'checked':''}`} aria-pressed={t.done} onClick={e=>onToggle(t.id,e)}><span className="check-box">{t.done&&<Check size={16}/>}</span><span className="todo-text">{t.text}{(t.routine||t.auto||t.fromPlan)&&<small className="todo-tag auto">{t.fromPlan?<><Mountains size={13}/> from your horizon</>:t.auto?'from your training':'ticks itself'}</small>}{t.priority==='D'&&<small className="todo-tag">hand it off</small>}{t.priority==='E'&&<small className="todo-tag">let it go</small>}</span></button>{!quiet&&<button className="icon-button" aria-label={`Remove “${t.text}”`} onClick={()=>onRemove(t.id)}><X size={14}/></button>}</li>;
 }
 
 function AddTodo({label,placeholder,onAdd,when,onWhen}:{label:string;placeholder:string;onAdd:(t:string)=>void;when:'today'|'tomorrow';onWhen:(w:'today'|'tomorrow')=>void}){

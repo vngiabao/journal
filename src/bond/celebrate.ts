@@ -42,14 +42,15 @@ function showMoment(m:BondMoment){
  if(pocketCheer(text,false))return;
  current?.();
  const box=el('div','bond-pop');box.setAttribute('role','status');
- // While a check-in card is open its action bar sits at the bottom of the screen, so the note rises at the top instead.
- if(document.querySelector('.ritual-card'))box.classList.add('is-top');
+ // The note sits at the top, by Bond's strip: during a check-in the card's action bar is at the bottom, and right after
+ // one the next action (eat the frog, add a task) is in the middle of the screen. Neither may be covered.
+ box.classList.add('is-top');
  const dog=dogOK();
  if(dog){const img=el('img','bond-pop-dog');img.src=bondArt(pose);img.alt='';box.append(img);}
  // The status box goes in empty and the words a frame later, so screen readers announce them.
  const words=el('p','bond-pop-text');box.append(words);
  document.body.append(box);requestAnimationFrame(()=>{words.textContent=text;});
- const move=motionOK(),from=box.classList.contains('is-top')?-16:16;let done=false;
+ const move=motionOK(),from=-16;let done=false;
  const close=()=>{if(done)return;done=true;current=null;clearTimeout(t);window.removeEventListener('pointerdown',close,true);window.removeEventListener('keydown',close,true);
   if(move)gsap.to(box,{opacity:0,y:from/2,duration:.2,ease:'enter',onComplete:()=>box.remove()});else box.remove();};
  current=close;

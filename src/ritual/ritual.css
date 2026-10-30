@@ -87,6 +87,8 @@
 @media(hover:hover) and (pointer:fine){#main .rs-choice:not(.on):hover{border-color:var(--ink-soft);background:var(--sheet-hover)}}
 #main .rs-choice-text{flex:1;min-width:0;font:500 23px/1.25 var(--serif)}
 #main .rs-choice .prio-chip{width:32px;height:32px;font-size:var(--fs-meta)}
+/* A leftover from an earlier day, offered again as the frog: its day, quietly, under the words. */
+#main .rs-choice-from{display:block;margin-top:2px;font:550 var(--fs-label)/1.3 var(--sans);letter-spacing:.01em;color:var(--ink-soft)}
 #main .rs-radio{flex:none;display:grid;place-items:center;width:36px;height:36px;border:2px solid var(--line-strong);border-radius:50%;background:var(--sheet)}
 #main .rs-choice.on .rs-radio{border-color:var(--frog);background:var(--sheet)}
 #main .rs-radio .frog-glyph{width:26px;height:26px}
@@ -190,6 +192,26 @@
 #main .today-page .tl-slim .frog-streak{margin:0;color:var(--cover-text)}
 #main .today-page .tl-settled{display:flex;align-items:center;gap:var(--s-2);margin:var(--s-3) 0 0;font-size:var(--fs-meta);line-height:1.4;color:var(--ink-soft)}
 #main .today-page .tl-settled svg{flex:none;color:var(--green)}
+/* A closed day's open tasks, folded to one quiet line: the morning asks about them. */
+#main .today-page .tl-open{display:flex;align-items:center;gap:var(--s-2);margin:var(--s-3) 0 0;font-size:var(--fs-ui);line-height:1.4;color:var(--ink-soft)}
+#main .today-page .tl-open svg{flex:none;color:var(--gold-text)}
+/* With only finished tasks listed there is no chip column to line up with. */
+#main .today-page .today-list.is-closed .todo-list.big li.done{padding-left:0}
+/* The A-E chip on a task with no priority yet: on a mouse it shows when you point at the row or tab to it, so an
+   unranked list doesn't read as a column of empty fields; on touch it stays, as plain quiet letters with no outline.
+   The 44px button keeps its place either way, so nothing shifts. Ranked chips always show. */
+@media(hover:hover) and (pointer:fine){
+ #main .today-page .todo-list button.prio-chip.prio-none .prio-face{opacity:0;transition:opacity 150ms var(--ease)}
+ #main .today-page .todo-list li:hover button.prio-chip.prio-none .prio-face,#main .today-page .todo-list li:focus-within button.prio-chip.prio-none .prio-face,#main .today-page .todo-list button.prio-chip.prio-none[aria-expanded=true] .prio-face{opacity:1}
+}
+@media(hover:none),(pointer:coarse){
+ #main .today-page .todo-list button.prio-chip.prio-none .prio-face{border-color:transparent;color:var(--ink-soft);font-weight:600}
+}
+/* Every day on a closed day: one line naming what you kept. */
+#main .daily-ticks.is-calm{flex-direction:row;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--s-1) var(--s-4);padding:var(--s-4) var(--s-6)}
+#main .dt-calm{display:flex;align-items:baseline;flex-wrap:wrap;gap:var(--s-1) var(--s-3);margin:0;font-size:var(--fs-ui);line-height:1.4;color:var(--ink-soft)}
+#main .dt-calm b{font:500 22px/1.25 var(--serif);color:var(--ink)}
+#main .daily-ticks.is-calm .text-button{min-height:44px}
 /* The frog card, shorter: smaller art, and the slices and actions share one row when there's room. */
 #main .today-do .frog-card{grid-template-columns:88px minmax(0,1fr);gap:var(--s-4);margin:0;padding:var(--s-3) var(--s-5) var(--s-3) var(--s-4)}
 #main .today-do .frog-title{min-height:44px}
@@ -263,7 +285,15 @@
 #main .today-page .promises .icon-button{min-width:44px;min-height:44px}
 /* ---- Sizes ---- */
 @media(min-width:1700px){#main .today-doing{grid-template-columns:minmax(0,1.6fr) minmax(400px,1fr);gap:var(--s-7)}}
-@media(max-width:1180px){#main .today-doing{grid-template-columns:minmax(0,1fr)}}
+/* One column: the two columns dissolve into one flow. The frog and the list lead; on a closed day the closing note
+   comes first (it's the day's answer), as does the evening's "Close my day" when it was skipped; This week goes last. */
+@media(max-width:1180px){
+ #main .today-doing{display:flex;flex-direction:column;gap:var(--s-5)}
+ #main .today-doing>.today-do,#main .today-doing>.today-side{display:contents}
+ #main .today-doing>.today-do>*,#main .today-doing>.today-side>*{order:0}
+ #main .today-doing>.today-side>.ritual-note.closed,#main .today-doing>.today-side>.ritual-note.is-ask{order:-1}
+ #main .today-doing>.today-do>.promises,#main .today-doing>.today-side>.promises{order:1}
+}
 @media(max-width:1000px){
  #main .ritual-card{grid-template-columns:minmax(0,1fr)}
  #main .rs-side{border-right:0;border-bottom:1px solid var(--page-rule)}
@@ -282,7 +312,8 @@
  #main .today-do .frog-art{width:64px}
  #main .today-do .frog-eyebrow,#main .today-do .frog-row{margin-left:0}
  #main .today-quote{padding:var(--s-4)}
- #main .training.is-calm{padding:var(--s-4)}
+ #main .training.is-calm,#main .daily-ticks.is-calm{padding:var(--s-4)}
+ #main .today-doing{gap:var(--s-4)}
  #main .today-page{gap:var(--s-5)}
  #main .today-top .tt-greet{font-size:34px}
  #main .today-top .rh-becoming{font-size:20px}
@@ -315,6 +346,6 @@
  #main .rs-add .button{padding:0 var(--s-4)}
  #main .ritual-note{font-size:var(--fs-ui)}
 }
-@media(prefers-reduced-motion:reduce){#main .rs-dots i,#main .rs-primary,#main .rs-choice,#main .rs-mood-btn,#main .rs-left-acts .text-button,#main .rs-more,#main .rs-cancel,#main .rs-slot input{transition:none}}
+@media(prefers-reduced-motion:reduce){#main .today-page .todo-list .prio-face,#main .rs-dots i,#main .rs-primary,#main .rs-choice,#main .rs-mood-btn,#main .rs-left-acts .text-button,#main .rs-more,#main .rs-cancel,#main .rs-slot input{transition:none}}
 #main .today-side .promise{flex-wrap:wrap}
 #main .today-side .promise-text{flex:1 1 200px}

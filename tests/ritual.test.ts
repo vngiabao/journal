@@ -1,7 +1,7 @@
 import {describe,it,expect} from 'vitest';
 import {seed} from '../src/seed';
 import type {Todo} from '../src/model';
-import {activeRitual,hasWeekStep,isPlanDay,isMonthEnd,planWeek,planMonth,markRitual,ritualOf,suggestFrog,frogCandidates,chooseFrog,newFrog,afterFrog,toTomorrow,leftToSettle,rewriteTomorrow,letGo,settledOn,setTomorrowFrog,tomorrowsFrog,todaysTasks,todaysList} from '../src/ritual/rules';
+import {activeRitual,hasWeekStep,isPlanDay,isMonthEnd,planWeek,planMonth,markRitual,ritualOf,suggestFrog,frogCandidates,chooseFrog,newFrog,afterFrog,toTomorrow,leftToSettle,rewriteTomorrow,letGo,settledOn,setTomorrowFrog,tomorrowsFrog,todaysTasks,todaysList,stillOpen} from '../src/ritual/rules';
 import {leftovers} from '../src/frog-rules';
 
 const FRI='2026-10-30',SAT='2026-10-31',SUN='2026-11-01';
@@ -50,6 +50,19 @@ describe('Morning: frog and today’s three',()=>{
   expect(s.todos.filter(t=>t.frog).map(t=>t.id)).toEqual([b.id]);expect(s.todos.find(t=>t.id===b.id)?.priority).toBe('A');
   expect(ritualOf(s,FRI)?.frog).toBe(b.id);
   const t=newFrog(s,FRI,'Write the deck');expect(s.todos.filter(x=>x.frog)).toEqual([t]);expect(ritualOf(s,FRI)?.frog).toBe(t.id);
+ });
+ it('offers what a closed day left open as frog choices, after today’s own, and moves the one chosen into today',()=>{
+  const s=seed('2026-10-01');const left=todo('2026-10-29',{text:'left A',priority:'A'}),mine=todo(FRI,{text:'mine'}),gone=todo('2026-10-29',{text:'gone',carried:'dropped',carriedOn:'2026-10-29'}),old=todo('2026-10-20',{text:'too old'}),drop=todo('2026-10-29',{text:'drop it',priority:'E'});
+  s.todos=[mine,left,gone,old,drop];
+  expect(frogCandidates(s,FRI).map(t=>t.text)).toEqual(['left A','mine']);
+  expect(suggestFrog(s,FRI)?.text).toBe('left A');
+  chooseFrog(s,FRI,left.id);
+  expect(left).toMatchObject({date:FRI,frog:true,priority:'A'});expect(todaysTasks(s,FRI).filter(t=>t.frog).map(t=>t.text)).toEqual(['left A']);
+  expect(leftovers(s.todos,FRI).map(t=>t.text)).toEqual(['drop it']);
+ });
+ it('counts what a closed day leaves open: today’s unticked tasks and older leftovers, never the gym or what was settled',()=>{
+  const s=seed('2026-10-01');s.todos=[todo(FRI,{text:'a'}),todo(FRI,{text:'b',done:true}),todo(FRI,{text:'gym',auto:'workout'}),todo('2026-10-29',{text:'old'}),todo(FRI,{text:'set',carried:'rewritten',carriedOn:FRI})];
+  expect(stillOpen(s,FRI)).toBe(2);
  });
  it('lists what comes after the frog best first; "Tomorrow" moves a task off today',()=>{
   const s=seed('2026-10-01');const c=todo(FRI,{text:'c',priority:'C'}),a=todo(FRI,{text:'a',priority:'A'}),u=todo(FRI,{text:'u'});s.todos=[todo(FRI,{text:'frog',frog:true}),c,a,u];
