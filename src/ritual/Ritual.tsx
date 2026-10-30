@@ -17,7 +17,7 @@ import {periodItems,addItem,syncStepFromTodo} from '../plan';
 import {putActivity} from '../GoalControls';
 import {dayState} from '../engine';
 import {TODO_GOAL} from '../Todo';
-import {type RitualKind,hasWeekStep,frogCandidates,suggestFrog,chooseFrog,newFrog,afterFrog,addTask,toTomorrow,todaysTasks,leftToSettle,rewriteTomorrow,letGo,tomorrowsFrog,tomorrowsTasks,setTomorrowFrog,markRitual,planWeek,planMonth,isMonthEnd} from './rules';
+import {type RitualKind,hasWeekStep,frogCandidates,suggestFrog,chooseFrog,newFrog,afterFrog,addTask,toTomorrow,todaysTasks,leftToSettle,rewriteTomorrow,letGo,settledOn,tomorrowsFrog,tomorrowsTasks,setTomorrowFrog,markRitual,planWeek,planMonth,isMonthEnd} from './rules';
 
 type Step='frog'|'three'|'go'|'ticks'|'mood'|'tomorrow'|'week';
 type StepProps={state:State;mutate:Mutate;now:string};
@@ -33,6 +33,10 @@ export function RitualCard({kind,state,mutate,now,go,onDone,hour}:{kind:RitualKi
  const [blocked,setBlocked]=useState<string|null>(null);
  // A new step takes focus to its question, so keyboard and screen-reader users land where the eyes do.
  useGSAP(()=>{if(!i)return;card.current?.querySelector<HTMLElement>('#ritual-q')?.focus({preventScroll:true});const mm=whenMotionOK(()=>{gsap.from('.rs-in',{opacity:0,y:14,duration:.28,ease:'enter',stagger:.04,clearProps:'all'});});return()=>mm.revert();},{dependencies:[i],scope:card,revertOnUpdate:true});
+ // After a long step the page may sit below the card's top; bring it back so "2 of 3" and the question are on screen.
+ // The card's scroll-margin-top clears the phone's top bar.
+ useEffect(()=>{const el=card.current;if(!i||!el)return;const margin=parseFloat(getComputedStyle(el).scrollMarginTop)||0;
+  if(el.getBoundingClientRect().top<margin-1)el.scrollIntoView({block:'start',behavior:motionOK()?'smooth':'auto'});},[i]);
  // Finishing is the earned moment: a stamp where you pressed, Bond reacts, and Today turns into the doing view.
  // The card holds still for a beat so the stamp lands on it, then gives way.
  const [closing,setClosing]=useState(false);
@@ -52,12 +56,13 @@ export function RitualCard({kind,state,mutate,now,go,onDone,hour}:{kind:RitualKi
  };
  const q=QUESTION[step](state,now);
  return <section ref={card} className={`ritual-card ritual-${kind} step-${step} ${closing?'is-closing':''}`} aria-busy={closing} aria-labelledby="ritual-q">
-  <div className="rs-side">
+  {/* The question side fills its column; its content stays in view while a long step scrolls past. */}
+  <div className="rs-side"><div className="rs-side-in">
    <p className="rs-count"><span>{kind==='morning'?'Morning':'Evening'}</span><span aria-hidden="true" className="rs-dots">{steps.map((s,n)=><i key={s} className={n<i?'past':n===i?'now':''}/>)}</span><span>{i+1} of {steps.length}</span></p>
    <h2 id="ritual-q" tabIndex={-1} className="rs-question rs-in">{q.ask}</h2>
    {q.help&&<p className="rs-help rs-in">{q.help}</p>}
    <img className="rs-art rs-in" src={ART[step]} alt="" key={step}/>
-  </div>
+  </div></div>
   <div className="rs-main">
    <div className="rs-controls rs-in" key={step}>
     {step==='frog'&&<FrogStep state={state} mutate={mutate} now={now} commit={commit} onBlock={setBlocked}/>}
@@ -66,12 +71,13 @@ export function RitualCard({kind,state,mutate,now,go,onDone,hour}:{kind:RitualKi
     {step==='ticks'&&<TicksStep state={state} mutate={mutate} now={now}/>}
     {step==='mood'&&<MoodStep state={state} mutate={mutate} now={now} commit={commit}/>}
     {step==='tomorrow'&&<TomorrowStep state={state} mutate={mutate} now={now}/>}
-    {step==='week'&&<WeekStep state={state} mutate={mutate} now={now} go={go}/>}
+    {step==='week'&&<WeekStep state={state} mutate={mutate} now={now} go={go} commit={commit}/>}
    </div>
+   {/* The one action follows the content; on a long step it stays pinned to the bottom of the screen. */}
    <div className="rs-foot">
     <button type="button" className="button rs-primary" aria-disabled={closing||!!blocked} onClick={e=>next(e,true)}>{blocked??PRIMARY[step](last,kind)}{!last&&!blocked&&<ArrowRight size={18}/>}</button>
     {!(last&&step==='go')&&<button type="button" className="text-button rs-skip" onClick={e=>next(e,false)}>{last?'Skip and close':'Skip'}</button>}
-    {i>0&&<button type="button" className="text-button rs-back" onClick={()=>{if(closing)return;commit.current=null;setBlocked(null);setI(i-1);}}><ArrowLeft size={16}/>Back</button>}
+    {i>0&&<button type="button" className="text-button rs-back" onClick={()=>{if(closing)return;commit.current=null;setBlocked(null);setI(i-1);}}><ArrowLeft size={16}/><span className="rs-back-label">Back</span></button>}
    </div>
   </div>
  </section>;
@@ -100,6 +106,7 @@ function FrogStep({state,mutate,now,commit,onBlock}:StepProps&{commit:React.Muta
  return <div className="rs-frog">
   {list.length>0&&<ul className="rs-choices" role="radiogroup" aria-label="Today’s frog">{list.map(t=><li key={t.id}><button type="button" role="radio" aria-checked={pick===t.id} className={`rs-choice ${pick===t.id?'on':''}`} onClick={()=>setPick(t.id)}><span className="rs-radio" aria-hidden="true">{pick===t.id&&<FrogGlyph/>}</span><span className="rs-choice-text">{t.text}</span>{t.priority&&<b className={`prio-chip prio-${t.priority}`} aria-label={`Priority ${t.priority}`}>{t.priority}</b>}</button></li>)}</ul>}
   <label className={`rs-write ${pick==='new'?'on':''}`}><span>{list.length?'Or write a new one':'Write it down'}</span><input value={text} maxLength={140} placeholder="The task you’d most like to put off" onFocus={()=>setPick('new')} onChange={e=>{setText(e.target.value);setPick('new');}}/></label>
+  {!list.length&&<p className="rs-note">Today’s list is empty, so your frog becomes its first task.</p>}
  </div>;
 }
 
@@ -147,10 +154,26 @@ function MoodStep({state,mutate,now,commit}:StepProps&{commit:React.MutableRefOb
  </div>;
 }
 
+// Evening 3: each leftover is one calm line with two quiet choices. Only the row you choose to rewrite opens a field.
+// Three show at a time, so tomorrow's frog stays close: settle first, and what you write again becomes a frog option.
+const SHOW_LEFT=3;
 function TomorrowStep({state,mutate,now}:StepProps){
  const left=leftToSettle(state,now),frog=tomorrowsFrog(state,now),next=tomorrowsTasks(state,now).filter(t=>!t.frog),[text,setText]=useState(''),[changing,setChanging]=useState(false);
- return <div className="rs-tomorrow">
-  {left.length>0?<ul className="rs-settle">{left.map(t=><SettleRow key={t.id} t={t} now={now} mutate={mutate}/>)}</ul>:<p className="rs-settled"><Check size={18}/>Nothing left over. Today’s list is settled.</p>}
+ const [all,setShowAll]=useState(false),[editing,setEditing]=useState<string|null>(null),list=useRef<HTMLDivElement>(null);
+ const shown=all?left:left.slice(0,SHOW_LEFT),hidden=left.length-shown.length,tally=settledOn(state,now);
+ // Keyboard focus lands on the next row's first choice (or tomorrow's frog when the list is done), never on <body>.
+ const focusRow=(n:number)=>requestAnimationFrame(()=>{const rows=list.current?.querySelectorAll<HTMLElement>('.rs-again')??[];
+  const to=rows[Math.min(n,rows.length-1)]??list.current?.querySelector<HTMLElement>('.rs-tfrog button, .rs-tfrog input');to?.focus({preventScroll:true});});
+ const settle=(n:number,fn:(s:State)=>void,what:string)=>{mutate(fn,what);setEditing(null);focusRow(n);};
+ return <div className="rs-tomorrow" ref={list}>
+  <div className="rs-left-wrap">
+   {left.length>0?<ul className="rs-left" aria-label="Left over">{shown.map((t,n)=><LeftRow key={t.id} t={t} now={now} editing={editing===t.id}
+     onEdit={()=>setEditing(t.id)} onCancel={()=>{setEditing(null);focusRow(n);}}
+     onSave={v=>settle(n,s=>rewriteTomorrow(s,t.id,v,now),'todo rewrite')} onDrop={()=>settle(n,s=>letGo(s,t.id,now),'todo let go')}/>)}</ul>
+    :<p className="rs-settled"><Check size={18}/>{tally.total?'All settled.':'Nothing left over.'} Today’s list is clear.</p>}
+   {hidden>0&&<button type="button" className="text-button rs-more" onClick={()=>setShowAll(true)}>{hidden} more left over</button>}
+   {tally.total>0&&left.length>0&&<p className="rs-tally"><Check size={16}/>{[tally.again&&`${tally.again} written for tomorrow`,tally.dropped&&`${tally.dropped} let go`].filter(Boolean).join(', ')}</p>}
+  </div>
   <div className="rs-tfrog">
    <h3 className="rs-sub"><FrogGlyph/>Tomorrow’s frog</h3>
    {frog&&!changing?<p className="rs-tfrog-set"><b>{frog.text}</b><button type="button" className="text-button" onClick={()=>setChanging(true)}>Change</button></p>
@@ -159,22 +182,36 @@ function TomorrowStep({state,mutate,now}:StepProps){
   </div>
  </div>;
 }
-function SettleRow({t,now,mutate}:{t:Todo;now:string;mutate:Mutate}){
+function LeftRow({t,now,editing,onEdit,onCancel,onSave,onDrop}:{t:Todo;now:string;editing:boolean;onEdit:()=>void;onCancel:()=>void;onSave:(v:string)=>void;onDrop:()=>void}){
+ // The rewrite rule: the field starts empty, so the task is written again by hand rather than copied forward.
  const [text,setText]=useState('');
- return <li className="rs-settle-row">
-  <p className="rs-was">{t.frog&&<FrogGlyph/>}<span>{t.text}</span>{t.date<now&&<small>{label(t.date,{weekday:'short',month:'short',day:'numeric'})}</small>}</p>
-  <form onSubmit={e=>{e.preventDefault();if(text.trim())mutate(s=>rewriteTomorrow(s,t.id,text,now),'todo rewrite');}}>
-   <input aria-label={`Write “${t.text}” again for tomorrow`} value={text} maxLength={140} placeholder="Write it again for tomorrow" onChange={e=>setText(e.target.value)}/>
-   <button className="button secondary" disabled={!text.trim()}>Add</button>
-   <button type="button" className="text-button" onClick={()=>mutate(s=>letGo(s,t.id,now),'todo let go')}>Let it go</button>
-  </form>
+ return <li className={`rs-left-row ${editing?'editing':''}`}>
+  <p className="rs-left-text">{t.frog&&<FrogGlyph/>}<span>{t.text}</span>{t.date<now&&<small>{label(t.date,{weekday:'short',month:'short',day:'numeric'})}</small>}</p>
+  {editing?<form className="rs-rewrite" onSubmit={e=>{e.preventDefault();if(text.trim())onSave(text);}}>
+    <input autoFocus aria-label={`Write “${t.text}” again for tomorrow`} value={text} maxLength={140} placeholder="In your own words, for tomorrow" onChange={e=>setText(e.target.value)} onKeyDown={e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();onCancel();}}}/>
+    <button className="button secondary" disabled={!text.trim()}>Save</button>
+    <button type="button" className="text-button rs-cancel" onClick={onCancel}>Cancel</button>
+   </form>
+   :<span className="rs-left-acts"><button type="button" className="text-button rs-again" aria-label={`Write it again: ${t.text}`} onClick={onEdit}>Write it again</button><button type="button" className="text-button rs-letgo" aria-label={`Let it go: ${t.text}`} onClick={onDrop}>Let it go</button></span>}
  </li>;
 }
 
-function WeekStep({state,mutate,now,go}:StepProps&{go:(p:string)=>void}){
+// Sunday: the week's three slots show at once, so you can see the shape of the week while you write it.
+const ORDINAL=['first','second','third'];
+function WeekStep({state,mutate,now,go,commit}:StepProps&{go:(p:string)=>void;commit:React.MutableRefObject<(()=>void)|null>}){
  const week=planWeek(now),items=periodItems(state,'week',week),month=planMonth(now),monthItems=periodItems(state,'month',month),monthEnd=isMonthEnd(now);
+ const open=Math.max(0,3-items.length),[drafts,setDrafts]=useState<string[]>([]),slots=useRef<HTMLOListElement>(null);
+ // The primary button keeps whatever is written but not yet entered.
+ commit.current=()=>{const vs=drafts.slice(0,open).map(v=>v.trim()).filter(Boolean);if(vs.length)mutate(s=>{for(const v of vs)addItem(s,'week',week,v);},'week list');};
+ const focusSlot=(k:number)=>requestAnimationFrame(()=>slots.current?.querySelectorAll<HTMLInputElement>('.rs-slot input')[k]?.focus());
+ const enter=(k:number)=>{const v=(drafts[k]??'').trim();if(!v){focusSlot(k+1);return;}mutate(s=>addItem(s,'week',week,v),'week list');setDrafts(d=>d.filter((_,j)=>j!==k));focusSlot(k);};
  return <div className="rs-week">
-  <PeriodList items={items} max={3} placeholder={['The first thing','The second thing','The third thing']} onAdd={v=>mutate(s=>addItem(s,'week',week,v),'week list')} name="this week"/>
+  <ol className="rs-list rs-slots" ref={slots} aria-label="Three things for the week">
+   {items.map((it,n)=><li key={it.id} className={it.done?'done':''}><span className="rs-num" aria-hidden="true">{n+1}</span><span className="rs-task">{it.text}</span>{it.done&&<Check size={18}/>}</li>)}
+   {Array.from({length:open},(_,k)=>{const n=items.length+k;return <li key={`slot-${n}`} className="rs-slot"><span className="rs-num" aria-hidden="true">{n+1}</span>
+    <input aria-label={`The ${ORDINAL[n]} thing for the week`} value={drafts[k]??''} maxLength={140} placeholder={`The ${ORDINAL[n]} thing`} enterKeyHint={k<open-1?'next':'done'}
+     onChange={e=>{const v=e.target.value;setDrafts(d=>{const c=[...d];c[k]=v;return c;});}} onKeyDown={e=>{if(e.key==='Enter'&&!e.nativeEvent.isComposing){e.preventDefault();enter(k);}}}/></li>;})}
+  </ol>
   {monthEnd&&<><h3 className="rs-sub">And {label(`${month}-01`,{month:'long'})}</h3><PeriodList items={monthItems} max={5} placeholder={['What the month is for']} onAdd={v=>mutate(s=>addItem(s,'month',month,v),'month list')} name={label(`${month}-01`,{month:'long'})}/></>}
   <nav className="rs-rooms" aria-label="Your rooms"><span>Your rooms</span><button type="button" className="text-button" onClick={()=>go('Reboot Board')}>Board<ArrowRight size={16}/></button><button type="button" className="text-button" onClick={()=>go('Horizon')}>Horizon<ArrowRight size={16}/></button><button type="button" className="text-button" onClick={()=>go('Review')}>Weekly review<ArrowRight size={16}/></button></nav>
  </div>;

@@ -1,7 +1,7 @@
 import {describe,it,expect} from 'vitest';
 import {seed} from '../src/seed';
 import type {Todo} from '../src/model';
-import {activeRitual,hasWeekStep,isPlanDay,isMonthEnd,planWeek,planMonth,markRitual,ritualOf,suggestFrog,frogCandidates,chooseFrog,newFrog,afterFrog,toTomorrow,leftToSettle,rewriteTomorrow,letGo,setTomorrowFrog,tomorrowsFrog,todaysTasks} from '../src/ritual/rules';
+import {activeRitual,hasWeekStep,isPlanDay,isMonthEnd,planWeek,planMonth,markRitual,ritualOf,suggestFrog,frogCandidates,chooseFrog,newFrog,afterFrog,toTomorrow,leftToSettle,rewriteTomorrow,letGo,settledOn,setTomorrowFrog,tomorrowsFrog,todaysTasks} from '../src/ritual/rules';
 import {leftovers} from '../src/frog-rules';
 
 const FRI='2026-10-30',SAT='2026-10-31',SUN='2026-11-01';
@@ -68,6 +68,13 @@ describe('Evening: the rewrite rule and tomorrow’s frog',()=>{
   expect(leftToSettle(s,FRI)).toEqual([]);
   expect(leftovers(s.todos,SAT).map(t=>t.text)).toEqual([]);
   rewriteTomorrow(s,today.id,'   ',FRI);expect(s.todos.filter(t=>t.date===SAT)).toHaveLength(1);
+ });
+ it('counts tonight’s settling: written again for tomorrow, and let go',()=>{
+  const s=seed('2026-10-01');const a=todo(FRI,{text:'a'}),b=todo(FRI,{text:'b'}),c=todo('2026-10-29',{text:'c'}),old=todo('2026-10-28',{text:'old',carried:'dropped',carriedOn:'2026-10-28'});s.todos=[a,b,c,old];
+  expect(settledOn(s,FRI)).toEqual({again:0,dropped:0,total:0});
+  rewriteTomorrow(s,a.id,'a again',FRI);letGo(s,b.id,FRI);letGo(s,c.id,FRI);
+  expect(settledOn(s,FRI)).toEqual({again:1,dropped:2,total:3});
+  expect(leftToSettle(s,FRI)).toEqual([]);
  });
  it('sets tomorrow’s frog from tomorrow’s list or from new words, one at a time',()=>{
   const s=seed('2026-10-01');const t=todo(SAT,{text:'call'});s.todos=[t];

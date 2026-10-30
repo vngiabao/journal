@@ -16,8 +16,13 @@
 #main .ritual-escape{margin:calc(-1 * var(--s-3)) 0 0}
 #main .ritual-escape .text-button{min-height:44px;font-size:var(--fs-meta);color:var(--ink-soft);text-decoration:underline;text-underline-offset:4px;text-decoration-color:var(--line-strong)}
 /* ---- The ritual card ---- */
-#main .ritual-card{display:grid;grid-template-columns:minmax(300px,5fr) minmax(0,8fr);min-height:440px;overflow:hidden;background:var(--sheet);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow-2)}
-#main .rs-side{position:relative;display:flex;flex-direction:column;gap:var(--s-4);padding:var(--s-8) var(--s-8) 0;background:radial-gradient(110% 80% at 0% 0%,var(--gold-wash),transparent 70%),var(--page-leaf);border-right:1px solid var(--page-rule)}
+/* The card sizes to its step. `overflow:clip` (not hidden) keeps the rounded corners without breaking the sticky parts. */
+#main .ritual-card{display:grid;grid-template-columns:minmax(300px,5fr) minmax(0,8fr);overflow:clip;background:var(--sheet);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow-2);scroll-margin-top:var(--s-4)}
+#main .rs-side{position:relative;background:radial-gradient(110% 80% at 0% 0%,var(--gold-wash),transparent 70%),var(--page-leaf);border-right:1px solid var(--page-rule)}
+/* The question, help and art stay in view while a long step scrolls past them. */
+/* It fills the column down to roughly the fold (the header and Bond strip sit above the card), so the art rests at the
+   bottom like a cover rather than leaving a blank panel under it; on a very long step the whole block rides along. */
+#main .rs-side-in{position:sticky;top:var(--s-6);display:flex;flex-direction:column;gap:var(--s-4);min-height:min(100%,calc(100dvh - 300px));padding:var(--s-8) var(--s-8) var(--s-6)}
 #main .rs-count{display:flex;align-items:center;gap:var(--s-3);margin:0;font:600 var(--fs-meta)/1.3 var(--sans);letter-spacing:.02em;color:var(--ink-soft)}
 #main .rs-dots{display:inline-flex;gap:6px}
 #main .rs-dots i{width:8px;height:8px;border-radius:var(--r-chip);background:var(--line-strong);transition:background-color 260ms var(--ease)}
@@ -27,12 +32,15 @@
 #main .rs-question:focus{outline:none}
 #main .rs-question{max-width:15ch;margin:var(--s-2) 0 0;font:500 clamp(32px,2.5vw,38px)/1.1 var(--serif);letter-spacing:-.012em;color:var(--ink)}
 #main .rs-help{max-width:32ch;margin:0;font-size:20px;line-height:1.45;color:var(--ink-soft)}
-#main .rs-art{align-self:flex-end;width:auto;height:150px;margin-top:auto;object-fit:contain;filter:drop-shadow(0 10px 14px var(--shadow-art));pointer-events:none}
-#main .step-week .rs-art{height:170px}
-#main .rs-main{display:flex;flex-direction:column;gap:var(--s-7);min-width:0;padding:var(--s-8) var(--s-9) var(--s-7)}
+#main .rs-art{align-self:flex-end;width:auto;height:132px;margin-top:auto;object-fit:contain;filter:drop-shadow(0 10px 14px var(--shadow-art));pointer-events:none}
+#main .step-week .rs-art{height:150px}
+/* A short step sits centred beside the question instead of leaving a blank strip under it; a long one starts at the top. */
+#main .rs-main{--rs-pad:var(--s-9);display:flex;flex-direction:column;justify-content:center;gap:var(--s-7);min-width:0;padding:var(--s-8) var(--rs-pad) 0;container-type:inline-size}
 #main .rs-controls{display:flex;flex-direction:column;gap:var(--s-5);font-size:20px;line-height:1.4;color:var(--ink)}
 #main .rs-controls>div{display:flex;flex-direction:column;gap:var(--s-5)}
-#main .rs-foot{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s-3) var(--s-6);margin-top:auto;padding-top:var(--s-5);border-top:1px solid var(--line)}
+/* The one action follows the content and, on a long step, stays on screen: pinned to the bottom on the sheet, a hairline above.
+   The bleed margins carry the sheet to the column edges so nothing shows beside it while the list scrolls under. */
+#main .rs-foot{position:sticky;bottom:0;z-index:2;display:flex;align-items:center;flex-wrap:wrap;gap:var(--s-3) var(--s-6);margin:0 calc(-1 * var(--rs-pad));padding:var(--s-4) var(--rs-pad) var(--s-6);background:var(--sheet);border-top:1px solid var(--line)}
 #main .rs-primary{min-height:56px;padding:0 var(--s-7);font-size:var(--fs-ui);font-weight:600;transition:transform 160ms var(--ease),background-color 160ms var(--ease)}
 #main .rs-primary:active:not([aria-disabled=true]){transform:scale(.97)}
 #main .rs-primary[aria-disabled=true]{opacity:.55;cursor:default}
@@ -69,8 +77,8 @@
 #main .rs-list li.done svg{color:var(--green)}
 #main .rs-later{min-height:44px;font-size:var(--fs-meta);color:var(--ink-soft)}
 @media(hover:hover) and (pointer:fine){#main .rs-later:hover{color:var(--blue)}}
-#main .rs-list .prio-chip{width:36px;height:36px;font-size:var(--fs-meta)}
-#main .rs-list .prio-chip.prio-none{width:auto;min-width:44px;padding:0 var(--s-2);font-size:var(--fs-meta);white-space:nowrap}
+#main .rs-list .prio-chip{width:44px;height:44px;border-radius:10px;font-size:var(--fs-meta)}
+#main .rs-list .prio-chip.prio-none{width:auto;min-width:44px;height:44px;padding:0 var(--s-2);font-size:var(--fs-meta);white-space:nowrap}
 /* Morning 1: the frog */
 #main .rs-choices{display:flex;flex-direction:column;gap:var(--s-2);margin:0;padding:0;list-style:none}
 #main .rs-choice{display:flex;align-items:center;gap:var(--s-4);width:100%;min-height:62px;padding:var(--s-2) var(--s-4);border:1.5px solid var(--line-strong);border-radius:var(--r-tile);background:var(--sheet);color:var(--ink);text-align:left;transition:border-color 160ms var(--ease),background-color 160ms var(--ease),transform 160ms var(--ease)}
@@ -116,30 +124,49 @@
 #main .rs-mood-btn.on{background:var(--blue);border-color:var(--blue);color:var(--sheet)}
 @media(hover:hover) and (pointer:fine){#main .rs-mood-btn:not(.on):hover{border-color:var(--blue);color:var(--blue)}}
 /* Evening 3: tomorrow */
-#main .rs-settle{display:flex;flex-direction:column;margin:0;padding:0;list-style:none}
-#main .rs-settle-row{display:grid;gap:var(--s-2);padding:var(--s-3) 0;border-bottom:1px solid var(--line)}
-#main .rs-settle-row:last-child{border-bottom:0}
-#main .rs-was{display:flex;align-items:center;gap:var(--s-2);margin:0;font:500 22px/1.25 var(--serif);color:var(--ink)}
-#main .rs-was small{font:400 var(--fs-meta) var(--sans);color:var(--ink-soft)}
-#main .rs-settle-row form{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-2) var(--s-3)}
-#main .rs-settle-row input{flex:1 1 240px;min-height:50px;font:400 var(--fs-body) var(--serif)}
-#main .rs-settle-row .button{min-height:50px;font-size:var(--fs-meta)}
-#main .rs-settle-row .text-button{min-height:50px;font-size:var(--fs-meta);color:var(--ink-soft)}
+#main .rs-left-wrap{display:flex;flex-direction:column;align-items:flex-start;gap:var(--s-2);min-width:0}
+#main .rs-left{align-self:stretch;display:flex;flex-direction:column;margin:0;padding:0;list-style:none}
+#main .rs-left-row{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-1) var(--s-5);min-height:64px;padding:var(--s-2) 0;border-bottom:1px solid var(--line)}
+#main .rs-left-text{flex:1 1 260px;min-width:0;display:flex;align-items:baseline;flex-wrap:wrap;gap:var(--s-1) var(--s-3);margin:0;font:500 23px/1.3 var(--serif);color:var(--ink);overflow-wrap:anywhere}
+#main .rs-left-text .frog-glyph{align-self:center;width:26px;height:26px}
+#main .rs-left-text small{font:550 var(--fs-label)/1.3 var(--sans);letter-spacing:.01em;color:var(--ink-soft);white-space:nowrap}
+#main .rs-left-acts{flex:none;display:flex;align-items:center;gap:0 var(--s-5)}
+#main .rs-left-acts .text-button,#main .rs-more,#main .rs-cancel{min-height:44px;padding:0 var(--s-1);font-size:var(--fs-meta);font-weight:600;transition:transform 160ms var(--ease),color 160ms var(--ease)}
+#main .rs-letgo,#main .rs-cancel{color:var(--ink-soft)}
+#main .rs-left-acts .text-button:active,#main .rs-more:active,#main .rs-cancel:active{transform:scale(.97)}
+@media(hover:hover) and (pointer:fine){#main .rs-again:hover,#main .rs-more:hover{color:var(--blue-hover);text-decoration:underline;text-underline-offset:4px}#main .rs-letgo:hover,#main .rs-cancel:hover{color:var(--ink)}}
+#main .rs-left-row.editing{padding-bottom:var(--s-3)}
+#main .rs-rewrite{flex:1 1 100%;display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-2) var(--s-4)}
+#main .rs-rewrite input{flex:1 1 260px;min-width:0;min-height:52px;font:400 21px var(--serif)}
+#main .rs-rewrite .button{min-height:48px;font-size:var(--fs-meta)}
+#main .rs-tally{display:flex;align-items:center;gap:var(--s-2);margin:0;font-size:var(--fs-meta);font-weight:550;color:var(--green)}
 #main .rs-settled{display:flex;align-items:center;gap:var(--s-2);margin:0;font-size:var(--fs-ui);color:var(--green)}
-#main .rs-tfrog{display:grid;gap:var(--s-3);padding:var(--s-5) var(--s-6);border:1px solid var(--frog-edge);border-radius:var(--r-card);background:var(--frog-wash-2)}
+#main .rs-tfrog{display:grid;gap:var(--s-3);min-width:0;padding:var(--s-5) var(--s-6);border:1px solid var(--frog-edge);border-radius:var(--r-card);background:var(--frog-wash-2)}
 #main .rs-tfrog .rs-sub{margin:0}
 #main .rs-tfrog-set{display:flex;align-items:baseline;flex-wrap:wrap;gap:var(--s-2) var(--s-4);margin:0}
 #main .rs-tfrog-set b{font:500 26px/1.2 var(--serif)}
-#main .rs-tfrog-set .text-button{font-size:var(--fs-meta)}
+#main .rs-tfrog-set .text-button{min-height:44px;font-size:var(--fs-meta)}
 #main .rs-chips{display:flex;flex-wrap:wrap;gap:var(--s-2)}
 #main .rs-chip{min-height:48px;padding:var(--s-1) var(--s-4);border:1.5px solid var(--frog-line);border-radius:var(--r-chip);background:var(--sheet);font:500 20px/1.2 var(--serif);color:var(--ink);text-align:left}
 @media(hover:hover) and (pointer:fine){#main .rs-chip:hover{border-color:var(--green);background:var(--sheet-hover)}}
 #main .rs-tfrog .rs-add{background:var(--sheet);padding-left:var(--s-2)}
 /* Sunday: the week */
 #main .rs-period{display:flex;flex-direction:column;gap:var(--s-3)}
+/* The week's three slots, all on show: written ones read like the list, open ones are a soft field on the same line. */
+#main .rs-slots li.rs-slot{border-bottom:0;padding:var(--s-1) 0}
+#main .rs-slot input{flex:1;min-width:0;min-height:54px;padding:var(--s-2) var(--s-4);border:1.5px solid var(--line-strong);border-radius:var(--r-tile);background:var(--sheet-2);font:400 21px var(--serif);color:var(--ink);box-shadow:none;transition:border-color 160ms var(--ease),background-color 160ms var(--ease)}
+#main .rs-slot input:focus{border-color:var(--blue);background:var(--sheet);box-shadow:none}
+/* Wide cards: checklists in two columns, and tomorrow's frog beside the leftovers. */
+@container (min-width:820px){
+ #main .rs-checks,#main .rs-daily{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;column-gap:var(--s-8)}
+ #main .rs-checks li:last-child{border-bottom:1px solid var(--line)}
+}
+@container (min-width:880px){
+ #main .rs-controls>.rs-tomorrow{display:grid;grid-template-columns:minmax(0,3fr) minmax(300px,2fr);gap:var(--s-8);align-items:start}
+}
 #main .rs-rooms{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s-1) var(--s-6);padding-top:var(--s-2)}
 #main .rs-rooms span{font-size:var(--fs-meta);font-weight:650;color:var(--ink)}
-#main .rs-rooms .text-button{font-size:var(--fs-ui)}
+#main .rs-rooms .text-button{min-height:44px;font-size:var(--fs-ui)}
 /* ---- The doing view ---- */
 #main .today-doing{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(340px,1fr);gap:var(--s-6);align-items:start}
 #main .today-do,#main .today-side{display:flex;flex-direction:column;gap:var(--s-5);min-width:0}
@@ -190,42 +217,49 @@
 #main .today-page .promise-text small,#main .today-page .count-note{font-size:var(--fs-meta);color:var(--ink-soft)}
 #main .today-page .promises .button,#main .today-page .promises button{font-size:var(--fs-meta)}
 /* ---- Sizes ---- */
-@media(min-width:1700px){#main .today-doing{grid-template-columns:minmax(0,1.6fr) minmax(400px,1fr);gap:var(--s-7)}
-#main .ritual-card{min-height:480px}}
+@media(min-width:1700px){#main .today-doing{grid-template-columns:minmax(0,1.6fr) minmax(400px,1fr);gap:var(--s-7)}}
 @media(max-width:1180px){#main .today-doing{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:1000px){
- #main .ritual-card{grid-template-columns:minmax(0,1fr);min-height:0}
- #main .rs-side{padding:var(--s-6) var(--s-6) var(--s-4);padding-right:150px;border-right:0;border-bottom:1px solid var(--page-rule);min-height:200px}
+ #main .ritual-card{grid-template-columns:minmax(0,1fr)}
+ #main .rs-side{border-right:0;border-bottom:1px solid var(--page-rule)}
+ #main .rs-side-in{position:static;padding:var(--s-6) 150px var(--s-4) var(--s-6);min-height:200px}
  #main .ritual-evening .rs-side{border-bottom-color:var(--blue-deeper)}
  #main .rs-art{position:absolute;right:var(--s-5);bottom:0;height:130px;margin:0}
  #main .step-week .rs-art{height:140px}
- #main .rs-main{padding:var(--s-6)}
+ #main .rs-main{--rs-pad:var(--s-6);padding:var(--s-6) var(--rs-pad) 0}
 }
 @media(max-width:650px){
  #main .today-page{gap:var(--s-5)}
  #main .today-top .tt-greet{font-size:34px}
  #main .today-top .rh-becoming{font-size:20px}
- #main .rs-side{padding:var(--s-5) 112px var(--s-4) var(--s-4);min-height:0;gap:var(--s-3)}
+ #main .ritual-card{scroll-margin-top:calc(60px + var(--s-3))}
+ #main .rs-side-in{padding:var(--s-5) 112px var(--s-4) var(--s-4);min-height:0;gap:var(--s-3)}
  #main .rs-art{right:var(--s-2);height:96px}
  #main .step-week .rs-art{height:104px}
  #main .rs-question{font-size:30px;max-width:none}
  #main .rs-help{font-size:var(--fs-ui)}
- #main .rs-main{padding:var(--s-5) var(--s-4) var(--s-4);gap:var(--s-5)}
+ #main .rs-main{--rs-pad:var(--s-4);padding:var(--s-5) var(--rs-pad) 0;gap:var(--s-5)}
  #main .rs-controls{font-size:var(--fs-ui)}
  #main .rs-choice-text,#main .rs-task,#main .rs-go-list{font-size:20px}
  #main .rs-list li{gap:var(--s-3);min-height:58px}
  #main .rs-num{width:20px;font-size:28px}
  #main .rs-mood-btn{flex:1 1 40%;min-width:0;font-size:var(--fs-ui)}
- #main .rs-foot{gap:var(--s-2) var(--s-4)}
- #main .rs-primary{flex:1 1 100%}
- #main .rs-skip{margin-right:auto}
- #main .rs-back{margin-left:0}
- #main .rs-settle-row input{flex-basis:100%}
+ /* Above the phone's tab bar. */
+ #main .rs-foot{bottom:calc(65px + env(safe-area-inset-bottom));gap:var(--s-2) var(--s-4);padding:var(--s-3) var(--rs-pad) var(--s-4)}
+ /* One row on the phone: back as an arrow, the action, then skip. */
+ #main .rs-foot{flex-wrap:nowrap}
+ #main .rs-primary{order:2;flex:1 1 auto;min-width:0;padding:0 var(--s-4);white-space:normal;text-align:center;line-height:1.2}
+ #main .rs-back{order:1;flex:none;width:44px;margin:0;padding:0}
+ #main .rs-back-label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+ #main .rs-skip{order:3;flex:none;max-width:88px;white-space:normal;text-align:center;line-height:1.2}
+ #main .rs-left-row{gap:0 var(--s-4);padding:var(--s-3) 0 var(--s-1)}
+ #main .rs-left-text{flex-basis:100%;font-size:21px}
+ #main .rs-rewrite input{flex-basis:100%}
  #main .rs-go-frog{padding:var(--s-4);gap:var(--s-3)}
  #main .rs-go-frog .frog-glyph{width:48px;height:48px}
  #main .rs-add .button{padding:0 var(--s-4)}
  #main .ritual-note{font-size:var(--fs-ui)}
 }
-@media(prefers-reduced-motion:reduce){#main .rs-dots i,#main .rs-primary,#main .rs-choice,#main .rs-mood-btn{transition:none}}
+@media(prefers-reduced-motion:reduce){#main .rs-dots i,#main .rs-primary,#main .rs-choice,#main .rs-mood-btn,#main .rs-left-acts .text-button,#main .rs-more,#main .rs-cancel,#main .rs-slot input{transition:none}}
 #main .today-side .promise{flex-wrap:wrap}
 #main .today-side .promise-text{flex:1 1 200px}

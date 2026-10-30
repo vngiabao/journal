@@ -62,3 +62,6 @@ export function setTomorrowFrog(s:State,date:string,pick:{id?:string;text?:strin
  const v=pick.text?.trim();if(!v)return;for(const t of s.todos??[])if(t.date===tomorrow)t.frog=false;
  s.todos=[...(s.todos??[]),{id:uid(),date:tomorrow,text:v,done:false,frog:true,priority:'A',createdAt:new Date().toISOString()}];}
 export const tomorrowsTasks=(s:State,date:string)=>(s.todos??[]).filter(t=>t.date===addDays(date,1)&&!t.routine&&!t.auto&&!t.dismissed);
+// What tonight's settling did: how many leftovers were written again for tomorrow and how many were let go.
+export function settledOn(s:State,date:string){const done=(s.todos??[]).filter(t=>t.carriedOn===date&&(t.carried==='rewritten'||t.carried==='dropped'));
+ const again=done.filter(t=>t.carried==='rewritten').length;return {again,dropped:done.length-again,total:done.length};}
