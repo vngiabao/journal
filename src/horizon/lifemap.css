@@ -9,8 +9,8 @@
 /* One map per horizon: the switch sits centred above the map */
 .lm-switch-row{display:flex;justify-content:center;align-items:center;gap:var(--s-2);margin:0 0 var(--s-4);max-width:100%}
 .lm-switch{flex-wrap:wrap;justify-content:center}
-.lm .lm-switch button{min-height:44px;padding:var(--s-2) var(--s-5);font-size:17px}
-.lm-switch-add{display:inline-flex;align-items:center;justify-content:center;gap:var(--s-1);min-width:44px;min-height:44px;padding:0 var(--s-4);border:1px dashed var(--line-strong);border-radius:var(--r-chip);background:transparent;color:var(--blue);font:600 16px var(--sans);transition:border-color 160ms var(--ease),transform 160ms var(--ease)}
+.lm .lm-switch button{min-height:44px;padding:var(--s-2) var(--s-5);font-size:var(--fs-ui)}
+.lm-switch-add{display:inline-flex;align-items:center;justify-content:center;gap:var(--s-1);min-width:44px;min-height:44px;padding:0 var(--s-4);border:1px dashed var(--line-strong);border-radius:var(--r-chip);background:transparent;color:var(--blue);font:600 var(--fs-meta) var(--sans);transition:border-color 160ms var(--ease),transform 160ms var(--ease)}
 .lm-switch-add>span:first-child{font-size:20px;line-height:1}
 .lm-switch-add:focus-visible,.lm-switch button:focus-visible{outline:2px solid var(--blue);outline-offset:2px;box-shadow:0 0 0 4px var(--focus-halo)}
 .lm-switch-add:active{transform:scale(.95)}
@@ -40,7 +40,7 @@
 .mm-when{font:500 22px/1.15 var(--hand);color:var(--gold-text)}
 .mm.scale-l .mm-when{font-size:25px}
 .mm-centre .hz-sky{justify-content:center;min-height:0;margin-top:2px}
-.mm-centre .hz-sky-text{font:400 16px/1.25 var(--sans);color:var(--ink-soft);min-height:44px;text-align:center;max-width:100%}
+.mm-centre .hz-sky-text{font:400 var(--fs-meta)/1.25 var(--sans);color:var(--ink-soft);min-height:44px;text-align:center;max-width:100%}
 .mm-centre .hz-sun{display:none}
 
 /* The area's name, hand-lettered level along its branch. The whole word is the button, with no box behind it. */
@@ -61,22 +61,22 @@
 .mm-row.goal{font-weight:650}
 .mm-goal{display:flex;align-items:flex-start;gap:6px}
 .mm-goal .hz-mini-pennant{margin-top:2px}
-.mm-meta{display:flex;flex-direction:column;align-items:inherit;margin-top:6px;font:450 15px/19px var(--sans);color:var(--ink-soft)}
+.mm-meta{display:flex;flex-direction:column;align-items:inherit;margin-top:6px;font:450 var(--fs-meta)/19px var(--sans);color:var(--ink-soft)}
 .mm-meta.late{color:var(--red);font-weight:600}
 /* The next step: smaller words, and "Do today" right under them */
-.mm-row.nextstep{font-size:18px;line-height:22px}
+.mm-row.nextstep{font-size:var(--fs-ui);line-height:22px}
 .mm.scale-l .mm-row.nextstep{font-size:20px;line-height:24px}
 .mm-row.nextstep::after{display:none}
 .mm-step{display:flex;flex-direction:column;align-items:inherit;padding:0;border:0;background:transparent;font:inherit;color:var(--ink);text-align:inherit;border-radius:var(--r-small);transition:color 160ms var(--ease),transform 160ms var(--ease)}
 .mm-foot{display:flex;align-items:center;gap:var(--s-3);height:30px}
 .mm-row.side-l .mm-foot{flex-direction:row-reverse}
-.mm-do{position:relative;display:inline-flex;align-items:center;gap:4px;height:30px;padding:0 var(--s-3);border:1px solid var(--c,var(--blue));border-radius:var(--r-chip);background:var(--sheet);color:var(--blue);font:600 15px/1 var(--sans);transition:background-color 160ms var(--ease),transform 160ms var(--ease)}
+.mm-do{position:relative;display:inline-flex;align-items:center;gap:4px;height:30px;padding:0 var(--s-3);border:1px solid var(--c,var(--blue));border-radius:var(--r-chip);background:var(--sheet);color:var(--blue);font:600 var(--fs-meta)/1 var(--sans);transition:background-color 160ms var(--ease),transform 160ms var(--ease)}
 .mm-do::after{content:'';position:absolute;inset:-7px -4px}
 .mm-do svg{transition:transform 160ms var(--ease)}
-.mm-on{display:inline-flex;align-items:center;gap:4px;font:600 15px/1 var(--sans);color:var(--green)}
-.mm-tag{font:450 15px/1 var(--sans);color:var(--ink-soft)}
+.mm-on{display:inline-flex;align-items:center;gap:4px;font:600 var(--fs-meta)/1 var(--sans);color:var(--green)}
+.mm-tag{font:450 var(--fs-meta)/1 var(--sans);color:var(--ink-soft)}
 /* "+ Add a goal", "+ First step", "+3 more": the dashed twigs that say what to do next */
-.mm-row.add,.mm-row.addstep,.mm-row.more{font:600 16px/30px var(--sans);color:var(--c)}
+.mm-row.add,.mm-row.addstep,.mm-row.more{font:600 var(--fs-meta)/30px var(--sans);color:var(--c)}
 /* Touch screens: every line on the map keeps a 44px target */
 @media(pointer:coarse){.mm-row::after{inset:-12px -4px}}
 :is(.mm-name,.mm-row,.mm-step,.mm-do,.mm-mini-name):focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:var(--r-small);box-shadow:0 0 0 4px var(--focus-halo)}
@@ -94,10 +94,10 @@
 
 /* Under the map: a hint on an empty horizon, goals with no area yet, and "Edit areas" */
 .lm-under{display:flex;flex-direction:column;align-items:center;gap:var(--s-4);margin-top:var(--s-4)}
-.lm-hint{max-width:640px;text-align:center;font-size:18px;line-height:1.45;color:var(--ink-soft)}
+.lm-hint{max-width:640px;text-align:center;font-size:var(--fs-ui);line-height:1.45;color:var(--ink-soft)}
 .lm-hint b{color:var(--ink);font-weight:600}
 .lm-under-tray{max-width:760px;width:100%}
-.lm-edit-areas{align-self:center;font-size:16px}
+.lm-edit-areas{align-self:center;font-size:var(--fs-meta)}
 
 /* The area sheet: over the map (the map never reflows), a bottom sheet on a phone. Near to far, this year first. */
 .lm-sheet-root{position:fixed;inset:0;z-index:1100;pointer-events:none}
@@ -108,7 +108,7 @@
 .lm-sheet-head h2{font:600 34px/1.1 var(--serif);color:var(--c)}
 .lm-sheet-head h2:focus{outline:none}
 .lm-sheet-head h2:focus-visible{outline:2px solid var(--blue);outline-offset:4px;border-radius:var(--r-small)}
-.lm-sheet-head p{font-size:16px;color:var(--ink-soft);margin-top:var(--s-1)}
+.lm-sheet-head p{font-size:var(--fs-meta);color:var(--ink-soft);margin-top:var(--s-1)}
 .lm-sheet-x{display:grid;place-items:center;flex:none;width:44px;height:44px;border:0;border-radius:var(--r-chip);background:transparent;color:var(--ink-soft);transition:background-color 160ms var(--ease),transform 160ms var(--ease)}
 .lm-sheet-x:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .lm-sheet-x:active{transform:scale(.94)}
@@ -121,38 +121,38 @@
 .lm-rung{display:grid;grid-template-columns:var(--lm-rung-col) minmax(0,1fr);column-gap:var(--s-4);padding:var(--s-3) 0;border-top:1px solid var(--line)}
 .lm-rung>*{grid-column:2}
 .lm-rung>.lm-rung-title{grid-column:1;grid-row:1/span 30;padding-top:12px}
-.lm-rung-title{font:600 15px/1.35 var(--sans);color:var(--gold-text)}
+.lm-rung-title{font:600 var(--fs-meta)/1.35 var(--sans);color:var(--gold-text)}
 .lm-sheet-root.is-phone .lm-rung{grid-template-columns:minmax(0,1fr)}
 .lm-sheet-root.is-phone .lm-rung>*,.lm-sheet-root.is-phone .lm-rung>.lm-rung-title{grid-column:1;grid-row:auto}
 .lm-sheet-root.is-phone .lm-rung>.lm-rung-title{padding-top:var(--s-1)}
 .lm-visions{list-style:none;margin:0;padding:0}
 .lm-vision{display:block;width:100%;min-height:44px;padding:var(--s-2) 0;border:0;background:transparent;text-align:left;font:500 20px/1.3 var(--serif);color:var(--ink);transition:color 160ms var(--ease)}
-.lm-add{min-height:44px;color:var(--blue);font-size:16px;align-self:flex-start;justify-self:start}
-.lm-add span{font-size:18px}
-.lm-empty{font-size:16px;color:var(--ink-soft);padding:var(--s-3) 0 var(--s-1)}
+.lm-add{min-height:44px;color:var(--blue);font-size:var(--fs-meta);align-self:flex-start;justify-self:start}
+.lm-add span{font-size:var(--fs-ui)}
+.lm-empty{font-size:var(--fs-meta);color:var(--ink-soft);padding:var(--s-3) 0 var(--s-1)}
 /* A goal in the sheet: its words, where it stands, the next step with "Do today", every step, then what you can do */
 .lm-goal{padding:var(--s-1) 0 var(--s-3)}
 .lm-goal+.lm-goal{border-top:1px dashed var(--line-strong);padding-top:var(--s-2)}
 .lm-goal-text{width:100%;display:flex;align-items:baseline;gap:var(--s-2);min-height:44px;padding:var(--s-2) 0;border:0;background:transparent;text-align:left;font:600 21px/1.25 var(--serif);color:var(--ink)}
 .lm-goal-text .hz-mini-pennant{align-self:flex-start;margin-top:4px}
-.lm-goal-meta{display:flex;flex-wrap:wrap;gap:var(--s-1) var(--s-3);font:450 15px/1.4 var(--sans);color:var(--ink-soft)}
+.lm-goal-meta{display:flex;flex-wrap:wrap;gap:var(--s-1) var(--s-3);font:450 var(--fs-meta)/1.4 var(--sans);color:var(--ink-soft)}
 .lm-goal-meta .late{color:var(--red);font-weight:600}
 .lm-one-tag{color:var(--red);font-weight:600}
 .lm-next{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-2) var(--s-3);margin-top:var(--s-3);padding:var(--s-1) var(--s-2) var(--s-1) var(--s-3);background:var(--gold-wash);border:1px solid var(--gold-soft);border-radius:var(--r-control)}
-.lm-next-text{flex:1 1 140px;min-width:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;min-height:48px;padding:var(--s-1) 0;border:0;background:transparent;text-align:left;font:650 19px/1.25 var(--serif);color:var(--ink)}
-.lm-next-kicker{font:600 14px/1.3 var(--sans);color:var(--gold-text)}
-.lm-do{flex:none;min-height:44px;padding:var(--s-2) var(--s-4);font-size:16px;margin-left:auto}
-.lm-queued{flex:none;display:inline-flex;align-items:center;gap:4px;padding-right:var(--s-2);font:600 15px var(--sans);color:var(--green);margin-left:auto}
+.lm-next-text{flex:1 1 140px;min-width:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;min-height:48px;padding:var(--s-1) 0;border:0;background:transparent;text-align:left;font:650 var(--fs-body)/1.25 var(--serif);color:var(--ink)}
+.lm-next-kicker{font:600 var(--fs-label)/1.3 var(--sans);color:var(--gold-text)}
+.lm-do{flex:none;min-height:44px;padding:var(--s-2) var(--s-4);font-size:var(--fs-meta);margin-left:auto}
+.lm-queued{flex:none;display:inline-flex;align-items:center;gap:4px;padding-right:var(--s-2);font:600 var(--fs-meta) var(--sans);color:var(--green);margin-left:auto}
 .lm-steps{margin-top:var(--s-2)}
-.lm-steps summary{display:flex;align-items:center;min-height:44px;cursor:pointer;font:600 16px var(--sans);color:var(--blue);list-style-position:inside;border-radius:var(--r-small)}
+.lm-steps summary{display:flex;align-items:center;min-height:44px;cursor:pointer;font:600 var(--fs-meta) var(--sans);color:var(--blue);list-style-position:inside;border-radius:var(--r-small)}
 .lm-steps summary:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .lm-steps ol{list-style:none;margin:0;padding:0}
-.lm-step{display:flex;align-items:flex-start;gap:var(--s-3);width:100%;min-height:44px;padding:var(--s-2) 0;border:0;border-top:1px solid var(--line);background:transparent;text-align:left;font:500 18px/1.3 var(--serif);color:var(--ink)}
-.lm-step-no{flex:none;display:grid;place-items:center;width:24px;height:24px;margin-top:1px;border:1px solid var(--line-strong);border-radius:50%;font:600 16px/1 var(--hand);color:var(--ink-soft)}
+.lm-step{display:flex;align-items:flex-start;gap:var(--s-3);width:100%;min-height:44px;padding:var(--s-2) 0;border:0;border-top:1px solid var(--line);background:transparent;text-align:left;font:500 var(--fs-ui)/1.3 var(--serif);color:var(--ink)}
+.lm-step-no{flex:none;display:grid;place-items:center;width:24px;height:24px;margin-top:1px;border:1px solid var(--line-strong);border-radius:50%;font:600 var(--fs-hand)/1 var(--hand);color:var(--ink-soft)}
 .lm-steps li.done .lm-step{color:var(--ink-soft);text-decoration:line-through;text-decoration-color:var(--line-strong)}
 .lm-steps li.done .lm-step-no{background:var(--green);border-color:var(--green);color:var(--sheet)}
 .lm-goal-actions{display:flex;flex-wrap:wrap;align-items:center;gap:0 var(--s-4);margin-top:var(--s-1)}
-.lm-goal-actions .text-button{font-size:16px}
+.lm-goal-actions .text-button{font-size:var(--fs-meta)}
 .text-button.lm-one.on{color:var(--red)}
 .lm-step:focus-visible,.lm-vision:focus-visible,.lm-goal-text:focus-visible,.lm-next-text:focus-visible,.lm-chip:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:var(--r-small);box-shadow:0 0 0 4px var(--focus-halo)}
 @media(hover:hover) and (pointer:fine){
@@ -163,7 +163,7 @@
 /* Chips: an area to pick */
 .lm-chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:var(--s-2)}
 .lm-chips>.lm-chip{justify-content:center}
-.lm-chip{position:relative;display:inline-flex;align-items:center;gap:var(--s-2);min-height:44px;padding:0 var(--s-4);border:1px solid var(--line-strong);border-radius:var(--r-chip);background:var(--sheet);font:600 16px var(--sans);color:var(--ink);transition:border-color 160ms var(--ease),transform 160ms var(--ease)}
+.lm-chip{position:relative;display:inline-flex;align-items:center;gap:var(--s-2);min-height:44px;padding:0 var(--s-4);border:1px solid var(--line-strong);border-radius:var(--r-chip);background:var(--sheet);font:600 var(--fs-meta) var(--sans);color:var(--ink);transition:border-color 160ms var(--ease),transform 160ms var(--ease)}
 .lm-chip::before{content:'';width:9px;height:9px;border-radius:50%;background:var(--c,var(--blue))}
 .lm-chip:active{transform:scale(.97)}
 .lm-chip.selected{border-color:var(--c);background:var(--sky);box-shadow:inset 0 0 0 1px var(--c)}
@@ -176,26 +176,26 @@
 .lm-tray ul{list-style:none;margin:var(--s-2) 0 0;padding:0}
 .lm-tray-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--s-1) var(--s-3);padding:var(--s-2) 0}
 .lm-tray-row+.lm-tray-row{border-top:1px dashed var(--line)}
-.lm-tray-text{flex:1 1 200px;min-width:0;display:flex;align-items:flex-start;gap:var(--s-2);font:500 19px/1.3 var(--serif);color:var(--ink)}
+.lm-tray-text{flex:1 1 200px;min-width:0;display:flex;align-items:flex-start;gap:var(--s-2);font:500 var(--fs-body)/1.3 var(--serif);color:var(--ink)}
 .lm-tray-text .hz-mini-pennant{margin-top:3px}
 .lm-tray-actions{display:flex;align-items:center;gap:var(--s-3);flex:none}
-.lm-tray-actions .text-button,.lm-pop .hz-pop-buttons .text-button{min-width:44px;justify-content:center;font-size:16px}
+.lm-tray-actions .text-button,.lm-pop .hz-pop-buttons .text-button{min-width:44px;justify-content:center;font-size:var(--fs-meta)}
 
 /* Popovers */
-.lm-pop-when{font:450 15px var(--sans);color:var(--ink-soft)}
+.lm-pop-when{font:450 var(--fs-meta) var(--sans);color:var(--ink-soft)}
 .lm-pop .lm-when{align-self:flex-start;flex-wrap:wrap}
-.lm-pop .lm-when button{min-height:44px;font-size:16px}
+.lm-pop .lm-when button{min-height:44px;font-size:var(--fs-meta)}
 .text-button.lm-remove{color:var(--ink-soft)}
 .text-button.lm-remove:focus-visible{color:var(--red)}
 @media(hover:hover) and (pointer:fine){.text-button.lm-remove:hover:not(:disabled){color:var(--red)}}
 .lm-remove:disabled{opacity:var(--disabled)}
 .lm-spacer{flex:1}
-.lm-pop-goal{display:flex;align-items:flex-start;gap:var(--s-2);font:500 19px/1.3 var(--serif);color:var(--ink)}
+.lm-pop-goal{display:flex;align-items:flex-start;gap:var(--s-2);font:500 var(--fs-body)/1.3 var(--serif);color:var(--ink)}
 .lm-pop-goal .hz-mini-pennant{margin-top:3px}
 .lm-area-edit{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--s-1)}
 .lm-area-edit li{display:flex;align-items:center;gap:var(--s-2)}
 .lm-area-edit li::before{content:'';flex:none;width:9px;height:9px;border-radius:50%;background:var(--c)}
-.lm-area-edit input,.lm-area-add input{flex:1;min-width:0;min-height:44px;font-size:17px}
+.lm-area-edit input,.lm-area-add input{flex:1;min-width:0;min-height:44px;font-size:var(--fs-ui)}
 .lm-area-add{display:flex;gap:var(--s-2)}
 
 /* Phone: the small map ("Me" and one branch per area), then each area's words for this horizon */
@@ -203,10 +203,10 @@
 .mm-mini-stage{position:relative}
 .mm-mini-me{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none}
 .mm-mini-me b{font:600 34px/1 var(--hand);color:var(--ink)}
-.mm-mini-me .mm-when{font-size:18px}
-.mm-mini-name{position:absolute;z-index:2;display:inline-flex;align-items:flex-end;justify-content:center;gap:4px;height:36px;padding:0 0 5px;border:0;background:transparent;text-align:center;font:600 19px/1 var(--hand);letter-spacing:.02em;color:var(--c);white-space:nowrap}
+.mm-mini-me .mm-when{font-size:var(--fs-ui)}
+.mm-mini-name{position:absolute;z-index:2;display:inline-flex;align-items:flex-end;justify-content:center;gap:4px;height:36px;padding:0 0 5px;border:0;background:transparent;text-align:center;font:600 var(--fs-hand)/1 var(--hand);letter-spacing:.02em;color:var(--c);white-space:nowrap}
 .mm-mini-name::after{content:'';position:absolute;inset:-6px -6px}
-.mm-mini-name small{font:600 14px/1 var(--sans);color:var(--ink-soft)}
+.mm-mini-name small{font:600 var(--fs-label)/1 var(--sans);color:var(--ink-soft)}
 .mm-mini-name[aria-pressed="true"]{text-decoration:underline 1.5px;text-underline-offset:4px}
 .lm-pareas{list-style:none;margin:0;padding:0}
 .lm-parea{padding:var(--s-2) 0 var(--s-3);border-top:1px solid var(--line)}
@@ -218,17 +218,17 @@
 .lm-pgoal-text{display:flex;align-items:flex-start;gap:var(--s-2);min-height:44px;padding:var(--s-1) 0;border:0;background:transparent;text-align:left;color:var(--ink)}
 .lm-pgoal-text .hz-mini-pennant{margin-top:3px}
 .lm-pgoal-text>span:last-child{display:flex;flex-direction:column;gap:2px}
-.lm-pgoal-words{font:650 19px/1.3 var(--serif)}
-.lm-pgoal-text small{font:450 15px/1.35 var(--sans);color:var(--ink-soft)}
+.lm-pgoal-words{font:650 var(--fs-body)/1.3 var(--serif)}
+.lm-pgoal-text small{font:450 var(--fs-meta)/1.35 var(--sans);color:var(--ink-soft)}
 .lm-pgoal-text small.late{color:var(--red);font-weight:600}
 .lm-pnext{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s-2) var(--s-3);padding-left:34px}
-.lm-pnext-text{flex:1 1 160px;min-width:0;min-height:44px;padding:var(--s-1) 0;border:0;background:transparent;text-align:left;font:500 18px/1.3 var(--serif);color:var(--ink)}
-.lm-pnext .mm-do{height:36px;font-size:16px}
-.lm-pvision{display:block;width:100%;min-height:44px;padding:var(--s-1) 0;border:0;background:transparent;text-align:left;font:500 18px/1.35 var(--serif);color:var(--ink)}
+.lm-pnext-text{flex:1 1 160px;min-width:0;min-height:44px;padding:var(--s-1) 0;border:0;background:transparent;text-align:left;font:500 var(--fs-ui)/1.3 var(--serif);color:var(--ink)}
+.lm-pnext .mm-do{height:36px;font-size:var(--fs-meta)}
+.lm-pvision{display:block;width:100%;min-height:44px;padding:var(--s-1) 0;border:0;background:transparent;text-align:left;font:500 var(--fs-ui)/1.35 var(--serif);color:var(--ink)}
 .lm-parea .text-button.lm-add{color:var(--c)}
 .lm.is-phone .lm-switch-row{justify-content:flex-start;margin-bottom:var(--s-3)}
 .lm.is-phone .lm-switch{flex:0 1 auto;min-width:0;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;justify-content:flex-start}
-.lm.is-phone .lm-switch button{padding:var(--s-2) 12px;font-size:16px;flex:none}
+.lm.is-phone .lm-switch button{padding:var(--s-2) 12px;font-size:var(--fs-meta);flex:none}
 .lm.is-phone .lm-switch-add{flex:none;width:44px;padding:0}
 .lm.is-phone .lm-add-word{display:none}
 :is(.lm-phead,.lm-pgoal-text,.lm-pnext-text,.lm-pvision):focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:var(--r-small)}

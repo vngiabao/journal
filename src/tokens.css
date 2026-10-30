@@ -5,11 +5,11 @@
  /* Paper */
  --paper:#edf1f7;--paper-deep:#e1e7f0;--sheet:#faf9f6;--sheet-2:#f3f5f9;--sheet-hover:#fdfcfa;
  /* Ink */
- --ink:#1f2a44;--ink-soft:#4a5470;--muted:#5b6377;--placeholder:#737b8f;
+ --ink:#1f2a44;--ink-soft:#4a5470;--muted:#4d5568;--placeholder:#636b7f;
  /* Prussian blue, the brand */
  --blue:#23467a;--blue-hover:#1f2a44;--blue-deep:#172c49;--blue-deeper:#13243d;--blue-stage:#274769;--sky:#dfe8f3;--sky-2:#cfdcec;--cover-text:#f7f5f1;--cover-muted:#c3d2e6;--cover-hover:#27476999;--cover-line:#8298b2;
  /* Honey and metal gold */
- --gold:#c9a15a;--metal:#e2c07f;--gold-soft:#f1e3c2;--gold-wash:#f7efdc;--gold-text:#7f5d1b;
+ --gold:#c9a15a;--metal:#e2c07f;--gold-soft:#f1e3c2;--gold-wash:#f7efdc;--gold-text:#6f5016;
  /* Violet: highlights, moments, seals */
  --violet:#5a5490;--violet-wash:#e9e3ef;--violet-text:#4b4580;
  /* Difficulty ramp from the board: outer ring easier, center hardest */
@@ -26,6 +26,10 @@
  --paper-0:#edf1f700;--paper-40:#edf1f766;--paper-92:#edf1f7eb;--night-35:#13243d59;--night-90:#13243de6;
  --focus-halo:#23467a26;--scrim:#13243d66;--scrollbar:#c3cddb;
  /* Type */
+ /* Type sizes. Readability first (Bao, 2026-10-24): nothing under 14px, ever.
+    label: kickers, captions, mono datelines, small print · meta: secondary lines, buttons, nav, chips
+    ui: list rows, field text, card copy · body: reading text (20 desktop, 18 phone) · hand: Caveat never under 18 */
+ --fs-label:14px;--fs-meta:16px;--fs-ui:18px;--fs-body:20px;--fs-lede:20px;--fs-hand:20px;
  --sans:'Source Sans 3','Helvetica Neue',Arial,sans-serif;--serif:'Cormorant Garamond',Georgia,serif;--mono:'Courier Prime','Courier New',monospace;--hand:'Caveat','Segoe Print',cursive;
  /* Spacing scale: every padding, gap and margin uses one of these */
  --s-1:4px;--s-2:8px;--s-3:12px;--s-4:16px;--s-5:20px;--s-6:24px;--s-7:32px;--s-8:40px;--s-9:48px;--s-10:64px;
@@ -33,8 +37,9 @@
  --r-chip:999px;--r-control:8px;--r-card:10px;--r-tile:8px;--r-small:6px;
  --line-blue:#d6e0ee;--margin-red:#e7b9bd;--ink-pen:#1a2d4f;
  /* The journal's paper: warm leaves inside the book */
- --page-leaf:#fbf7ee;--page-leaf-2:#f6f0e2;--page-gutter:#d8caae;--page-rule:#e7dcc6;--page-folio:#a99d84;
+ --page-leaf:#fbf7ee;--page-leaf-2:#f6f0e2;--page-gutter:#d8caae;--page-rule:#e7dcc6;--page-folio:#655a43;
  /* Motion */
  --ease:cubic-bezier(.23,1,.32,1);--ease-move:cubic-bezier(.77,0,.175,1);--ease-drawer:cubic-bezier(.32,.72,0,1);--disabled:.4;
  font-family:var(--sans);color:var(--ink);background:var(--paper);font-synthesis:none;
 }
+@media(max-width:720px){:root{--fs-body:18px;--fs-lede:18px;--fs-hand:18px}}
