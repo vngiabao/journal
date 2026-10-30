@@ -67,6 +67,16 @@ export function keepsake(n:number):Keepsake{
  }
 }
 
+// Back after two or more days away, and not shown up yet today: Bond says hello, and the welcome takes the place of
+// the week's count, so a comeback never opens on an empty week.
+export const WELCOME='Bond missed you. Welcome back.';
+export const comingBack=(j:Journey)=>!j.today&&j.total>0&&j.sinceLast!==null&&j.sinceLast>=2;
+// The week in words. An empty week is never "0 of 7": it is a week that starts with today.
+export function weekWords(j:Journey){
+ if(j.weekCount)return `${j.weekCount} of 7 this week`;
+ return j.total?'A new week starts today':'Your first stone is today';
+}
+
 // Bond's one line for the strip. Warm, short, never a scolding. `hour` is the local hour (0-23).
 export function bondLine(j:Journey,hour:number){
  if(j.milestoneToday)return keepsake(j.milestoneToday).line;
@@ -78,7 +88,7 @@ export function bondLine(j:Journey,hour:number){
   return ahead??lines[j.total%lines.length];
  }
  if(j.total===0)return 'Bond’s waiting at the start of the trail.';
- if(j.sinceLast!==null&&j.sinceLast>=2)return 'Bond missed you. Welcome back.';
+ if(comingBack(j))return WELCOME;
  return hour<17?'Bond’s waiting for you.':'Bond saved you a spot for tonight.';
 }
 

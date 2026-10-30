@@ -3,7 +3,7 @@
 
 /* ---------- The strip ---------- */
 .bond-strip-wrap{position:relative}
-.bond-strip{position:relative;display:grid;grid-template-columns:minmax(320px,1fr) minmax(0,1.7fr);align-items:center;gap:var(--s-6);width:100%;min-height:140px;margin:0;padding:var(--s-3) var(--s-6) var(--s-3) var(--s-6);
+.bond-strip{position:relative;display:grid;grid-template-columns:minmax(320px,1fr) minmax(0,1.7fr);align-items:center;gap:var(--s-6);width:100%;min-height:128px;margin:0;padding:var(--s-2) var(--s-6) var(--s-2) var(--s-6);
  border:1px solid var(--page-rule);border-radius:var(--r-card);background:var(--page-leaf);color:var(--ink);font:inherit;text-align:left;cursor:pointer;box-shadow:var(--shadow-1);
  transition:background-color .2s var(--ease),border-color .2s var(--ease),transform .16s var(--ease)}
 .bond-strip:active{transform:scale(.995)}
@@ -18,7 +18,7 @@
 .bs-week-row{display:flex;align-items:center;gap:var(--s-3);flex-wrap:wrap}
 .bs-week-text{font:600 var(--fs-meta)/1.2 var(--sans);color:var(--ink-soft)}
 .bs-line{font:500 25px/1.12 var(--hand);color:var(--ink-pen);text-wrap:pretty}
-.bs-trail{position:relative;display:block;height:132px;min-width:0}
+.bs-trail{position:relative;display:block;height:120px;min-width:0}
 .bs-trail svg{position:absolute;inset:0;overflow:visible}
 .bs-open{position:absolute;top:var(--s-2);right:var(--s-4);font:600 var(--fs-meta)/1 var(--sans);color:var(--blue);padding:var(--s-1) 0}
 .bs-flag-label{position:absolute;display:flex;flex-direction:column;gap:2px;white-space:nowrap;pointer-events:none}
@@ -61,12 +61,15 @@
 .bl-week{display:flex;align-items:center;gap:var(--s-3)}
 .bl-week-text{font:600 var(--fs-meta)/1.2 var(--sans);color:var(--ink-soft)}
 .bl-open{font:600 var(--fs-meta)/1 var(--sans);color:var(--blue);white-space:nowrap}
+/* Coming back after a few days: Bond's hello in his hand, where the week's count would be. */
+.bl-welcome{font:500 24px/1.15 var(--hand);color:var(--ink-pen);text-wrap:pretty}
 @media(max-width:650px){
  .bond-line{gap:var(--s-3);min-height:64px;padding:var(--s-2) var(--s-4) var(--s-2) var(--s-3)}
  .bl-dog{height:50px;margin:-2px 0 -4px}
  .bl-words{flex-direction:column;align-items:flex-start;gap:var(--s-1)}
  .bl-day{font-size:22px}
  .bl-week-text{display:none}
+ .bl-welcome{font-size:21px}
 }
 
 /* Hand-drawn marks (rough.js): S strokes and F fills, coloured here. */
@@ -152,11 +155,14 @@
 
 /* ---------- Celebrations ---------- */
 .bond-pop{position:fixed;z-index:75;left:0;right:0;bottom:28px;width:max-content;max-width:calc(100% - 32px);margin:0 auto;display:flex;align-items:center;gap:var(--s-3);padding:var(--s-2) var(--s-6) var(--s-2) var(--s-3);
- background:var(--sheet);border:1px solid var(--line);border-radius:var(--r-sheet);box-shadow:var(--shadow-lift);cursor:pointer}
+ background:var(--sheet);border:1px solid var(--line);border-radius:var(--r-sheet);box-shadow:var(--shadow-lift);pointer-events:none}
+/* Delight never blocks a click: taps pass through the note (the capture listener still closes it). Over a check-in card
+   it rises at the top of the screen, clear of the card's action bar. */
+.bond-pop.is-top{top:var(--s-5);bottom:auto}
 .bond-pop-dog{display:block;height:76px;width:auto;flex:none}
 .bond-pop-text{margin:0;font:500 22px/1.25 var(--serif);color:var(--ink-pen);text-wrap:pretty}
 .bond-pop:not(:has(.bond-pop-dog)){padding:var(--s-4) var(--s-6)}
-@media(max-width:650px){.bond-pop{bottom:calc(var(--tabbar-h) + var(--s-4) + env(safe-area-inset-bottom))}.bond-pop-text{font-size:20px}.bond-pop-dog{height:64px}}
+@media(max-width:650px){.bond-pop{bottom:calc(var(--tabbar-h) + var(--s-4) + env(safe-area-inset-bottom))}.bond-pop.is-top{top:calc(var(--s-3) + env(safe-area-inset-top));bottom:auto}.bond-pop-text{font-size:20px}.bond-pop-dog{height:64px}}
 
 .bond-moment{position:fixed;z-index:78;inset:0;display:grid;place-items:center;padding:var(--s-4);background:var(--scrim-soft);cursor:pointer}
 .bond-moment-card{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:var(--s-8);width:min(760px,100%);padding:var(--s-8) var(--s-9) var(--s-8) var(--s-8);border-radius:var(--r-sheet);background:var(--page-leaf);box-shadow:var(--shadow-pop);cursor:default}

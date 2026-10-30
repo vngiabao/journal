@@ -10,7 +10,7 @@ import {label} from '../dates';
 
 export type BondMoment='morning-done'|'evening-done'|'week-done'|'frog-done';
 const WORDS:Record<BondMoment,{text:string;pose:string}>={
- 'morning-done':{text:'Morning done. Bond’s ready when you are.',pose:'jump'},
+ 'morning-done':{text:'Morning planned. Frog first - Bond’s watching.',pose:'jump'},
  'evening-done':{text:'Day done. That one counts.',pose:'cheer'},
  'week-done':{text:'Week planned. Bond likes the look of it.',pose:'jump'},
  'frog-done':{text:'Frog eaten. Bond did a little hop.',pose:'jump'},
@@ -42,19 +42,21 @@ function showMoment(m:BondMoment){
  if(pocketCheer(text,false))return;
  current?.();
  const box=el('div','bond-pop');box.setAttribute('role','status');
+ // While a check-in card is open its action bar sits at the bottom of the screen, so the note rises at the top instead.
+ if(document.querySelector('.ritual-card'))box.classList.add('is-top');
  const dog=dogOK();
  if(dog){const img=el('img','bond-pop-dog');img.src=bondArt(pose);img.alt='';box.append(img);}
  // The status box goes in empty and the words a frame later, so screen readers announce them.
  const words=el('p','bond-pop-text');box.append(words);
  document.body.append(box);requestAnimationFrame(()=>{words.textContent=text;});
- const move=motionOK();let done=false;
+ const move=motionOK(),from=box.classList.contains('is-top')?-16:16;let done=false;
  const close=()=>{if(done)return;done=true;current=null;clearTimeout(t);window.removeEventListener('pointerdown',close,true);window.removeEventListener('keydown',close,true);
-  if(move)gsap.to(box,{opacity:0,y:8,duration:.2,ease:'enter',onComplete:()=>box.remove()});else box.remove();};
+  if(move)gsap.to(box,{opacity:0,y:from/2,duration:.2,ease:'enter',onComplete:()=>box.remove()});else box.remove();};
  current=close;
  const t=window.setTimeout(close,move?2800:4000);
  window.addEventListener('pointerdown',close,true);window.addEventListener('keydown',close,true);
  if(move){
-  gsap.fromTo(box,{opacity:0,y:16},{opacity:1,y:0,duration:.3,ease:'enter'});
+  gsap.fromTo(box,{opacity:0,y:from},{opacity:1,y:0,duration:.3,ease:'enter'});
   const img=box.querySelector('.bond-pop-dog');
   if(img)gsap.timeline({delay:.15}).to(img,{scaleY:.86,scaleX:1.1,duration:.1,ease:'power1.out',transformOrigin:'50% 100%'})
    .to(img,{y:-18,scaleY:1.06,scaleX:.95,duration:.2,ease:'power2.out',yoyo:true,repeat:1})

@@ -176,6 +176,50 @@
 #main .ritual-note span{flex:1 1 200px}
 #main .ritual-note b{font:500 21px var(--serif);color:var(--ink)}
 #main .ritual-note .button{min-height:48px;font-size:var(--fs-meta)}
+/* The doing view is the frog plus the list: both on the first screen at 1366x768. */
+/* The list's head is one slim band: the title and a quiet count, no chibi, no quote (the day's line sits beside). */
+#main .today-page:not(.ritual-only){gap:var(--s-5)}
+#main .today-page:not(.ritual-only) .today-do{gap:var(--s-4)}
+#main .today-page .tl-slim{position:static;flex-direction:row;justify-content:space-between;flex-wrap:wrap;align-items:center;text-align:left;gap:var(--s-2) var(--s-6);padding:var(--s-3) var(--s-6)}
+#main .today-page .tl-slim h2{margin:0;font-size:30px;line-height:1.1}
+#main .today-page .tl-slim .tl-score{position:static;display:flex;align-items:center;flex-wrap:wrap;gap:var(--s-2) var(--s-5)}
+#main .today-page .tl-slim .tl-score p{align-items:baseline}
+#main .today-page .tl-slim .tl-score strong{font-size:32px}
+#main .today-page .tl-slim .tl-score span{font-size:var(--fs-ui)}
+#main .today-page .tl-slim .tl-score i{width:120px}
+#main .today-page .tl-slim .frog-streak{margin:0;color:var(--cover-text)}
+#main .today-page .tl-settled{display:flex;align-items:center;gap:var(--s-2);margin:var(--s-3) 0 0;font-size:var(--fs-meta);line-height:1.4;color:var(--ink-soft)}
+#main .today-page .tl-settled svg{flex:none;color:var(--green)}
+/* The frog card, shorter: smaller art, and the slices and actions share one row when there's room. */
+#main .today-do .frog-card{grid-template-columns:88px minmax(0,1fr);gap:var(--s-4);margin:0;padding:var(--s-3) var(--s-5) var(--s-3) var(--s-4)}
+#main .today-do .frog-title{min-height:44px}
+#main .today-do .frog-art{width:88px}
+#main .today-do .frog-eyebrow{margin:0 0 0 calc(34px + var(--s-3))}
+#main .today-do .frog-row{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-2) var(--s-5);margin:var(--s-2) 0 0 calc(34px + var(--s-3))}
+#main .today-do .frog-row .frog-slices{flex:1 1 240px;min-width:0;margin:0}
+#main .today-do .frog-row .frog-actions{flex:none;margin:0;gap:var(--s-4)}
+#main .today-do .frog-row .slice-add{margin:0}
+#main .today-do .frog-row .slice-add input{min-height:44px}
+#main .today-do .frog-row:empty{display:none}
+/* The day's line, beside the list: a quiet paper card (the old navy quote, lightened). */
+#main .today-quote{padding:var(--s-5) var(--s-6) var(--s-4);background:var(--page-leaf);border:1px solid var(--page-rule);border-radius:var(--r-card);box-shadow:var(--shadow-1)}
+#main .today-quote .day-quote{max-width:none}
+#main .today-quote .day-quote::before{color:var(--gold-text)}
+#main .today-quote .day-quote blockquote{font-size:21px;color:var(--ink)}
+#main .today-quote .day-quote.empty p{color:var(--ink-soft)}
+#main .today-quote .day-quote figcaption,#main .today-quote .day-quote figcaption span{color:var(--ink-soft)}
+#main .today-quote .day-quote .text-button{min-height:44px;color:var(--blue)}
+#main .today-quote .day-quote-edit textarea{background:var(--sheet);border-color:var(--line-strong);color:var(--ink)}
+#main .today-quote .day-quote-edit textarea::placeholder{color:var(--ink-soft)}
+#main .today-quote .day-quote-edit .text-button{min-height:44px;color:var(--ink-soft)}
+/* A closed day asks for nothing: the session folds to one calm line, the week's promises to one sentence. */
+#main .training.is-calm{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--s-1) var(--s-4);padding:var(--s-4) var(--s-6)}
+#main .training-calm{display:flex;align-items:baseline;flex-wrap:wrap;gap:var(--s-1) var(--s-4);margin:0;font-size:var(--fs-ui);line-height:1.35;color:var(--ink-soft)}
+#main .training-calm b{font:500 22px/1.25 var(--serif);color:var(--ink)}
+#main .training-calm-done{display:inline-flex;align-items:center;gap:var(--s-1);font-size:var(--fs-meta);font-weight:600;color:var(--green)}
+#main .training.is-calm .text-button{min-height:44px}
+#main .promises.is-closed .section-title{margin-bottom:var(--s-2)}
+#main .promises-calm{margin:0 0 var(--s-2);font-size:var(--fs-ui);line-height:1.45;color:var(--ink-soft)}
 /* Readability floor inside Today: nothing under 14px, secondary lines 16px, buttons 16px. */
 #main .today-page .text-button{font-size:var(--fs-meta)}
 #main .today-page .tl-head h2{font-size:34px}
@@ -216,6 +260,7 @@
 #main .today-page .promise-text strong{font-size:var(--fs-body)}
 #main .today-page .promise-text small,#main .today-page .count-note{font-size:var(--fs-meta);color:var(--ink-soft)}
 #main .today-page .promises .button,#main .today-page .promises button{font-size:var(--fs-meta)}
+#main .today-page .promises .icon-button{min-width:44px;min-height:44px}
 /* ---- Sizes ---- */
 @media(min-width:1700px){#main .today-doing{grid-template-columns:minmax(0,1.6fr) minmax(400px,1fr);gap:var(--s-7)}}
 @media(max-width:1180px){#main .today-doing{grid-template-columns:minmax(0,1fr)}}
@@ -229,6 +274,15 @@
  #main .rs-main{--rs-pad:var(--s-6);padding:var(--s-6) var(--rs-pad) 0}
 }
 @media(max-width:650px){
+ #main .today-page .tl-slim{padding:var(--s-3) var(--s-4)}
+ #main .today-page .tl-slim h2{font-size:26px}
+ #main .today-page .tl-slim .tl-score strong{font-size:28px}
+ #main .today-page .tl-slim .tl-score i{width:72px}
+ #main .today-do .frog-card{grid-template-columns:64px minmax(0,1fr);gap:var(--s-3);padding:var(--s-4) var(--s-3)}
+ #main .today-do .frog-art{width:64px}
+ #main .today-do .frog-eyebrow,#main .today-do .frog-row{margin-left:0}
+ #main .today-quote{padding:var(--s-4)}
+ #main .training.is-calm{padding:var(--s-4)}
  #main .today-page{gap:var(--s-5)}
  #main .today-top .tt-greet{font-size:34px}
  #main .today-top .rh-becoming{font-size:20px}

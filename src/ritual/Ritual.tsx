@@ -78,7 +78,7 @@ export function RitualCard({kind,state,mutate,now,go,onDone,hour}:{kind:RitualKi
    </div>
    {/* The one action follows the content; on a long step it stays pinned to the bottom of the screen. */}
    <div className="rs-foot">
-    <button type="button" className="button rs-primary" aria-disabled={closing||!!blocked} onClick={e=>next(e,true)}>{blocked??PRIMARY[step](last,kind)}{!last&&!blocked&&<ArrowRight size={18}/>}</button>
+    <button type="button" className="button rs-primary" aria-disabled={closing||!!blocked} onClick={e=>next(e,true)}>{blocked??PRIMARY[step](last,kind,state,now)}{!last&&!blocked&&<ArrowRight size={18}/>}</button>
     {!(last&&step==='go')&&<button type="button" className="text-button rs-skip" onClick={e=>next(e,false)}>{last?<>Skip<span className="rs-skip-more"> and close</span></>:'Skip'}</button>}
     {i>0&&<button type="button" className="text-button rs-back" onClick={()=>{if(closing)return;commit.current=null;setBlocked(null);setI(i-1);}}><ArrowLeft size={16}/><span className="rs-back-label">Back</span></button>}
    </div>
@@ -95,8 +95,10 @@ const QUESTION:Record<Step,(s:State,now:string)=>{ask:string;help?:string}>={
  tomorrow:()=>({ask:'What carries over to tomorrow?',help:'Unfinished tasks don’t move by themselves. Write each one that still matters again, or let it go.'}),
  week:(_s,now)=>({ask:'Three things for the week.',help:`The week of ${label(planWeek(now),{month:'long',day:'numeric'})}. Three that would make it a good one.`}),
 };
-const PRIMARY:Record<Step,(last:boolean,kind:RitualKind)=>string>={
- frog:()=>'This is my frog',three:()=>'These three',go:()=>'Start my day',ticks:()=>'That’s the day',mood:()=>'Save',
+// "These three" only when there are three: with fewer the button names what's there, and with none it simply moves on.
+const THREE=['Next','This one','These two','These three'];
+const PRIMARY:Record<Step,(last:boolean,kind:RitualKind,s:State,now:string)=>string>={
+ frog:()=>'This is my frog',three:(_l,_k,s,now)=>THREE[Math.min(3,afterFrog(s,now).filter(t=>!t.auto).length)],go:()=>'Start my day',ticks:()=>'That’s the day',mood:()=>'Save',
  tomorrow:last=>last?'Close the day':'Next',week:(last,kind)=>last?(kind==='morning'?'Start my day':'Close the day'):'Plan set',
 };
 
@@ -104,7 +106,7 @@ function FrogStep({state,mutate,now,commit,onBlock}:StepProps&{commit:React.Muta
  const list=frogCandidates(state,now).slice(0,5),suggested=suggestFrog(state,now);
  const [pick,setPick]=useState<string>(suggested?.id??'new'),[text,setText]=useState('');
  const empty=pick==='new'&&!text.trim();
- useEffect(()=>{onBlock(empty?'Write it, or skip':null);},[empty]);
+ useEffect(()=>{onBlock(empty?'Write it first':null);},[empty]);
  commit.current=()=>{if(pick==='new'){const v=text.trim();if(v)mutate(s=>{newFrog(s,now,v);},'frog chosen');}else mutate(s=>chooseFrog(s,now,pick),'frog chosen');};
  return <div className="rs-frog">
   {list.length>0&&<ul className="rs-choices" role="radiogroup" aria-label="Today’s frog">{list.map(t=><li key={t.id}><button type="button" role="radio" aria-checked={pick===t.id} className={`rs-choice ${pick===t.id?'on':''}`} onClick={()=>setPick(t.id)}><span className="rs-radio" aria-hidden="true">{pick===t.id&&<FrogGlyph/>}</span><span className="rs-choice-text">{t.text}</span>{t.priority&&<b className={`prio-chip prio-${t.priority}`} aria-label={`Priority ${t.priority}`}>{t.priority}</b>}</button></li>)}</ul>}

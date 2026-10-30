@@ -6,7 +6,7 @@ import {label,daysBetween,weekStart} from './dates';
 import {stats,criteriaAt,dayState} from './engine';
 import {goalName} from './Board';
 import {GoalControls,type Mutate} from './GoalControls';
-import {TodayList} from './Todo';
+import {TodayList,MorningQuote} from './Todo';
 import {DailyTicks} from './Guide';
 import {TrainingCard} from './TrainingCard';
 import {needsWorkoutTask,ensureWorkoutTask,dayPlan,isTrainingDay} from './training';
@@ -16,7 +16,8 @@ import {activeRitual} from './ritual/rules';
 
 // Today is a two-minute ritual, then the day itself. Before 5 pm the morning card asks three short questions (your
 // frog, today's three, go); from 5 pm the evening card closes the day. Once a ritual is done, Today is the doing view:
-// the frog, the rest of the list, the gym session and your daily promises. Nothing else asks for attention.
+// the frog and the list on the left, on the first screen; the day's line, the gym session and your promises beside it.
+// Once the day is closed, the side goes quiet: no counters, no inputs, only what you kept.
 export function Today({state,mutate,now,go}:{state:State;mutate:Mutate;now:string;go:(p:string)=>void}){
  const active=state.goals.filter(g=>g.status==='active').sort((a,b)=>Number(b.pinned)-Number(a.pinned)||a.priority-b.priority);
  // On gym days the session joins the to-do list as a task, kept ticked as you go.
@@ -26,7 +27,8 @@ export function Today({state,mutate,now,go}:{state:State;mutate:Mutate;now:strin
  // Morning and evening are skipped separately, so skipping the morning doesn't hide the evening.
  const skipKey=`reboot-ritual-skip-${now}-${ritual??'none'}`,[skips,setSkips]=useState<Record<string,boolean>>({});
  const skipped=ritual?skips[skipKey]??(()=>{try{return sessionStorage.getItem(skipKey)==='1';}catch{return false;}})():false;
- const skip=(v:boolean)=>{setSkips(m=>({...m,[skipKey]:v}));try{if(v)sessionStorage.setItem(skipKey,'1');else sessionStorage.removeItem(skipKey);}catch{/* private mode */}};
+ // Skipping lands on the list from the top, the same as finishing, so the page never opens scrolled halfway down.
+ const skip=(v:boolean)=>{setSkips(m=>({...m,[skipKey]:v}));try{if(v)sessionStorage.setItem(skipKey,'1');else sessionStorage.removeItem(skipKey);}catch{/* private mode */}if(v)window.scrollTo({top:0,behavior:'auto'});};
  // While a check-in card shows, it is the whole page: a quiet header, Bond on one line, the card, a way out.
  const showCard=!!ritual&&!skipped,closed=!!(state.rituals??[]).find(r=>r.date===now)?.evening;
  // The doing view rises in once, right after a ritual finishes, from the top, so the frog is on the first screen.
@@ -49,20 +51,28 @@ export function Today({state,mutate,now,go}:{state:State;mutate:Mutate;now:strin
    <aside className="today-side">
     {ritual==='evening'&&skipped?<p className="ritual-note"><span>Closing the day takes two minutes.</span><button type="button" className="button secondary" onClick={()=>skip(false)}>Close my day</button></p>
     :<RitualNote state={state} now={now} hour={hour} skipped={skipped&&ritual==='morning'} onOpen={()=>skip(false)}/>}
-    {gym&&<TrainingCard state={state} mutate={mutate} now={now}/>}
+    <section className="today-quote" aria-label="Today’s line"><MorningQuote state={state} mutate={mutate} now={now}/></section>
+    {gym&&<TrainingCard state={state} mutate={mutate} now={now} closed={closed}/>}
     <DailyTicks state={state} mutate={mutate} now={now} closed={closed}/>
-    <Promises state={state} mutate={mutate} now={now} go={go} active={active}/>
+    <Promises state={state} mutate={mutate} now={now} go={go} active={active} closed={closed}/>
    </aside>
   </div>}
  </div>;
 }
 
-// The week's promises with their count. With nothing on the board yet, one gentle way in.
-function Promises({state,mutate,now,go,active}:{state:State;mutate:Mutate;now:string;go:(p:string)=>void;active:Goal[]}){
+// The week's promises with their count. With nothing on the board yet, one gentle way in. Once the day is closed there
+// are no counts and no inputs, only the promises already covered this week, named.
+function Promises({state,mutate,now,go,active,closed=false}:{state:State;mutate:Mutate;now:string;go:(p:string)=>void;active:Goal[];closed?:boolean}){
  const daily=active.filter(g=>g.type==='daily'),weekly=active.filter(g=>g.type.startsWith('weekly'));
  const daysLeft=7-daysBetween(weekStart(now),now);
  if(!daily.length&&!weekly.length)return <section className="promises empty-commitments"><h2>Choose what you’ll show up for.</h2><p>Your 36 commitments are waiting on the board. Turn on a handful, not all of them.</p><button className="button" onClick={()=>go('Reboot Board')}>Set up your board <ArrowRight size={16}/></button></section>;
  if(!weekly.length)return null;
+ if(closed){const onTrack=weekly.filter(g=>{const st=stats(g,state.logs,now),c=criteriaAt(g,now);return g.type==='weekly-max'?st.canQualify:st.period>=c.target;}).map(g=>goalName(g,state));
+  return <section className="promises is-closed" aria-labelledby="promises-title">
+   <div className="section-title"><h2 id="promises-title">This week</h2></div>
+   <p className="promises-calm">{onTrack.length?<>On track: {onTrack.join(' · ')}</>:'Your week’s promises pick up again tomorrow.'}</p>
+   <button className="text-button section-link" onClick={()=>go('Reboot Board')}>All {state.goals.length} commitments <ArrowRight size={16}/></button>
+  </section>;}
  const row=(g:Goal,meta:string)=><li key={g.id} className={`promise ${dayState(g,state.logs,now)}`}><div className="promise-text"><strong>{g.pinned&&<Pin size={14} className="promise-pin"/>}{goalName(g,state)}</strong><small>{meta}</small></div><GoalControls g={g} state={state} date={now} mutate={mutate} quick/></li>;
  return <section className="promises" aria-labelledby="promises-title">
   <div className="section-title"><h2 id="promises-title">This week</h2><span className="count-note">{daysLeft} {daysLeft===1?'day':'days'} left</span></div>

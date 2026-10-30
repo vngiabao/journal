@@ -8,4 +8,4 @@
 import './bond.css';
 export {BondJourney,Stamp} from './BondJourney';
 export {bondCelebrate,celebrateMilestone,type BondMoment} from './celebrate';
-export {journey,showUpDays,milestoneDue,milestoneKey,markCelebrated,celebrated,keepsake} from './journey';
+export {journey,showUpDays,milestoneDue,milestoneKey,markCelebrated,celebrated,keepsake,comingBack,weekWords,WELCOME} from './journey';

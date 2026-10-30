@@ -7,9 +7,9 @@ import {uid} from './model';
 import {putActivity,type Mutate} from './GoalControls';
 import {addDays,label} from './dates';
 import {dayState} from './engine';
-import {Chibi} from './Art';
 import {FrogCard,FrogFocus,FrogGlyph,PriorityChip,frogStats,priorityRank} from './Frog';
 import {leftovers} from './frog-rules';
+import {todaysList} from './ritual/rules';
 import {setAll} from './training';
 import {syncStepFromTodo} from './plan';
 import type {Priority} from './model';
@@ -18,9 +18,10 @@ import type {Priority} from './model';
 export const TODO_GOAL='35';
 
 // Today's list: the frog first, on its own, then the list you work through. Once the day is closed the counts go
-// quiet: what's done stays ticked, and nothing tallies what wasn't.
+// quiet: what's done stays ticked, and nothing tallies what wasn't. A task written again for tomorrow or let go in the
+// evening is settled: it leaves today's list and is named once, in one quiet line.
 export function TodayList({state,mutate,now,closed=false}:{state:State;mutate:Mutate;now:string;closed?:boolean}){
- const todays=(state.todos??[]).filter(t=>t.date===now&&!t.dismissed&&!t.routine),done=todays.filter(t=>t.done).length,unfinished=todays.length-done;
+ const {open:todays,settled,again,dropped}=todaysList(state,now,closed),done=todays.filter(t=>t.done).length,unfinished=todays.length-done;
  const frog=todays.find(t=>t.frog),rest=todays.filter(t=>!t.frog),ordered=[...rest].sort((a,b)=>priorityRank(a)-priorityRank(b));
  const undone=ordered.filter(t=>!t.done),finished=ordered.filter(t=>t.done),[showAll,setShowAll]=useState(false);
  // The next three tasks are what you see, then everything you've finished; the rest of today folds away until asked for.
@@ -58,17 +59,13 @@ export function TodayList({state,mutate,now,closed=false}:{state:State;mutate:Mu
  const frogBlock=frog&&(!closed||frog.done)?<FrogCard frog={frog} mutate={mutate} now={now} onFocus={()=>setFocus(true)}/>
   :!closed&&new Date().getHours()<17&&rest.some(x=>!x.done&&!x.routine&&!x.auto)?<div className="frog-pick"><FrogGlyph/><div><p><b>Pick today’s frog.</b> The task you’d most like to put off. You’ll do it first.</p><div className="frog-choices">{rest.filter(x=>!x.done&&!x.routine&&!x.auto&&x.priority!=='D'&&x.priority!=='E').map(x=><button key={x.id} type="button" className="frog-choice" aria-label={`Make “${x.text}” my frog`} onClick={()=>makeFrog(x.id)}>{x.text}</button>)}</div></div></div>:null;
  return <>{frogBlock}<section ref={card} className={`today-list ${closed?'is-closed':''}`} aria-labelledby="today-list-title">
-  <header className="tl-head">
-   <div className="tl-title">
-    <h2 id="today-list-title">For today</h2>
-    <MorningQuote state={state} mutate={mutate} now={now}/>
-   </div>
+  {/* One slim band: the title and a quiet count. The day's line lives beside the list, so the list starts high. */}
+  <header className="tl-head tl-slim">
+   <h2 id="today-list-title">For today</h2>
    <div className="tl-score">
-    <Chibi pose={closed?'tea':todays.length&&!unfinished?'check':'think'} className="tl-chibi"/>
-    {!closed&&<><p><strong>{done}</strong><span>/{todays.length}</span><small>{todays.length&&!unfinished?'all done':'done'}</small></p>
-    {todays.length>0&&<p className="tl-breakdown">{frog?`Frog + ${rest.length} ${rest.length===1?'task':'tasks'}`:`${todays.length} ${todays.length===1?'task':'tasks'}`}{unfinished?` · ${unfinished} to go`:''}</p>}
-    <i aria-hidden="true"><b style={{transform:`scaleX(${todays.length?done/todays.length:0})`}}/></i></>}
-    {fs.eaten>0&&<p className="frog-streak"><FrogGlyph/>{fs.streak>1?`${fs.streak}-day frog streak`:`${fs.eaten} ${fs.eaten===1?'frog':'frogs'} eaten`}{fs.early>0&&<small>{fs.early} before noon</small>}</p>}
+    {!closed&&todays.length>0&&<><p><strong>{done}</strong><span>/{todays.length}</span><small>{!unfinished?'all done':'done'}</small></p>
+    <i aria-hidden="true"><b style={{transform:`scaleX(${done/todays.length})`}}/></i></>}
+    {fs.eaten>0&&<p className="frog-streak"><FrogGlyph/>{fs.streak>1?`${fs.streak}-day frog streak`:`${fs.eaten} ${fs.eaten===1?'frog':'frogs'} eaten`}</p>}
    </div>
   </header>
   <div className="tl-body">
@@ -77,6 +74,7 @@ export function TodayList({state,mutate,now,closed=false}:{state:State;mutate:Mu
    {ordered.length?<><ul className="todo-list big">{visible.map(t=><TodoItem key={t.id} t={t} onToggle={toggle} onRemove={remove} onPriority={p=>setPriority(t.id,p)}/>)}</ul>
    {(hidden>0||(showAll&&undone.length>8))&&<div className="list-folds">{hidden>0&&<button type="button" className="text-button" onClick={()=>setShowAll(true)}>Also today ({hidden})</button>}{showAll&&undone.length>8&&<button type="button" className="text-button" onClick={()=>setShowAll(false)}>Show fewer</button>}</div>}</>:!frog&&<p className="tl-empty">Nothing on the list yet. What would make today a good day?</p>}
    {focus&&frog&&<FrogFocus frog={frog} mutate={mutate} onClose={()=>setFocus(false)}/>}
+   {settled.length>0&&<p className="tl-settled"><Check size={16}/>Settled tonight: {[again&&`${again} written for tomorrow`,dropped&&`${dropped} let go`].filter(Boolean).join(', ')}.</p>}
    {later.length>0&&<button type="button" className="text-button later-toggle" aria-expanded={showLater} onClick={()=>setShowLater(!showLater)}>{showLater?'Hide tomorrow':`Tomorrow (${later.length})`}</button>}
    {showLater&&later.length>0&&<ul className="later-list" aria-label="Tomorrow">{later.map(t=><li key={t.id}>{t.frog&&<FrogGlyph/>}<span>{t.text}</span><button type="button" className="text-button" onClick={()=>moveToToday(t.id)}>Do today</button><button type="button" className="icon-button" aria-label={`Remove “${t.text}”`} onClick={()=>remove(t.id)}><X size={14}/></button></li>)}</ul>}
    <Rewrite state={state} mutate={mutate} now={now}/>
@@ -93,15 +91,15 @@ function AddTodo({label,placeholder,onAdd,when,onWhen}:{label:string;placeholder
  return <form className="todo-add" onSubmit={e=>{e.preventDefault();const v=text.trim();if(!v)return;onAdd(v);setText('');}}><Plus size={20}/><input aria-label={label} value={text} maxLength={140} placeholder={placeholder} onChange={e=>setText(e.target.value)}/><span className="add-when" role="radiogroup" aria-label="Add to">{(['today','tomorrow'] as const).map(w=><button key={w} type="button" role="radio" aria-checked={when===w} className={when===w?'selected':''} onClick={()=>onWhen(w)}>{w==='today'?'Today':'Tomorrow'}</button>)}</span><button className="button" disabled={!text.trim()}>Add</button></form>;
 }
 
-// A line to start the day, above the list. Until you write a new one, the last one stays up.
-function MorningQuote({state,mutate,now}:{state:State;mutate:Mutate;now:string}){
+// A line to start the day, beside the list. Until you write a new one, the last one stays up.
+export function MorningQuote({state,mutate,now}:{state:State;mutate:Mutate;now:string}){
  const quotes=state.quotes??[],todays=quotes.find(q=>q.date===now),shown=todays??[...quotes].filter(q=>q.date<now).sort((a,b)=>b.date.localeCompare(a.date))[0];
  const [editing,setEditing]=useState(false),[text,setText]=useState('');
  function save(){const v=text.trim().replace(/^["“”]+|["“”]+$/g,'').trim();mutate(s=>{const rest=(s.quotes??[]).filter(q=>q.date!==now);s.quotes=v?[...rest,{id:todays?.id??uid(),date:now,text:v}]:rest;},'morning quote');setEditing(false);}
  if(editing)return <form className="day-quote-edit" onSubmit={e=>{e.preventDefault();save();}}><textarea aria-label="Today’s line" autoFocus value={text} maxLength={220} rows={3} placeholder="Winners don’t make excuses when the other side is playing the game." onChange={e=>setText(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();save();}if(e.key==='Escape')setEditing(false);}}/><div><button className="button secondary">Write it up</button><button type="button" className="text-button" onClick={()=>setEditing(false)}>Cancel</button></div></form>;
  return <figure className={`day-quote ${shown?'':'empty'}`}>
   {shown?<blockquote>{shown.text}</blockquote>:<p>A line to start the day?</p>}
-  <figcaption>{shown&&!todays&&<span>Still up from {label(shown.date,{month:'short',day:'numeric'})}</span>}<button className="text-button" onClick={()=>{setText(todays?.text??'');setEditing(true);}}><PenLine size={14}/>{todays?'Rewrite':shown?'Write today’s line':'Write a line'}</button></figcaption>
+  <figcaption>{shown&&!todays&&<span>From {label(shown.date,{month:'short',day:'numeric'})}</span>}<button className="text-button" onClick={()=>{setText(todays?.text??'');setEditing(true);}}><PenLine size={14}/>{todays?'Rewrite':shown?'Write today’s line':'Write a line'}</button></figcaption>
  </figure>;
 }
 

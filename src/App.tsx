@@ -100,12 +100,14 @@ export default function App(){
   celebrate(previous,next);
  };
  // A small chibi Bao pops up when a promise is kept today, and celebrates when a goal is completed.
+ // One companion at a time: an eaten frog is Bond's moment (bondCelebrate), and while a check-in card is open Bond is
+ // the only one who reacts, so Bao stays quiet and nothing sits over the card's action bar.
  const cheerTimer=useRef(0);
  function celebrate(a:State,b:State){
   const day=today(b.settings.timezone);
   const finished=b.goals.some(g=>g.status==='completed'&&a.goals.find(x=>x.id===g.id)?.status!=='completed')||b.achievements.length>a.achievements.length;
   const frogEaten=(b.todos??[]).some(t=>t.frog&&t.done&&!(a.todos??[]).find(x=>x.id===t.id)?.done);
-  if(frogEaten){setCheer({pose:'bingo',text:'Frog eaten. Everything else today is downhill.',key:Date.now()});return;}
+  if(frogEaten||document.querySelector('.ritual-card'))return;
   const kept=b.logs.some(l=>l.date===day&&l.state==='success'&&a.logs.find(x=>x.id===l.id)?.state!=='success');
   if(!finished&&!kept)return;
   const p=lastPress.current;if(Date.now()-p.at<1500)inkStamp(Math.min(p.x+110,window.innerWidth-70),p.y,finished?'Done':'Kept');

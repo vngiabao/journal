@@ -9,9 +9,15 @@ import {addDays,weekStart} from './dates';
 import {DEFAULT_PLAN,WEEKDAYS,dayPlan,doneNames,finished,isTrainingDay,planOf,setAll,toggleExercise,weekdayIndex,parseLines,formatLines} from './training';
 import {inkStamp} from './delight';
 
-export function TrainingCard({state,mutate,now}:{state:State;mutate:Mutate;now:string}){
- const day=dayPlan(state,now),done=doneNames(state,now),complete=finished(state,now),[week,setWeek]=useState(false),[editing,setEditing]=useState(false);
+// Once the day is closed the session folds to one calm line: what it was, and "Done" if it was. Nothing to tick, no
+// count of what wasn't; "Show the session" opens the whole card if you want to log it after all.
+export function TrainingCard({state,mutate,now,closed=false}:{state:State;mutate:Mutate;now:string;closed?:boolean}){
+ const day=dayPlan(state,now),done=doneNames(state,now),complete=finished(state,now),[week,setWeek]=useState(false),[editing,setEditing]=useState(false),[open,setOpen]=useState(false);
  const ws=weekStart(now),count=day.exercises.filter(e=>done.has(e.name)).length;
+ if(closed&&!open)return <section className={`training is-calm ${complete?'complete':''}`} aria-label="Today’s training">
+  <p className="training-calm"><span>{day.kind==='gym'?'Gym':day.kind==='sport'?'Sport':'Training'} today: <b>{day.title}</b></span>{complete&&<span className="training-calm-done"><Check size={16}/>Done</span>}</p>
+  <button type="button" className="text-button" aria-expanded={false} onClick={()=>setOpen(true)}>Show the session <ChevronDown size={14}/></button>
+ </section>;
  const tick=(name:string,e:React.MouseEvent<HTMLElement>)=>{if(!done.has(name)&&day.exercises.filter(x=>!done.has(x.name)).length===1){const r=e.currentTarget.getBoundingClientRect();inkStamp(Math.min(r.right-60,innerWidth-70),r.top+r.height/2,'Done');}mutate(s=>toggleExercise(s,now,name),'workout');};
  return <section className={`training ${day.kind} ${complete?'complete':''}`} aria-labelledby="training-title">
   <div className="training-head">
@@ -23,6 +29,7 @@ export function TrainingCard({state,mutate,now}:{state:State;mutate:Mutate;now:s
    {day.exercises.length>1&&<button type="button" className={complete?'text-button':'button secondary training-all'} onClick={()=>mutate(s=>setAll(s,now,!complete),'workout')}>{complete?'Undo workout':day.kind==='gym'?'Mark the whole workout done':'Mark done'}</button>}
    {day.kind==='gym'&&<p className="training-note">Finishing it counts toward “Gym 4+ times a week”.</p>}</>}
   <div className="training-foot">
+   {closed&&<button type="button" className="text-button" aria-expanded={true} onClick={()=>setOpen(false)}>Fold it away</button>}
    <button type="button" className="text-button" aria-expanded={week} onClick={()=>setWeek(!week)}>{week?'Hide the week':'See the week'} <ChevronDown size={14}/></button>
    <button type="button" className="text-button" onClick={()=>setEditing(true)}><PenLine size={14}/>Edit plan</button>
   </div>

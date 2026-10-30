@@ -35,6 +35,12 @@ export const hasWeekStep=(s:State,date:string,hour:number)=>isPlanDay(date,hour)
 
 // Today's own tasks: what you wrote, not the app's routine reminders.
 export const todaysTasks=(s:State,date:string)=>(s.todos??[]).filter(t=>t.date===date&&!t.dismissed&&!t.routine);
+// Today's list in the doing view: what's still yours today, and what the evening settled (written again for tomorrow
+// or let go), which leaves the list. On a closed day an unticked gym session leaves it too (the training card names it).
+export function todaysList(s:State,date:string,closed=false){
+ const mine=(s.todos??[]).filter(t=>t.date===date&&!t.dismissed&&!t.routine),settled=mine.filter(t=>t.carried&&!t.done);
+ return {open:mine.filter(t=>!(t.carried&&!t.done)&&!(closed&&t.auto&&!t.done)),settled,again:settled.filter(t=>t.carried==='rewritten').length,dropped:settled.filter(t=>t.carried!=='rewritten').length};
+}
 // Candidates for the frog: undone tasks you could do today, best first. The gym session and hand-offs never qualify.
 export const frogCandidates=(s:State,date:string)=>todaysTasks(s,date).filter(t=>!t.done&&!t.auto&&t.priority!=='D'&&t.priority!=='E').sort((a,b)=>priorityRank(a)-priorityRank(b));
 // The suggested frog: the one already chosen (last night, say), otherwise the top task.

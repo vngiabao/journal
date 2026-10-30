@@ -1,7 +1,7 @@
 import {describe,it,expect} from 'vitest';
 import {seed} from '../src/seed';
 import type {Todo} from '../src/model';
-import {activeRitual,hasWeekStep,isPlanDay,isMonthEnd,planWeek,planMonth,markRitual,ritualOf,suggestFrog,frogCandidates,chooseFrog,newFrog,afterFrog,toTomorrow,leftToSettle,rewriteTomorrow,letGo,settledOn,setTomorrowFrog,tomorrowsFrog,todaysTasks} from '../src/ritual/rules';
+import {activeRitual,hasWeekStep,isPlanDay,isMonthEnd,planWeek,planMonth,markRitual,ritualOf,suggestFrog,frogCandidates,chooseFrog,newFrog,afterFrog,toTomorrow,leftToSettle,rewriteTomorrow,letGo,settledOn,setTomorrowFrog,tomorrowsFrog,todaysTasks,todaysList} from '../src/ritual/rules';
 import {leftovers} from '../src/frog-rules';
 
 const FRI='2026-10-30',SAT='2026-10-31',SUN='2026-11-01';
@@ -75,6 +75,12 @@ describe('Evening: the rewrite rule and tomorrow’s frog',()=>{
   rewriteTomorrow(s,a.id,'a again',FRI);letGo(s,b.id,FRI);letGo(s,c.id,FRI);
   expect(settledOn(s,FRI)).toEqual({again:1,dropped:2,total:3});
   expect(leftToSettle(s,FRI)).toEqual([]);
+ });
+ it('takes settled tasks off today’s list, and an unticked gym session once the day is closed',()=>{
+  const s=seed('2026-10-01');const a=todo(FRI,{text:'Again'}),b=todo(FRI,{text:'Drop'}),c=todo(FRI,{text:'Open'}),d=todo(FRI,{text:'Done',done:true}),g=todo(FRI,{text:'Gym',auto:'workout'});
+  s.todos=[a,b,c,d,g];rewriteTomorrow(s,a.id,'Again, smaller',FRI);letGo(s,b.id,FRI);
+  const l=todaysList(s,FRI);expect(l.open.map(t=>t.text)).toEqual(['Open','Done','Gym']);expect(l).toMatchObject({again:1,dropped:1});
+  expect(todaysList(s,FRI,true).open.map(t=>t.text)).toEqual(['Open','Done']);
  });
  it('sets tomorrow’s frog from tomorrow’s list or from new words, one at a time',()=>{
   const s=seed('2026-10-01');const t=todo(SAT,{text:'call'});s.todos=[t];

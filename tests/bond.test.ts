@@ -4,7 +4,7 @@ import {seed} from '../src/seed';
 import {validateImport} from '../src/storage';
 import type {State,DayRitual} from '../src/model';
 import {addDays} from '../src/dates';
-import {showUpDays,journey,milestoneAfter,isMilestone,milestonesUpTo,markCelebrated,celebrated,milestoneDue,milestoneKey,bondLine,dayLine,trailPose,keepsake} from '../src/bond/journey';
+import {showUpDays,journey,milestoneAfter,isMilestone,milestonesUpTo,markCelebrated,celebrated,milestoneDue,milestoneKey,bondLine,dayLine,trailPose,keepsake,comingBack,weekWords,WELCOME} from '../src/bond/journey';
 
 const NOW='2026-10-30'; // a Friday
 const T='2026-10-30T08:00:00.000Z';
@@ -70,6 +70,16 @@ describe('journey()',()=>{
   const back=journey(streak(1,0,streak(5,4)),NOW);
   expect(back).toMatchObject({total:6,today:true,gap:4,sinceLast:0});
   expect(bondLine(back,8)).toBe('Good morning - you came back.');expect(bondLine(back,20)).toBe('You came back. Bond noticed.');
+ });
+ it('coming back after two days away shows the welcome, never an empty week',()=>{
+  const away=journey(streak(4,5),NOW);
+  expect(comingBack(away)).toBe(true);expect(bondLine(away,9)).toBe(WELCOME);
+  expect(comingBack(journey(streak(4,1),NOW))).toBe(false);
+  expect(comingBack(journey(streak(1,0,streak(4,5)),NOW))).toBe(false);
+  expect(comingBack(journey(fresh(),NOW))).toBe(false);
+  // No form of the week reads "0 of 7".
+  expect(weekWords(away)).not.toMatch(/^0 of 7/);expect(weekWords(journey(fresh(),NOW))).toBe('Your first stone is today');
+  expect(weekWords(journey(streak(3),NOW))).toBe('3 of 7 this week');
  });
  it('ignores rituals dated after today',()=>{const s=streak(2);s.rituals!.push({date:addDays(NOW,3),morning:T});expect(journey(s,NOW).total).toBe(2);});
 });

@@ -6,7 +6,7 @@ import {gsap,useGSAP,whenMotionOK,motionOK} from '../motion';
 import {petChoice} from '../Pet';
 import {Rough,sk,seedOf} from '../Sketch';
 import {addDays,label,weekStart} from '../dates';
-import {journey,bondLine,dayLine,trailPose,keepsake,milestoneDue,milestoneKey,markCelebrated,milestoneAfter,type Journey} from './journey';
+import {journey,bondLine,dayLine,trailPose,keepsake,milestoneDue,milestoneKey,markCelebrated,milestoneAfter,comingBack,weekWords,WELCOME,type Journey} from './journey';
 // A keepsake stamp's width and the gap between stamps (bond.css .bond-stamp and .bf-stamps).
 const STAMP_W=150,STAMP_GAP=24;
 import {stripLayout,fullLayout} from './trail';
@@ -62,7 +62,7 @@ function Strip({state,mutate,now,compact}:{state:State;mutate:Mutate;now:string;
  useEffect(()=>{const n=milestoneDue(state,now);if(!n)return;mutate(s=>markCelebrated(s,milestoneKey(n)),'bond milestone');celebrateMilestone(n,now);},[state,now]);
  // Back after a few days away: the pocket pet says hello, once that day.
  useEffect(()=>{if(j.today||!j.total||j.sinceLast===null||j.sinceLast<2||state.bond?.lastGreeted===now)return;
-  const t=window.setTimeout(()=>{if(greet('Bond missed you. Welcome back.'))mutate(s=>{(s.bond??(s.bond={})).lastGreeted=now;},'bond greeting');},900);return()=>clearTimeout(t);},[j.today,j.sinceLast,now]);
+  const t=window.setTimeout(()=>{if(greet(WELCOME))mutate(s=>{(s.bond??(s.bond={})).lastGreeted=now;},'bond greeting');},900);return()=>clearTimeout(t);},[j.today,j.sinceLast,now]);
  const {contextSafe}=useGSAP({scope:root});
  const open=contextSafe(()=>{const d=sheet.current;if(!d)return;d.showModal();if(motionOK())gsap.fromTo(d,{opacity:0,y:24},{opacity:1,y:0,duration:.3,ease:'enter',clearProps:'opacity,transform'});});
  return <div ref={root} className={`bond-strip-wrap ${compact?'is-line':''}`}>
@@ -79,11 +79,12 @@ function Strip({state,mutate,now,compact}:{state:State;mutate:Mutate;now:string;
 // One line: Bond sitting small, the count, this week's stones, and the way into the trail. No drawing, no walk.
 function StripLine({j,now,onOpen}:{j:Journey;now:string;onOpen:()=>void}){
  const pose=trailPose(j),shown=pose==='walk-a'?'sit':pose==='stick'?'stick':pose==='tilt'?'tilt':'sit';
- return <button type="button" className={`bond-line ${j.today?'is-today':''}`} onClick={onOpen} aria-haspopup="dialog" aria-label={`${dayLine(j)}. ${j.weekCount} of 7 this week. Open Bond’s trail.`}>
+ return <button type="button" className={`bond-line ${j.today?'is-today':''}`} onClick={onOpen} aria-haspopup="dialog" aria-label={`${dayLine(j)}. ${comingBack(j)?WELCOME:`${weekWords(j)}.`} Open Bond’s trail.`}>
   <img className="bl-dog" src={bondArt(shown)} alt=""/>
   <span className="bl-words" aria-hidden="true">
    <span className="bl-day">{dayLine(j)}</span>
-   <span className="bl-week"><WeekStones j={j} now={now} small/><span className="bl-week-text">{j.weekCount} of 7 this week</span></span>
+   {comingBack(j)?<span className="bl-welcome">{WELCOME}</span>
+   :<span className="bl-week"><WeekStones j={j} now={now} small/><span className="bl-week-text">{weekWords(j)}</span></span>}
   </span>
   <span className="bl-open" aria-hidden="true">See the trail</span>
  </button>;
@@ -112,11 +113,12 @@ function StripTrail({j,now,onOpen}:{j:Journey;now:string;onOpen:()=>void}){
   gsap.fromTo(bondRef.current,{x:dx},{x:0,duration:Math.min(1.6,.5+Math.abs(dx)/160),ease:'move',delay:.25,onComplete:()=>{setWalk(null);
    const el=bondRef.current;if(el&&j.milestoneToday)gsap.timeline().to(el,{y:-14,duration:.2,ease:'power2.out',yoyo:true,repeat:1}).to(el,{y:0,duration:.35,ease:'elastic.out(1,.4)'});}});
  },{scope:root,dependencies:[walk?.id,!!L]});
- const line=bondLine(j,hour),flagState=j.milestoneToday?'earned':'next';
- return <button ref={root} type="button" className={`bond-strip ${j.today?'is-today':''} ${j.milestoneToday?'is-milestone':''}`} onClick={onOpen} aria-haspopup="dialog" aria-label={`${dayLine(j)}. ${j.weekCount} of 7 this week. ${line} Open Bond’s trail.`}>
+ // Coming back, the welcome is the line (bondLine says it) and the week's stones step aside.
+ const line=bondLine(j,hour),back=comingBack(j),flagState=j.milestoneToday?'earned':'next';
+ return <button ref={root} type="button" className={`bond-strip ${j.today?'is-today':''} ${j.milestoneToday?'is-milestone':''}`} onClick={onOpen} aria-haspopup="dialog" aria-label={`${dayLine(j)}. ${back?'':`${weekWords(j)}. `}${line} Open Bond’s trail.`}>
    <span className="bs-words" aria-hidden="true">
     <span className="bs-day">{dayLine(j)}</span>
-    <span className="bs-week-row"><WeekStones j={j} now={now}/><span className="bs-week-text">{j.weekCount} of 7 this week</span></span>
+    {!back&&<span className="bs-week-row"><WeekStones j={j} now={now}/><span className="bs-week-text">{weekWords(j)}</span></span>}
     <span className="bs-line">{line}</span>
    </span>
    <span ref={trailRef} className="bs-trail" aria-hidden="true">
@@ -161,7 +163,7 @@ function Full({j,now}:{j:Journey;now:string}){
   <header className="bf-head">
    <h2>Bond’s trail</h2>
    <p className="bf-sum">{j.total?<>{j.total} {j.total===1?'day':'days'} showing up{first?<> since {label(first,{month:'long',day:'numeric'})}</>:null}.</>:<>Every day you finish the morning or evening check-in, Bond takes a step.</>}</p>
-   <div className="bf-week"><WeekStones j={j} now={now} letters/><span>{j.weekCount} of 7 this week</span></div>
+   <div className="bf-week"><WeekStones j={j} now={now} letters/><span>{weekWords(j)}</span></div>
   </header>
   <div ref={box} className="bf-trail" style={{height:L?.height??260}}>
    {L&&<>

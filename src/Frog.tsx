@@ -54,12 +54,15 @@ export function FrogCard({frog,mutate,now,onFocus}:{frog:Todo;mutate:Mutate;now:
   <div className="frog-body">
    <button className={`check-action frog-title ${frog.done?'checked':''}`} aria-pressed={frog.done} onClick={eat}><span className="check-box">{frog.done&&<Check size={18}/>}</span><span className="todo-text">{frog.text}</span></button>
    <p className="frog-eyebrow">{frog.done?`Frog eaten${frog.doneAt?` at ${timeOf(frog.doneAt)}`:''}. The rest of today is downhill.`:late?'Still waiting. Don’t stare at it: start one slice.':'Your frog. Eat it first, and everything else waits.'}</p>
+   {/* Slices and the two actions share one row when there's room, so the card stays short and the list starts high. */}
+   <div className="frog-row">
    {(slices.length>0||!frog.done)&&<div className="frog-slices">
     {slices.length>0&&<><div className="slice-meter" aria-hidden="true"><b style={{transform:`scaleX(${sliced/slices.length})`}}/></div>
     <ul>{slices.map(s=><li key={s.id} className={s.done?'done':''}><button className={`check-action ${s.done?'checked':''}`} aria-pressed={s.done} onClick={()=>edit(t=>{const x=t.slices?.find(y=>y.id===s.id);if(x)x.done=!x.done;},'frog slice')}><span className="check-box">{s.done&&<Check size={13}/>}</span><span>{s.text}</span></button><button className="icon-button" aria-label={`Remove slice “${s.text}”`} onClick={()=>edit(t=>{t.slices=(t.slices??[]).filter(y=>y.id!==s.id);},'frog slice')}><X size={12}/></button></li>)}</ul></>}
     {!frog.done&&<form className="slice-add" onSubmit={e=>{e.preventDefault();const v=slice.trim();if(!v)return;edit(t=>{t.slices=[...(t.slices??[]),{id:uid(),text:v,done:false}];},'frog slice');setSlice('');}}><Plus size={15}/><input aria-label="Add a slice of your frog" value={slice} maxLength={120} placeholder={slices.length?'Next slice…':'Slice it: what is the first small step?'} onChange={e=>setSlice(e.target.value)}/></form>}
    </div>}
    {!frog.done&&<div className="frog-actions"><button className="button frog-go" onClick={onFocus}><Play size={15}/>Eat it now</button><button className="text-button" onClick={()=>edit(t=>{t.frog=false;},'frog unset')}>Not my frog</button></div>}
+   </div>
   </div>
  </section>;
 }
