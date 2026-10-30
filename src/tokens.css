@@ -18,12 +18,16 @@
  --red:#a8323e;--red-wash:#f6e2e3;--red-hover:#8c2833;--red-line:#deb0b5;
  /* Emerald */
  --green:#1f6b57;--green-wash:#e1eee8;--green-line:#a9cdbf;
+ /* The frog's own green: lighter and leafier than --green, used only around today's frog. */
+ --frog:#7fae6b;--frog-line:#b9d1aa;--frog-edge:#cfe0c4;--frog-wash:#f1f7ec;--frog-wash-2:#f4f9f0;
  /* Lines and shadows (cool-tinted to the paper) */
  --line:#dde3ec;--line-strong:#cbd4e1;--track:#dfe5ee;
  --shadow-1:0 1px 0 #1f2a440a;
  --shadow-2:0 1px 2px #1f2a4410,0 12px 28px -16px #1f2a4440;
  --shadow-lift:0 2px 4px #1f2a4414,0 18px 34px -18px #1f2a4452;
  --paper-0:#edf1f700;--paper-40:#edf1f766;--paper-92:#edf1f7eb;--night-35:#13243d59;--night-90:#13243de6;
+ --shadow-art:#1f2a441a;--shadow-art-night:#0006;--shadow-pop:0 30px 70px -20px #13243d99;--shadow-sheet:0 30px 70px -20px #13243d80;
+ --night-glow:#27476999;--night-dot:#ffffff38;--scrim-soft:#13243d4d;
  --focus-halo:#23467a26;--scrim:#13243d66;--scrollbar:#c3cddb;
  /* Type */
  /* Type sizes. Readability first (Bao, 2026-10-24): nothing under 14px, ever.
@@ -34,7 +38,7 @@
  /* Spacing scale: every padding, gap and margin uses one of these */
  --s-1:4px;--s-2:8px;--s-3:12px;--s-4:16px;--s-5:20px;--s-6:24px;--s-7:32px;--s-8:40px;--s-9:48px;--s-10:64px;
  /* Radius */
- --r-chip:999px;--r-control:8px;--r-card:10px;--r-tile:8px;--r-small:6px;
+ --r-chip:999px;--r-control:8px;--r-card:10px;--r-tile:8px;--r-small:6px;--r-sheet:16px;
  --line-blue:#d6e0ee;--margin-red:#e7b9bd;--ink-pen:#1a2d4f;
  /* The journal's paper: warm leaves inside the book */
  --page-leaf:#fbf7ee;--page-leaf-2:#f6f0e2;--page-gutter:#d8caae;--page-rule:#e7dcc6;--page-folio:#655a43;

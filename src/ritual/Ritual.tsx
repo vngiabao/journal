@@ -1,6 +1,6 @@
 // The two-minute ritual: one calm card, one question at a time, one action. Morning plans the day, evening closes it,
 // Sunday (and Saturday evening) adds the week. Every step can be skipped; finishing it is the day you showed up.
-import {useRef,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import './ritual.css';
 import type {State,Todo} from '../model';
 import type {Mutate} from '../GoalControls';
@@ -29,6 +29,8 @@ export function RitualCard({kind,state,mutate,now,go,onDone,hour}:{kind:RitualKi
  const [i,setI]=useState(0),step=steps[i],last=i===steps.length-1,card=useRef<HTMLElement>(null);
  // Each step's work is applied by the step itself; `commit` is what its primary button saves before moving on.
  const commit=useRef<(()=>void)|null>(null);
+ // A step can hold its primary button until it has what it needs (the frog step with an empty new frog).
+ const [blocked,setBlocked]=useState<string|null>(null);
  // A new step takes focus to its question, so keyboard and screen-reader users land where the eyes do.
  useGSAP(()=>{if(!i)return;card.current?.querySelector<HTMLElement>('#ritual-q')?.focus({preventScroll:true});const mm=whenMotionOK(()=>{gsap.from('.rs-in',{opacity:0,y:14,duration:.28,ease:'enter',stagger:.04,clearProps:'all'});});return()=>mm.revert();},{dependencies:[i],scope:card,revertOnUpdate:true});
  // Finishing is the earned moment: a stamp where you pressed, Bond reacts, and Today turns into the doing view.
@@ -36,13 +38,17 @@ export function RitualCard({kind,state,mutate,now,go,onDone,hour}:{kind:RitualKi
  const [closing,setClosing]=useState(false);
  const finish=(btn:HTMLElement)=>{
   setClosing(true);const r=btn.getBoundingClientRect();inkStamp(Math.min(r.left+r.width/2,innerWidth-80),r.top+r.height/2,kind==='morning'?'Planned':'Closed');
-  const done=()=>{mutate(s=>markRitual(s,now,kind),`ritual ${kind}`);bondCelebrate(kind==='morning'?'morning-done':'evening-done');onDone();};
-  if(motionOK())window.setTimeout(done,700);else done();
+  let fired=false;
+  const done=()=>{if(fired)return;fired=true;clearTimeout(t);removeEventListener('pointerdown',done,true);removeEventListener('keydown',done,true);
+   mutate(s=>markRitual(s,now,kind),`ritual ${kind}`);bondCelebrate(kind==='morning'?'morning-done':'evening-done');onDone();};
+  // Any tap or key cuts the beat short.
+  const t=motionOK()?window.setTimeout(done,700):0;
+  if(t){window.setTimeout(()=>{addEventListener('pointerdown',done,true);addEventListener('keydown',done,true);},0);}else done();
  };
- const next=(e:React.MouseEvent<HTMLButtonElement>,save:boolean)=>{if(closing)return;
+ const next=(e:React.MouseEvent<HTMLButtonElement>,save:boolean)=>{if(closing)return;if(save&&blocked)return;
   if(save)commit.current?.();commit.current=null;
   if(step==='week'&&save){mutate(s=>markRitual(s,now,'week'),'ritual week');bondCelebrate('week-done');}
-  if(last){finish(e.currentTarget);return;}setI(i+1);
+  if(last){finish(e.currentTarget);return;}setBlocked(null);setI(i+1);
  };
  const q=QUESTION[step](state,now);
  return <section ref={card} className={`ritual-card ritual-${kind} step-${step} ${closing?'is-closing':''}`} aria-busy={closing} aria-labelledby="ritual-q">
@@ -54,7 +60,7 @@ export function RitualCard({kind,state,mutate,now,go,onDone,hour}:{kind:RitualKi
   </div>
   <div className="rs-main">
    <div className="rs-controls rs-in" key={step}>
-    {step==='frog'&&<FrogStep state={state} mutate={mutate} now={now} commit={commit}/>}
+    {step==='frog'&&<FrogStep state={state} mutate={mutate} now={now} commit={commit} onBlock={setBlocked}/>}
     {step==='three'&&<ThreeStep state={state} mutate={mutate} now={now}/>}
     {step==='go'&&<GoStep state={state} mutate={mutate} now={now}/>}
     {step==='ticks'&&<TicksStep state={state} mutate={mutate} now={now}/>}
@@ -63,9 +69,9 @@ export function RitualCard({kind,state,mutate,now,go,onDone,hour}:{kind:RitualKi
     {step==='week'&&<WeekStep state={state} mutate={mutate} now={now} go={go}/>}
    </div>
    <div className="rs-foot">
-    <button type="button" className="button rs-primary" onClick={e=>next(e,true)}>{PRIMARY[step](last,kind)}{!last&&<ArrowRight size={18}/>}</button>
+    <button type="button" className="button rs-primary" aria-disabled={closing||!!blocked} onClick={e=>next(e,true)}>{blocked??PRIMARY[step](last,kind)}{!last&&!blocked&&<ArrowRight size={18}/>}</button>
     {!(last&&step==='go')&&<button type="button" className="text-button rs-skip" onClick={e=>next(e,false)}>{last?'Skip and close':'Skip'}</button>}
-    {i>0&&<button type="button" className="text-button rs-back" onClick={()=>{commit.current=null;setI(i-1);}}><ArrowLeft size={16}/>Back</button>}
+    {i>0&&<button type="button" className="text-button rs-back" onClick={()=>{if(closing)return;commit.current=null;setBlocked(null);setI(i-1);}}><ArrowLeft size={16}/>Back</button>}
    </div>
   </div>
  </section>;
@@ -85,9 +91,11 @@ const PRIMARY:Record<Step,(last:boolean,kind:RitualKind)=>string>={
  tomorrow:last=>last?'Close the day':'Next',week:(last,kind)=>last?(kind==='morning'?'Start my day':'Close the day'):'Plan set',
 };
 
-function FrogStep({state,mutate,now,commit}:StepProps&{commit:React.MutableRefObject<(()=>void)|null>}){
+function FrogStep({state,mutate,now,commit,onBlock}:StepProps&{commit:React.MutableRefObject<(()=>void)|null>;onBlock:(why:string|null)=>void}){
  const list=frogCandidates(state,now).slice(0,5),suggested=suggestFrog(state,now);
  const [pick,setPick]=useState<string>(suggested?.id??'new'),[text,setText]=useState('');
+ const empty=pick==='new'&&!text.trim();
+ useEffect(()=>{onBlock(empty?'Write it, or skip':null);},[empty]);
  commit.current=()=>{if(pick==='new'){const v=text.trim();if(v)mutate(s=>{newFrog(s,now,v);},'frog chosen');}else mutate(s=>chooseFrog(s,now,pick),'frog chosen');};
  return <div className="rs-frog">
   {list.length>0&&<ul className="rs-choices" role="radiogroup" aria-label="Today’s frog">{list.map(t=><li key={t.id}><button type="button" role="radio" aria-checked={pick===t.id} className={`rs-choice ${pick===t.id?'on':''}`} onClick={()=>setPick(t.id)}><span className="rs-radio" aria-hidden="true">{pick===t.id&&<FrogGlyph/>}</span><span className="rs-choice-text">{t.text}</span>{t.priority&&<b className={`prio-chip prio-${t.priority}`} aria-label={`Priority ${t.priority}`}>{t.priority}</b>}</button></li>)}</ul>}
@@ -96,13 +104,14 @@ function FrogStep({state,mutate,now,commit}:StepProps&{commit:React.MutableRefOb
 }
 
 function ThreeStep({state,mutate,now}:StepProps){
- const list=afterFrog(state,now),three=list.slice(0,3),then=list.slice(3,6),more=list.length-6,frog=todaysTasks(state,now).find(t=>t.frog&&!t.done),[text,setText]=useState('');
+ const list=afterFrog(state,now).filter(t=>!t.auto),three=list.slice(0,3),then=list.slice(3,6),more=list.length-6,frog=todaysTasks(state,now).find(t=>t.frog&&!t.done),day=dayPlan(state,now),[text,setText]=useState('');
  const setPriority=(id:string,p?:Todo['priority'])=>mutate(s=>{const t=(s.todos??[]).find(x=>x.id===id);if(t)t.priority=p;},'todo priority');
  return <div className="rs-three">
   {frog&&<p className="rs-frog-line"><FrogGlyph/><span>Frog: <b>{frog.text}</b></span></p>}
-  {three.length?<ol className="rs-list">{three.map((t,n)=><li key={t.id}><span className="rs-num" aria-hidden="true">{n+1}</span><PriorityChip t={t} onSet={p=>setPriority(t.id,p)}/><span className="rs-task">{t.text}</span>{!t.auto&&<button type="button" className="text-button rs-later" aria-label={`Move “${t.text}” to tomorrow`} onClick={()=>mutate(s=>toTomorrow(s,t.id,now),'todo to tomorrow')}>Tomorrow</button>}</li>)}</ol>
+  {three.length?<ol className="rs-list">{three.map((t,n)=><li key={t.id}><span className="rs-num" aria-hidden="true">{n+1}</span><PriorityChip t={t} onSet={p=>setPriority(t.id,p)}/><span className="rs-task">{t.text}</span><button type="button" className="text-button rs-later" aria-label={`Move “${t.text}” to tomorrow`} onClick={()=>mutate(s=>toTomorrow(s,t.id,now),'todo to tomorrow')}>Tomorrow</button></li>)}</ol>
    :<p className="rs-empty">Nothing else on today’s list yet. Add what comes after the frog.</p>}
   {then.length>0&&<p className="rs-then"><span>Then</span>{then.map(t=>t.text).join(' · ')}{more>0?` · ${more} more`:''}</p>}
+  {isTrainingDay(day)&&<p className="rs-go-gym">{day.kind==='gym'?'Gym':'Training'} today: <b>{day.title}</b></p>}
   <form className="rs-add" onSubmit={e=>{e.preventDefault();const v=text.trim();if(!v)return;mutate(s=>{addTask(s,now,v);const g=s.goals.find(x=>x.id===TODO_GOAL);if(g&&dayState(g,s.logs,now)!=='success')putActivity(s,g,now,{state:'success',note:'Wrote today’s to-do list'});},`todo ${now}`);setText('');}}>
    <Plus size={20}/><input aria-label="Add a task for today" value={text} maxLength={140} placeholder="Add a task for today" onChange={e=>setText(e.target.value)}/><button className="button secondary" disabled={!text.trim()}>Add</button>
   </form>
@@ -112,7 +121,7 @@ function ThreeStep({state,mutate,now}:StepProps){
 function GoStep({state,now}:StepProps){
  const frog=todaysTasks(state,now).find(t=>t.frog&&!t.done),three=afterFrog(state,now).filter(t=>!t.auto).slice(0,3),day=dayPlan(state,now);
  return <div className="rs-go">
-  <div className="rs-go-frog"><FrogGlyph/><div><span>Eat this first</span><strong>{frog?.text??'No frog today. Start with the first task.'}</strong></div></div>
+  <div className="rs-go-frog"><FrogGlyph/><div><strong>{frog?.text??'No frog today. Start with the first task.'}</strong></div></div>
   {three.length>0&&<ol className="rs-list rs-go-list" aria-label="Then">{three.map((t,n)=><li key={t.id}><span className="rs-num" aria-hidden="true">{n+1}</span><span className="rs-task">{t.text}</span></li>)}</ol>}
   {isTrainingDay(day)&&<p className="rs-go-gym">{day.kind==='gym'?'Gym':'Training'} today: <b>{day.title}</b></p>}
  </div>;

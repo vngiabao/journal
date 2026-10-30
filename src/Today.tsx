@@ -28,7 +28,7 @@ export function Today({state,mutate,now,go}:{state:State;mutate:Mutate;now:strin
  const showCard=ritual==='evening'||(ritual==='morning'&&!skipped);
  // The doing view rises in once, right after a ritual finishes.
  const [arrived,setArrived]=useState(0),doing=useRef<HTMLDivElement>(null);
- useGSAP(()=>{if(!arrived)return;const mm=whenMotionOK(()=>{gsap.from('.today-doing > *',{opacity:0,y:18,duration:.42,ease:'enter',stagger:.06,clearProps:'all'});});return()=>mm.revert();},{dependencies:[arrived],scope:doing,revertOnUpdate:true});
+ useGSAP(()=>{if(!arrived)return;const mm=whenMotionOK(()=>{gsap.from('.today-doing > *',{opacity:0,y:12,duration:.28,ease:'enter',stagger:.05,clearProps:'all'});});return()=>mm.revert();},{dependencies:[arrived],scope:doing,revertOnUpdate:true});
  const gym=isTrainingDay(dayPlan(state,now));
  return <div className={`today-page ${showCard?'has-ritual':''} ${ritual==='morning'&&showCard?'ritual-only':''}`}>
   <header className="today-top today-head">

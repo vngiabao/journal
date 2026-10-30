@@ -70,6 +70,7 @@ function Strip({state,mutate,now}:{state:State;mutate:Mutate;now:string}){
  useEffect(()=>{if(j.today||!j.total||j.sinceLast===null||j.sinceLast<2||state.bond?.lastGreeted===now)return;
   const t=window.setTimeout(()=>{if(greet('Bond missed you. Welcome back.'))mutate(s=>{(s.bond??(s.bond={})).lastGreeted=now;},'bond greeting');},900);return()=>clearTimeout(t);},[j.today,j.sinceLast,now]);
 
+ const {contextSafe}=useGSAP({scope:root});
  useGSAP(()=>{
   if(!L)return;
   whenMotionOK(()=>{gsap.from('.bs-words > *',{opacity:0,y:8,duration:.3,ease:'enter',stagger:.05,clearProps:'opacity,transform'});});
@@ -83,7 +84,7 @@ function Strip({state,mutate,now}:{state:State;mutate:Mutate;now:string}){
    const el=bondRef.current;if(el&&j.milestoneToday)gsap.timeline().to(el,{y:-14,duration:.2,ease:'power2.out',yoyo:true,repeat:1}).to(el,{y:0,duration:.35,ease:'elastic.out(1,.4)'});}});
  },{scope:root,dependencies:[walk?.id,!!L]});
 
- const open=()=>{const d=sheet.current;if(!d)return;d.showModal();if(motionOK())gsap.fromTo(d,{opacity:0,y:24},{opacity:1,y:0,duration:.3,ease:'enter',clearProps:'opacity,transform'});};
+ const open=contextSafe(()=>{const d=sheet.current;if(!d)return;d.showModal();if(motionOK())gsap.fromTo(d,{opacity:0,y:24},{opacity:1,y:0,duration:.3,ease:'enter',clearProps:'opacity,transform'});});
  const line=bondLine(j,hour),flagState=j.milestoneToday?'earned':'next';
 
  return <div ref={root} className="bond-strip-wrap">

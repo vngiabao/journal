@@ -23,7 +23,7 @@ const ARRIVED_KEY='reboot-life-arrived';
 // Canvas measuring uses the same families as the CSS tokens, so a font change in tokens.css carries over.
 const tok=(name:string,fallback:string)=>{try{return getComputedStyle(document.documentElement).getPropertyValue(name).trim()||fallback;}catch{return fallback;}};
 const SERIF=tok('--serif','"Cormorant Garamond", serif'),SANS=tok('--sans','"Source Sans 3", sans-serif'),HAND=tok('--hand','Caveat, cursive');
-const F={miniName:`600 19px ${HAND}`,small:`450 15px ${SANS}`,chip:`600 16px ${SANS}`};
+const F={miniName:`600 19px ${HAND}`,small:`450 16px ${SANS}`,chip:`600 16px ${SANS}`};
 const ink=(i:number)=>INK[i%INK.length];
 const plural=(n:number,one:string,many=one+'s')=>`${n} ${n===1?one:many}`;
 // One small drawing per area, in its ink, beside its branch (Buzan's doodles). Areas you add get a leaf.
@@ -95,9 +95,11 @@ export function LifeMap({state,mutate,goals,now,actions}:{state:State;mutate:Mut
   const skip=()=>tl.progress(1);window.addEventListener('pointerdown',skip,true);window.addEventListener('keydown',skip,true);
   return()=>{window.removeEventListener('pointerdown',skip,true);window.removeEventListener('keydown',skip,true);tl.progress(1);if(el)delete el.dataset.arriving;};
  });return()=>mm.revert();},{scope:root,dependencies:[phone],revertOnUpdate:true});
- // Switching horizon: the twigs and words cross-fade in (0.22 s). Reduced motion swaps instantly.
- const lastH=useRef(horizon.id);
- useGSAP(()=>{if(lastH.current===horizon.id)return;lastH.current=horizon.id;
+ // Switching horizon: the twigs and words cross-fade in (0.22 s). Reduced motion, or flipping with the arrow keys, swaps instantly.
+ const lastH=useRef(horizon.id),viaKey=useRef(false);
+ useEffect(()=>{const k=(e:KeyboardEvent)=>{viaKey.current=e.key.startsWith('Arrow');};const p=()=>{viaKey.current=false;};
+  addEventListener('keydown',k,true);addEventListener('pointerdown',p,true);return()=>{removeEventListener('keydown',k,true);removeEventListener('pointerdown',p,true);};},[]);
+ useGSAP(()=>{if(lastH.current===horizon.id)return;lastH.current=horizon.id;if(viaKey.current)return;
   const mm=whenMotionOK(()=>{gsap.from(gsap.utils.toArray<Element>('.mm-twig, .mm-row, .mm-when, .lm-pitems',root.current),{opacity:0,duration:.22,ease:'enter',clearProps:'opacity'});});return()=>mm.revert();},
   {scope:root,dependencies:[horizon.id]});
  // A goal you just added grows onto its branch: its words rise in where they will stay.

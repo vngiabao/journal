@@ -1538,8 +1538,6 @@ body.focus-writing .recto{border-radius:4px;padding-left:var(--s-8);background:u
 .today-head .rh-evidence strong{font-size:26px}
 .today-head .rh-evidence span{max-width:none;font-size:var(--fs-label)}
 .today-head .rh-evidence-empty{margin:0;font-size:var(--fs-label);color:var(--muted)}
-.reboot-hero.today-head .rh-figure{height:clamp(110px,10vw,150px)}
-.today-head>*:not(.rh-figure){max-width:calc(100% - clamp(110px,10vw,150px) * 1.8)}
 /* Do on the left, check in on the right. One column on smaller screens. */
 .today-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(300px,1fr);gap:var(--s-5);align-items:start}
 .today-do{display:flex;flex-direction:column;gap:var(--s-5);min-width:0}
@@ -2004,22 +2002,10 @@ button:disabled,.week-nav:disabled,.week-days button:disabled,.dt-counter button
 .book .mood-picker>span{grid-column:1/-1}
 .book .mood-picker button{flex-direction:column;justify-content:center;gap:5px;min-height:52px;padding:6px 2px;border-radius:12px;font-size:var(--fs-ui)}
 
-/* Where to next: a ruled list, a drawn circle, done items folded into one line */
-.gp-list{gap:0}
-.gp-item{grid-template-columns:24px minmax(0,1fr) auto;min-height:60px;padding:var(--s-3) 0;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent}
-.gp-list li:last-child .gp-item{border-bottom:0}
-@media(hover:hover){.gp-item:hover{transform:none;background:transparent;border-color:var(--line)}.gp-item:hover strong{color:var(--blue-deep)}}
-.gp-mark{width:20px;height:20px;border:1.5px solid var(--line-strong);border-radius:50%}
-.gp-item:hover .gp-mark{border-color:var(--gold)}
-.gp-done{display:flex;align-items:flex-start;gap:6px;margin:0;font-size:var(--fs-label);line-height:1.45;color:var(--green)}
-.gp-done svg{flex:none;margin-top:3px}
-
 /* Today: a short header so the list starts in the first screen; use wide windows */
 .reboot-hero.today-head{padding:var(--s-5) var(--s-6);gap:var(--s-2);margin-bottom:var(--s-4)}
 .today-head .rh-becoming{font-size:clamp(24px,2.1vw,32px);line-height:1.15}
 .today-head .rh-evidence strong{font-size:22px}
-.reboot-hero.today-head .rh-figure{height:clamp(92px,7.5vw,124px)}
-.today-head>*:not(.rh-figure){max-width:calc(100% - clamp(92px,7.5vw,124px) * 1.8)}
 @media(min-width:1760px){main{max-width:1640px}}
 @media(min-width:1600px){
  .today-grid{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) minmax(320px,.9fr);grid-template-rows:auto auto}

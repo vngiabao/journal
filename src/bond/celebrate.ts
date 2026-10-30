@@ -1,3 +1,5 @@
+// Bond reacts when you finish something. The hops use an elastic settle on purpose: they are rare, earned moments,
+// never everyday UI, which stays on 'enter' and 'move'.
 // Bond reacts when you finish something. A short moment over the page that never blocks a click for long:
 // any tap, Escape, or the button ends it. Milestones get a keepsake stamp pressed onto the page.
 // When the pocket pet is out, he does the cheering himself; when pets are off, the words still show, without the dog.
@@ -41,11 +43,12 @@ function showMoment(m:BondMoment){
  const box=el('div','bond-pop');box.setAttribute('role','status');
  const dog=dogOK();
  if(dog){const img=el('img','bond-pop-dog');img.src=bondArt(pose);img.alt='';box.append(img);}
- box.append(el('p','bond-pop-text',text));
- document.body.append(box);
+ // The status box goes in empty and the words a frame later, so screen readers announce them.
+ const words=el('p','bond-pop-text');box.append(words);
+ document.body.append(box);requestAnimationFrame(()=>{words.textContent=text;});
  const move=motionOK();let done=false;
  const close=()=>{if(done)return;done=true;current=null;clearTimeout(t);window.removeEventListener('pointerdown',close,true);window.removeEventListener('keydown',close,true);
-  if(move)gsap.to(box,{opacity:0,y:8,duration:.2,ease:'power1.in',onComplete:()=>box.remove()});else box.remove();};
+  if(move)gsap.to(box,{opacity:0,y:8,duration:.2,ease:'enter',onComplete:()=>box.remove()});else box.remove();};
  current=close;
  const t=window.setTimeout(close,move?2800:4000);
  window.addEventListener('pointerdown',close,true);window.addEventListener('keydown',close,true);
@@ -73,7 +76,7 @@ function showMilestone(n:number,date:string){
  const scrim=el('div','bond-moment');scrim.setAttribute('role','dialog');scrim.setAttribute('aria-modal','true');scrim.setAttribute('aria-label',`${n} days with Bond`);
  const card=el('div','bond-moment-card'),stamp=stampNode(n,date);
  const words=el('div','bond-moment-words');
- words.append(el('p','bond-moment-kicker',`Day ${n} together`),el('h2','bond-moment-line',k.line),el('p','bond-moment-sub','A keepsake for your trail. Bond keeps it with the others.'));
+ words.append(el('h2','bond-moment-line',k.line),el('p','bond-moment-day',`Day ${n} together`),el('p','bond-moment-sub','A keepsake for your trail. Bond keeps it with the others.'));
  const btn=el('button','button bond-moment-go','Keep walking');btn.type='button';words.append(btn);
  const stage=el('div','bond-moment-stage');stage.append(stamp);
  // Bond cheers on the card itself (the pocket pet would sit under the scrim). Pets off: the stamp and the words only.
@@ -83,7 +86,7 @@ function showMilestone(n:number,date:string){
  let done=false;
  const close=()=>{if(done)return;done=true;current=null;clearTimeout(t);document.removeEventListener('keydown',key,true);
   const end=()=>{scrim.remove();before?.focus?.({preventScroll:true});};
-  if(move)gsap.to(scrim,{opacity:0,duration:.2,ease:'power1.in',onComplete:end});else end();};
+  if(move)gsap.to(scrim,{opacity:0,duration:.2,ease:'enter',onComplete:end});else end();};
  const key=(e:KeyboardEvent)=>{if(e.key==='Escape'||e.key==='Enter'||e.key===' '){e.preventDefault();close();}else if(e.key==='Tab'){e.preventDefault();btn.focus();}};
  current=close;
  scrim.addEventListener('click',close);document.addEventListener('keydown',key,true);
