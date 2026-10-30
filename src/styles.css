@@ -57,7 +57,7 @@ label{display:flex;flex-direction:column;gap:var(--s-2);font-size:var(--fs-meta)
 .danger-button{background:var(--red);border-color:var(--red)}
 .small-button{min-height:40px}
 @media(hover:hover) and (pointer:fine){
- .button:not(:disabled):not([aria-disabled=true]):hover{background:var(--blue-hover);border-color:var(--blue-hover)}.secondary:hover{background:var(--sheet-hover);border-color:var(--blue)}.danger-button:hover{background:var(--red-hover);border-color:var(--red-hover)}
+ .button:not(:disabled):not([aria-disabled=true]):hover{background:var(--blue-hover);border-color:var(--blue-hover)}.secondary:not(:disabled):not([aria-disabled=true]):hover{background:var(--sheet-hover);border-color:var(--blue)}.danger-button:not(:disabled):not([aria-disabled=true]):hover{background:var(--red-hover);border-color:var(--red-hover)}
  .icon-button:hover{background:var(--paper-deep);color:var(--blue)}.text-button:hover svg{transform:translateX(3px)}
  .sidebar nav button:not(.current):hover,.sidebar-bottom button:not(.current):hover{background:var(--cover-hover);color:var(--sheet)}
 }
@@ -440,7 +440,7 @@ i.ink-blue{background:var(--level-1)}i.ink-green{background:var(--level-2)}i.ink
 .journal-streak b{font:22px var(--serif);color:var(--blue);margin-right:2px}
 .journal-aside .search{max-width:none;min-width:0}
 .journal-aside select{width:100%;margin-top:var(--s-2);font-size:var(--fs-meta);border-radius:var(--r-chip)}
-.journal-index{margin-top:var(--s-4);max-height:42vh;overflow:auto;display:flex;flex-direction:column;gap:var(--s-1)}
+.journal-index{margin-top:var(--s-4);max-height:42dvh;overflow:auto;display:flex;flex-direction:column;gap:var(--s-1)}
 .journal-index>button{display:block;width:100%;text-align:left;border:0;padding:var(--s-2) var(--s-3);background:transparent;font-size:var(--fs-label);border-radius:var(--r-control)}
 .journal-index>button.current{background:var(--gold-wash)}
 .journal-index>button span{display:flex;gap:var(--s-2);align-items:baseline;flex-wrap:wrap}
@@ -998,23 +998,12 @@ body{padding-bottom:env(safe-area-inset-bottom)}
 
 /* Today hero, redesigned: your statement and your evidence, over your own line in pencil. No portrait, no scene. */
 
-.rh-stroke .s{stroke:var(--gold);opacity:.55;stroke-linecap:round;stroke-linejoin:round}
-.rh-top{display:flex;align-items:baseline;flex-wrap:wrap;gap:var(--s-2) var(--s-5)}
-.rh-top .dateline{margin:0}
-.rh-greet{margin:0;font:500 21px/1.2 var(--serif);letter-spacing:0;color:var(--ink-soft)}
 .rh-statement{display:grid;justify-items:start;gap:var(--s-2)}
 .rh-becoming{max-width:20ch;margin:0;font:500 clamp(38px,4.6vw,66px)/1.06 var(--serif);letter-spacing:-.022em;color:var(--ink);text-wrap:balance}
 .rh-becoming.empty{color:var(--ink-soft)}
 .rh-edit-form{max-width:34ch}
 .rh-edit-form textarea{resize:none;font:500 28px/1.2 var(--serif);color:var(--ink)}
-.rh-evidence{display:flex;flex-wrap:wrap;gap:var(--s-5) var(--s-8);margin-top:var(--s-3)}
-.rh-evidence>div{display:grid;gap:2px;min-width:96px}
-.rh-evidence strong{font:600 46px/1 var(--serif);color:var(--blue);font-variant-numeric:lining-nums tabular-nums}
-.rh-evidence span{max-width:16ch;font-size:var(--fs-label);line-height:1.35;color:var(--muted)}
-.rh-evidence-empty{max-width:46ch;margin:var(--s-2) 0 0;font-size:var(--fs-ui);color:var(--ink-soft)}
-.rh-foot{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-3) var(--s-5);margin-top:var(--s-2)}
-.rh-nudge{margin:0;font-size:var(--fs-meta);color:var(--ink-soft)}
-@media(max-width:900px){.rh-stroke .s{opacity:.35}.rh-evidence{gap:var(--s-4) var(--s-6)}.rh-evidence strong{font-size:38px}}
+
 .confetti{position:fixed;z-index:80;width:9px;height:14px;margin:-7px 0 0 -4px;border-radius:2px;pointer-events:none;will-change:transform}
 .confetti.c0{background:var(--metal)}.confetti.c1{background:var(--gold)}.confetti.c2{background:var(--sky)}.confetti.c3{background:var(--red)}
 
@@ -1142,8 +1131,8 @@ body.focus-writing .pocket-pet{opacity:0;transition:opacity .3s}
 
 /* The square's drawer: a side panel on a computer, a bottom sheet on a phone */
 .drawer-root{position:fixed;inset:0;z-index:90}
-.drawer-scrim{position:absolute;inset:0;width:100%;border:0;padding:0;border-radius:0;background:#1f2a4466;cursor:default}
-.goal-drawer{position:absolute;top:0;right:0;bottom:0;width:min(540px,100vw);overflow:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:var(--s-3);padding:var(--s-5) var(--s-6) var(--s-8);background:var(--paper);box-shadow:-16px 0 48px #1f2a4433}
+.drawer-scrim{position:absolute;inset:0;width:100%;border:0;padding:0;border-radius:0;background:var(--scrim);cursor:default}
+.goal-drawer{position:absolute;top:0;right:0;bottom:0;width:min(540px,100%);overflow:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:var(--s-3);padding:var(--s-5) var(--s-6) var(--s-8);background:var(--paper);box-shadow:-16px 0 48px #1f2a4433}
 .drawer-head{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s-3)}
 .drawer-head h2{margin:0}
 .drawer-head .icon-button{flex:none}
@@ -1163,7 +1152,7 @@ body.drawer-open{overflow:hidden}
 @media(max-width:720px){.goal-drawer{top:auto;left:0;width:100%;max-height:88dvh;border-radius:20px 20px 0 0;padding:var(--s-4) var(--s-4) calc(var(--s-6) + env(safe-area-inset-bottom));box-shadow:0 -12px 40px #1f2a4433}.goal-drawer h2{font-size:27px}.drawer-status{width:100%}.drawer-status button{flex:1;justify-content:center}}
 
 /* Big serif numbers use lining figures: Cormorant's old-style "11" reads as "I I" */
-.board-tally b,.drawer-progress strong,.review-summary strong,.proof-tally strong,.rh-evidence strong,.journal-streak b,.tl-score,.detail-facts b{font-variant-numeric:lining-nums tabular-nums}
+.board-tally b,.drawer-progress strong,.review-summary strong,.proof-tally strong,.journal-streak b,.tl-score,.detail-facts b{font-variant-numeric:lining-nums tabular-nums}
 .bingo-card .bingo-lines line{opacity:.55;stroke-width:4}
 
 /* Journal: a notebook lying open on the desk at dusk. The paper is the hero; past pages wait on the shelf. */
@@ -1442,7 +1431,7 @@ body.focus-writing .recto{border-radius:4px;padding-left:var(--s-8);background:u
 .frog-slices .icon-button{width:28px;min-width:28px;height:28px;opacity:.5}
 .slice-add{display:flex;align-items:center;gap:var(--s-2);margin-top:var(--s-1);color:var(--frog-ink)}
 .slice-add input{flex:1;min-width:0;padding:6px 0;border:0;border-bottom:1px solid transparent;border-radius:0;background:transparent;font:400 var(--fs-meta) var(--serif)}
-.slice-add input:focus{outline:none;box-shadow:none;border-bottom-color:#9fc08f}
+.slice-add input:focus{outline:none;box-shadow:none;border-bottom-color:var(--frog-line)}
 .frog-actions{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-4);margin:var(--s-4) 0 0 calc(34px + var(--s-3))}
 .frog-go,.frog-eat{background:#2f6b45;border-color:#2f6b45;color:#fff}
 @media(hover:hover){.frog-go:hover,.frog-eat:hover{background:#245638;border-color:#245638}}
@@ -1477,7 +1466,7 @@ body.focus-writing .recto{border-radius:4px;padding-left:var(--s-8);background:u
 .tomorrow-frog.is-set span{flex:1;font-size:var(--fs-label)}
 .tomorrow-frog.is-set b{font:500 var(--fs-ui) var(--serif)}
 .tomorrow-frog .text-button{color:var(--metal)}
-.focus-root{position:fixed;inset:0;z-index:95;display:grid;place-items:center;padding:var(--s-5);overflow:auto;background:radial-gradient(900px 500px at 70% 0%,#f3c97a2e,transparent 60%),linear-gradient(180deg,var(--blue-deep),var(--blue-deeper));color:var(--cover-text)}
+.focus-root{position:fixed;inset:0;z-index:95;display:grid;place-items:center;padding:var(--s-5);overflow:auto;background:radial-gradient(900px 500px at 70% 0%,var(--metal-glow),transparent 60%),linear-gradient(180deg,var(--blue-deep),var(--blue-deeper));color:var(--cover-text)}
 .focus-panel{display:flex;flex-direction:column;align-items:center;gap:var(--s-3);width:min(560px,100%);text-align:center}
 .focus-eyebrow{margin:0;font:500 var(--fs-meta)/1.4 var(--sans);color:var(--metal)}
 .focus-frog{width:110px;filter:drop-shadow(0 8px 14px #0006)}
@@ -1522,11 +1511,7 @@ body.focus-writing .recto{border-radius:4px;padding-left:var(--s-8);background:u
 /* Today's header: one line of greeting, your sentence, your counts. */
 
 .today-head .rh-becoming{max-width:26ch;font-size:clamp(28px,3vw,40px);line-height:1.12}
-.today-head .rh-evidence{gap:var(--s-2) var(--s-6);margin-top:var(--s-1)}
-.today-head .rh-evidence>div{display:flex;align-items:baseline;gap:6px}
-.today-head .rh-evidence strong{font-size:26px}
-.today-head .rh-evidence span{max-width:none;font-size:var(--fs-label)}
-.today-head .rh-evidence-empty{margin:0;font-size:var(--fs-label);color:var(--muted)}
+
 /* Do on the left, check in on the right. One column on smaller screens. */
 .today-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(300px,1fr);gap:var(--s-5);align-items:start}
 .today-do{display:flex;flex-direction:column;gap:var(--s-5);min-width:0}
@@ -1608,12 +1593,9 @@ body.focus-writing .recto{border-radius:4px;padding-left:var(--s-8);background:u
  .tabbar button.current{color:var(--blue-deep);background:var(--sheet-2)}
  main{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
  .chibi-toast{bottom:calc(var(--tabbar-h) + var(--s-4) + env(safe-area-inset-bottom))}
- 
- 
- 
+
  .today-head .rh-becoming{font-size:26px}
- .today-head .rh-evidence{gap:var(--s-1) var(--s-4)}
- .today-head .rh-evidence strong{font-size:22px}
+
  .today-grid,.today-do{gap:var(--s-4)}
  .today-list .tl-head{padding:var(--s-4)}
  .today-list .tl-body{padding:var(--s-3) var(--s-4) var(--s-4)}
@@ -1796,27 +1778,9 @@ body.touring .pocket-pet .pb-bubble{display:none}
 .tg-add{display:flex;align-items:center;gap:var(--s-2);margin-top:var(--s-3)}
 .tg-add input{flex:1;min-width:0;font:400 var(--fs-ui) var(--serif)}
 .tg-count{margin:var(--s-2) 0 0;font-size:var(--fs-label);color:var(--muted)}
-.og-kicker{margin:0 0 6px;font:600 var(--fs-label)/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--gold-text)}
+
 .one-goal h2{margin:0;font:500 clamp(26px,2.6vw,34px)/1.15 var(--serif);color:var(--ink);text-wrap:balance}
-.og-row{display:flex;flex-wrap:wrap;align-items:flex-end;gap:var(--s-4);margin-top:var(--s-4)}
-.og-row label,.og-why{display:flex;flex-direction:column;gap:4px;font-size:var(--fs-label);font-weight:600}
-.og-left{font:600 var(--fs-label)/1 var(--sans);color:var(--blue-deep);padding-bottom:12px}
-.og-why{margin-top:var(--s-3)}
-.og-why textarea{font:400 var(--fs-meta)/1.45 var(--serif);resize:vertical}
-.og-steps-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--s-2);margin-top:var(--s-5)}
-.og-steps-head h3{margin:0;font:500 20px/1.2 var(--serif)}
-.og-steps-head h3 span{margin-left:var(--s-2);font:600 var(--fs-label)/1 var(--sans);color:var(--gold-text)}
-.og-meter{height:5px;margin-top:var(--s-2);border-radius:3px;background:var(--line);overflow:hidden}
-.og-meter em{display:block;height:100%;background:var(--green);transform-origin:left;transition:transform .5s var(--ease)}
-.og-steps{margin:var(--s-2) 0 0;padding:0;list-style:none}
-.og-steps li{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;align-items:center;gap:var(--s-2);min-height:52px;border-bottom:1px solid var(--line)}
-.og-steps .check-action{white-space:normal;text-align:left;font:400 var(--fs-ui)/1.3 var(--serif);color:var(--ink)}
-.og-steps li.done .check-action>span:last-child{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--green)}
-.og-on-today{font-size:var(--fs-label);color:var(--green);font-weight:600}
-.og-move{display:flex}
-.og-move .icon-button{width:30px;min-width:30px;height:30px}
-.og-today{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-2) var(--s-3);margin:var(--s-4) 0 0;padding:var(--s-3) var(--s-4);border-radius:var(--r-tile);background:var(--gold-wash);font-size:var(--fs-label)}
-.og-foot{margin:var(--s-3) 0 0;font-size:var(--fs-label);color:var(--muted)}
+
 .goal-map{margin:var(--s-3) 0 0}
 .goal-map svg{display:block;width:100%;height:auto}
 .gm-branch .s{stroke:var(--ink-soft);stroke-linecap:round;opacity:.7}
@@ -1829,7 +1793,7 @@ body.touring .pocket-pet .pb-bubble{display:none}
 .gm-step.done .gm-label{fill:var(--muted)}
 .gm-goal{font:600 var(--fs-meta) var(--serif);fill:var(--ink)}
 .goal-map figcaption{font-size:var(--fs-label);color:var(--muted);text-align:center}
-@media(max-width:650px){.plan-goals,.one-goal{padding:var(--s-4)}.og-steps li{grid-template-columns:minmax(0,1fr) auto;row-gap:0}.og-move{display:none}}
+@media(max-width:650px){.plan-goals,.one-goal{padding:var(--s-4)}}
 
 /* Every day: daily promises to tick, on the right of Today */
 .daily-ticks{display:flex;flex-direction:column;gap:var(--s-2);padding-bottom:var(--s-4);border-bottom:1px dashed var(--line-strong)}
@@ -1941,7 +1905,7 @@ body.touring .pocket-pet .pb-bubble{display:none}
 @media(max-width:650px){.tabbar button{font-size:var(--fs-meta)}.today-list .tl-breakdown{font-size:var(--fs-label)}}
 
 /* Motion: UI changes in 250ms or less; no layout properties animated */
-.quest-meter em,.slice-meter b,.og-meter em,.routine-meter em{transition-duration:.25s}
+.quest-meter em,.slice-meter b,.routine-meter em{transition-duration:.25s}
 .tour-spot{transition:none}
 .bingo-card .goal-tile::before{height:100%;transform:scaleY(var(--p,0));transform-origin:50% 100%;background:color-mix(in srgb,var(--blue) 11%,transparent);transition:transform .25s var(--ease)}
 .cmp-bar{width:100%;transform:scaleX(var(--w,0));transform-origin:0 50%;transition:transform .25s var(--ease)}
@@ -1951,8 +1915,8 @@ button:disabled,.week-nav:disabled,.week-days button:disabled,.dt-counter button
 
 /* Every control is at least 44px to touch, even where it looks smaller */
 .todo-list .icon-button{width:44px;min-width:44px;height:44px;opacity:.7}
-.prio-chip,.dt-counter button,.proof-item .icon-button,.tile-top .icon-button,.frog-slices .icon-button,.search .icon-button,.add-when button,.book .mood-picker button,.dt-part{position:relative}
-.prio-chip::before,.dt-counter button::before,.proof-item .icon-button::before,.tile-top .icon-button::before,.frog-slices .icon-button::before,.search .icon-button::before,.add-when button::before,.book .mood-picker button::before{content:'';position:absolute;inset:-7px}
+.prio-chip,.dt-counter button,.book .mood-picker button,.dt-part{position:relative}
+.prio-chip::before,.dt-counter button::before,.book .mood-picker button::before{content:'';position:absolute;inset:-7px}
 .dt-part{min-height:44px}
 .segmented button{min-height:44px}
 
@@ -1973,7 +1937,7 @@ button:disabled,.week-nav:disabled,.week-days button:disabled,.dt-counter button
 /* Today: a short header so the list starts in the first screen; use wide windows */
 
 .today-head .rh-becoming{font-size:clamp(24px,2.1vw,32px);line-height:1.15}
-.today-head .rh-evidence strong{font-size:22px}
+
 @media(min-width:1760px){main{max-width:1640px}}
 @media(min-width:1600px){
  .today-grid{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) minmax(320px,.9fr);grid-template-rows:auto auto}
@@ -2091,10 +2055,9 @@ input[type="checkbox"]{accent-color:var(--green);width:20px;height:20px}
 /* Consistency pass 2, fixes after review */
 @media(max-width:1500px){.goal-table th:nth-child(4),.goal-table td:nth-child(4){display:none}}
 @media(min-width:1500px){main:has(>.settings-section){display:block;column-count:2;column-gap:var(--s-5)}main:has(>.settings-section)>*{break-inside:avoid}main:has(>.settings-section)>:not(.settings-section){column-span:all}main:has(>.settings-section)>.settings-section{display:inline-block;width:100%}}
-.rh-evidence .count{font:inherit;color:inherit;letter-spacing:inherit}
+
 .today-head .rh-becoming{max-width:36ch}
 .book{background-color:var(--red-hover);background-image:radial-gradient(120% 90% at 30% 0%,color-mix(in srgb,var(--red) 70%,transparent),transparent 70%),linear-gradient(160deg,var(--red-hover),color-mix(in srgb,var(--red-hover) 55%,var(--ink)))}
-.today-head .rh-evidence strong .count,.rh-evidence strong .count{font:inherit;color:inherit;max-width:none;letter-spacing:inherit}
 
 /* Horizon gets the wide canvas; the phone tab bar holds five places */
 main.wide{max-width:2000px}
@@ -2122,7 +2085,7 @@ button.prio-chip{background:transparent;border-color:transparent}
 button.prio-chip::before{content:none}
 #main .todo-list button.prio-chip{width:44px;min-width:44px;height:44px;padding:0;border:0;border-radius:var(--r-card)}
 #main .todo-list button.prio-chip.prio-none{width:auto;min-width:44px}
-.prio-face{display:grid;place-items:center;min-width:32px;height:32px;padding:0 var(--s-2);border:1px solid var(--line);border-radius:8px;transition:transform .16s var(--ease),border-color .16s var(--ease)}
+.prio-face{display:grid;place-items:center;min-width:32px;height:32px;padding:0 var(--s-2);border:1px solid var(--line);border-radius:var(--r-control);transition:transform .16s var(--ease),border-color .16s var(--ease)}
 button.prio-chip.prio-none .prio-face{border-style:dashed;border-color:var(--line-strong);color:var(--muted)}
 button.prio-chip.prio-A .prio-face{background:var(--red);border-color:var(--red);color:var(--sheet)}
 button.prio-chip.prio-B .prio-face{background:var(--gold-wash);border-color:var(--gold);color:var(--gold-text)}

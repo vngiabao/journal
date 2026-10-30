@@ -163,7 +163,7 @@ function Full({j,now}:{j:Journey;now:string}){
   <header className="bf-head">
    <h2>Bond’s trail</h2>
    <p className="bf-sum">{j.total?<>{j.total} {j.total===1?'day':'days'} showing up{first?<> since {label(first,{month:'long',day:'numeric'})}</>:null}.</>:<>Every day you finish the morning or evening check-in, Bond takes a step.</>}</p>
-   <div className="bf-week"><WeekStones j={j} now={now} letters/><span>{weekWords(j)}</span></div>
+   <div className="bf-week"><WeekStones j={j} now={now} letters/><span>{comingBack(j)?WELCOME:weekWords(j)}</span></div>
   </header>
   <div ref={box} className="bf-trail" style={{height:L?.height??260}}>
    {L&&<>

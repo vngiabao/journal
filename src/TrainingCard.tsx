@@ -45,8 +45,7 @@ function PlanEditor({plan,onSave,onClose}:{plan:TrainingDay[];onSave:(d:Training
  return createPortal(<div className="drawer-root">
   <button type="button" className="drawer-scrim" aria-hidden="true" tabIndex={-1} onClick={onClose}/>
   <aside className="goal-drawer plan-editor" role="dialog" aria-modal="true" aria-labelledby="plan-title">
-   <header className="drawer-head"><span className="drawer-eyebrow">Training</span><button className="icon-button" aria-label="Close" onClick={onClose}><X size={18}/></button></header>
-   <h2 id="plan-title">Your training week</h2>
+   <header className="drawer-head"><h2 id="plan-title">Your training week</h2><button className="icon-button" aria-label="Close" onClick={onClose}><X size={18}/></button></header>
    <p className="muted">One exercise per line, like “Goblet squat: 3 × 8–10” or “Soccer: 90 minutes”.</p>
    {days.map((d,i)=><fieldset key={i} className="plan-day"><legend>{WEEKDAYS[i]}</legend>
     <div className="plan-row"><label>Name<input value={d.title} maxLength={40} onChange={e=>set(i,{title:e.target.value})}/></label>

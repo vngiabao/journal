@@ -92,6 +92,8 @@
 @media(hover:hover) and (pointer:fine){
  .mm-row.add,.mm-twig.add{opacity:0;transition:opacity 160ms var(--ease),color 160ms var(--ease),transform 160ms var(--ease)}
  .mm-row.add.hot,.mm-row.add:focus-visible,.mm-area.hot .mm-twig.add{opacity:1}
+ /* Keyboard focus shows it at once, ring and all. */
+ .mm-row.add:focus-visible{transition:none}
 }
 :is(.mm-name,.mm-row,.mm-step,.mm-do,.mm-mini-name):focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:var(--r-small);box-shadow:0 0 0 4px var(--focus-halo)}
 .mm-do:focus-visible{border-radius:var(--r-chip)}
