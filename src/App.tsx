@@ -159,7 +159,7 @@ function CheerToast({pose,text,onDone}:{pose:ChibiPose;text:string;onDone:()=>vo
    .to(img,{scaleY:1,scaleX:1,duration:.5,ease:'elastic.out(1,.35)'})
    .from(bubble,{opacity:0,x:16,scale:.9,transformOrigin:'100% 100%',duration:.35,ease:'back.out(2)'},'-=.55')
    .to(img,{y:big?-26:-14,duration:.22,ease:'power2.out',yoyo:true,repeat:big?3:1},'-=.1')
-   .to(el.current,{y:30,opacity:0,duration:.3,ease:'power2.in',delay:big?1.1:.5});
+   .to(el.current,{y:30,opacity:0,duration:.3,ease:'enter',delay:big?1.1:.5});
  },{scope:el});
  return <div ref={el} className={`chibi-toast is-${pose}`} role="status"><Chibi pose={pose}/><p>{text}</p></div>;
 }

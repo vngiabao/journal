@@ -47,8 +47,11 @@ export function RitualCard({kind,state,mutate,now,go,onDone,hour}:{kind:RitualKi
    mutate(s=>markRitual(s,now,kind),`ritual ${kind}`);bondCelebrate(kind==='morning'?'morning-done':'evening-done');onDone();};
   // Any tap or key cuts the beat short.
   const t=motionOK()?window.setTimeout(done,700):0;
-  if(t){window.setTimeout(()=>{addEventListener('pointerdown',done,true);addEventListener('keydown',done,true);},0);}else done();
+  if(t){pendingDone.current=done;window.setTimeout(()=>{if(!fired){addEventListener('pointerdown',done,true);addEventListener('keydown',done,true);}},0);}else done();
  };
+ // Leaving mid-beat still counts the ritual, and takes the listeners with it.
+ const pendingDone=useRef<(()=>void)|null>(null);
+ useEffect(()=>()=>{pendingDone.current?.();},[]);
  const next=(e:React.MouseEvent<HTMLButtonElement>,save:boolean)=>{if(closing)return;if(save&&blocked)return;
   if(save)commit.current?.();commit.current=null;
   if(step==='week'&&save){mutate(s=>markRitual(s,now,'week'),'ritual week');bondCelebrate('week-done');}
@@ -76,7 +79,7 @@ export function RitualCard({kind,state,mutate,now,go,onDone,hour}:{kind:RitualKi
    {/* The one action follows the content; on a long step it stays pinned to the bottom of the screen. */}
    <div className="rs-foot">
     <button type="button" className="button rs-primary" aria-disabled={closing||!!blocked} onClick={e=>next(e,true)}>{blocked??PRIMARY[step](last,kind)}{!last&&!blocked&&<ArrowRight size={18}/>}</button>
-    {!(last&&step==='go')&&<button type="button" className="text-button rs-skip" onClick={e=>next(e,false)}>{last?'Skip and close':'Skip'}</button>}
+    {!(last&&step==='go')&&<button type="button" className="text-button rs-skip" onClick={e=>next(e,false)}>{last?<>Skip<span className="rs-skip-more"> and close</span></>:'Skip'}</button>}
     {i>0&&<button type="button" className="text-button rs-back" onClick={()=>{if(closing)return;commit.current=null;setBlocked(null);setI(i-1);}}><ArrowLeft size={16}/><span className="rs-back-label">Back</span></button>}
    </div>
   </div>

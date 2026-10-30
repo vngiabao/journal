@@ -51,8 +51,8 @@ function GoalDrawer({g,state,mutate,date,now,onClose}:{g:Goal;state:State;mutate
  return createPortal(<div ref={box} className="drawer-root">
   <button type="button" className="drawer-scrim" aria-hidden="true" tabIndex={-1} onClick={onClose}/>
   <aside className="goal-drawer" role="dialog" aria-modal="true" aria-labelledby={id}>
-   <header className="drawer-head"><span className="drawer-eyebrow">Square {g.row}.{g.col} · {RING[ringOf(g)]}</span><button className="icon-button" aria-label="Close" onClick={onClose}><X size={18}/></button></header>
-   <h2 id={id} ref={title} tabIndex={-1}>{goalName(g,state)}</h2>
+   <header className="drawer-head"><h2 id={id} ref={title} tabIndex={-1}>{goalName(g,state)}</h2><button className="icon-button" aria-label="Close" onClick={onClose}><X size={18}/></button></header>
+   <p className="drawer-eyebrow">Square {g.row}.{g.col} · {RING[ringOf(g)]}</p>
    {state.settings.language==='both'&&<p className="drawer-vi">{g.vi}</p>}
    <p className="drawer-target">{targetLabel(g,date)}</p>
    <div className="drawer-progress progress-cell"><Progress g={g} state={state} date={date}/></div>

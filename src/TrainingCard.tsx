@@ -15,7 +15,7 @@ export function TrainingCard({state,mutate,now}:{state:State;mutate:Mutate;now:s
  const tick=(name:string,e:React.MouseEvent<HTMLElement>)=>{if(!done.has(name)&&day.exercises.filter(x=>!done.has(x.name)).length===1){const r=e.currentTarget.getBoundingClientRect();inkStamp(Math.min(r.right-60,innerWidth-70),r.top+r.height/2,'Done');}mutate(s=>toggleExercise(s,now,name),'workout');};
  return <section className={`training ${day.kind} ${complete?'complete':''}`} aria-labelledby="training-title">
   <div className="training-head">
-   <div><p className="training-day">{WEEKDAYS[weekdayIndex(now)]}{day.kind==='gym'?' · Gym':day.kind==='sport'?' · Sport':''}</p><h2 id="training-title">{day.kind==='rest'?'Rest day':day.title}</h2></div>
+   <div><h2 id="training-title">{day.kind==='rest'?'Rest day':day.title}</h2><p className="training-day">{WEEKDAYS[weekdayIndex(now)]}{day.kind==='gym'?' · Gym':day.kind==='sport'?' · Sport':''}</p></div>
    {isTrainingDay(day)&&<span className="training-count">{complete?'Done':`${count} of ${day.exercises.length}`}</span>}
   </div>
   {day.kind==='rest'?<><p className="training-rest">Recovery counts. Sleep well, and come back stronger tomorrow.</p>{day.exercises.some(e=>e.dose)&&<ul className="rest-list">{day.exercises.map(e=><li key={e.name}><span>{e.name}</span>{e.dose&&<span className="exercise-dose">{e.dose}</span>}</li>)}</ul>}</>

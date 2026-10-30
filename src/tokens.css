@@ -19,7 +19,7 @@
  /* Emerald */
  --green:#1f6b57;--green-wash:#e1eee8;--green-line:#a9cdbf;
  /* The frog's own green: lighter and leafier than --green, used only around today's frog. */
- --frog:#7fae6b;--frog-line:#b9d1aa;--frog-edge:#cfe0c4;--frog-wash:#f1f7ec;--frog-wash-2:#f4f9f0;
+ --frog:#7fae6b;--frog-line:#b9d1aa;--frog-edge:#cfe0c4;--frog-wash:#f1f7ec;--frog-wash-2:#f4f9f0;--frog-ink:#4d7a4f;--frog-shadow:#2f5a3a80;--frog-shadow-soft:#2f5a3a33;--gold-line:#ead9b4;
  /* Lines and shadows (cool-tinted to the paper) */
  --line:#dde3ec;--line-strong:#cbd4e1;--track:#dfe5ee;
  --shadow-1:0 1px 0 #1f2a440a;
@@ -38,6 +38,7 @@
  /* Spacing scale: every padding, gap and margin uses one of these */
  --s-1:4px;--s-2:8px;--s-3:12px;--s-4:16px;--s-5:20px;--s-6:24px;--s-7:32px;--s-8:40px;--s-9:48px;--s-10:64px;
  /* Radius */
+ --tabbar-h:65px; /* the phone's bottom tab bar */
  --r-chip:999px;--r-control:8px;--r-card:10px;--r-tile:8px;--r-small:6px;--r-sheet:16px;
  --line-blue:#d6e0ee;--margin-red:#e7b9bd;--ink-pen:#1a2d4f;
  /* The journal's paper: warm leaves inside the book */

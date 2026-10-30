@@ -15,7 +15,7 @@ export function inkStamp(x:number,y:number,word='Kept'){
  gsap.timeline({onComplete:()=>el.remove()})
   .fromTo(el,{xPercent:-50,yPercent:-50,scale:2.3,rotation:gsap.utils.random(-30,-16),opacity:0},{scale:1,rotation:gsap.utils.random(-12,-4),opacity:1,duration:.32,ease:'stamp'})
   .fromTo(specks,{x:0,y:0,scale:0},{x:()=>gsap.utils.random(-46,46),y:()=>gsap.utils.random(-28,28),scale:()=>gsap.utils.random(.5,1.3),duration:.3,ease:'power3.out'},'-=.14')
-  .to(el,{opacity:0,y:'-=8',duration:.6,ease:'power1.in'},'+=.55');
+  .to(el,{opacity:0,y:'-=8',duration:.3,ease:'enter'},'+=.55');
 }
 
 // A drop of ink where you tapped empty paper: a ring that spreads and fades.

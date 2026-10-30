@@ -52,8 +52,8 @@ export function FrogCard({frog,mutate,now,onFocus}:{frog:Todo;mutate:Mutate;now:
  return <section ref={box} className={`frog-card ${frog.done?'eaten':''} ${late?'late':''}`} aria-label="Today’s frog">
   <img className="frog-art" src={frog.done?FROG.leap:late?FROG.nervous:FROG.sit} alt=""/>
   <div className="frog-body">
-   <p className="frog-eyebrow">{frog.done?`Frog eaten${frog.doneAt?` at ${timeOf(frog.doneAt)}`:''}. The rest of today is downhill.`:late?'Still waiting. Don’t stare at it: start one slice.':'Your frog · eat this first'}</p>
    <button className={`check-action frog-title ${frog.done?'checked':''}`} aria-pressed={frog.done} onClick={eat}><span className="check-box">{frog.done&&<Check size={18}/>}</span><span className="todo-text">{frog.text}</span></button>
+   <p className="frog-eyebrow">{frog.done?`Frog eaten${frog.doneAt?` at ${timeOf(frog.doneAt)}`:''}. The rest of today is downhill.`:late?'Still waiting. Don’t stare at it: start one slice.':'Your frog. Eat it first, and everything else waits.'}</p>
    {(slices.length>0||!frog.done)&&<div className="frog-slices">
     {slices.length>0&&<><div className="slice-meter" aria-hidden="true"><b style={{transform:`scaleX(${sliced/slices.length})`}}/></div>
     <ul>{slices.map(s=><li key={s.id} className={s.done?'done':''}><button className={`check-action ${s.done?'checked':''}`} aria-pressed={s.done} onClick={()=>edit(t=>{const x=t.slices?.find(y=>y.id===s.id);if(x)x.done=!x.done;},'frog slice')}><span className="check-box">{s.done&&<Check size={13}/>}</span><span>{s.text}</span></button><button className="icon-button" aria-label={`Remove slice “${s.text}”`} onClick={()=>edit(t=>{t.slices=(t.slices??[]).filter(y=>y.id!==s.id);},'frog slice')}><X size={12}/></button></li>)}</ul></>}
@@ -77,9 +77,9 @@ export function FrogFocus({frog,mutate,onClose}:{frog:Todo;mutate:Mutate;onClose
  const mm=String(Math.floor(left/60)).padStart(2,'0'),ss=String(left%60).padStart(2,'0'),progress=1-left/(minutes*60);
  return createPortal(<div ref={root} className="focus-root" role="dialog" aria-modal="true" aria-label="Focus on your frog">
   <div className="focus-panel">
-   <p className="focus-eyebrow">Single-handle it · phone face down</p>
    <img className="focus-frog" src={frog.done?FROG.leap:FROG.sit} alt=""/>
    <h2>{frog.text}</h2>
+   <p className="focus-eyebrow">Single-handle it. Phone face down.</p>
    <div className="focus-clock" style={{['--p' as string]:progress}}><span role="timer" aria-live="off">{mm}:{ss}</span></div>
    {finished?<p className="focus-note">Time. Finish the slice you’re on, or go again.</p>:<div className="focus-presets" role="radiogroup" aria-label="Session length">{[25,50,90].map(m=><button key={m} type="button" role="radio" aria-checked={minutes===m} className={minutes===m?'selected':''} onClick={()=>pick(m)}>{m} min</button>)}</div>}
    <div className="focus-controls">{endAt?<button className="button secondary focus-start" onClick={()=>{setEndAt(null);}}><Pause size={16}/>Pause</button>:<button className="button focus-start" onClick={()=>{setFinished(false);setEndAt(Date.now()+(left||minutes*60)*1000);if(!left)setLeft(minutes*60);}}><Play size={16}/>{left<minutes*60&&left>0?'Resume':'Start'}</button>}

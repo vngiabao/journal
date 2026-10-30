@@ -74,8 +74,8 @@ export function QuestPanel({list,go,onClose}:{list:Quest[];go:(p:string)=>void;o
  return createPortal(<div ref={box} className="drawer-root">
   <button type="button" className="drawer-scrim" aria-hidden="true" tabIndex={-1} onClick={onClose}/>
   <aside className="goal-drawer quest-drawer" role="dialog" aria-modal="true" aria-labelledby="quest-title">
-   <header className="drawer-head"><span className="drawer-eyebrow">{done} of {list.length} done</span><button className="icon-button" aria-label="Close" onClick={onClose}><X size={18}/></button></header>
-   <h2 id="quest-title" tabIndex={-1}>Getting started</h2>
+   <header className="drawer-head"><h2 id="quest-title" tabIndex={-1}>Getting started</h2><button className="icon-button" aria-label="Close" onClick={onClose}><X size={18}/></button></header>
+   <p className="drawer-eyebrow">{done} of {list.length} done</p>
    <p className="muted">Everything Reboot can do for you, one at a time. Each one ticks itself off when you do it.</p>
    <div className="quest-progress" aria-hidden="true"><em style={{transform:`scaleX(${done/list.length})`}}/></div>
    <QuestList list={list} go={go} onPick={onClose}/>

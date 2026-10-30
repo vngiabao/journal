@@ -73,7 +73,7 @@ export function TodayList({state,mutate,now,closed=false}:{state:State;mutate:Mu
   </header>
   <div className="tl-body">
    <AddTodo label={addFor==='today'?'Add something for today':'Add something for tomorrow'} placeholder={addFor==='tomorrow'?'Add something for tomorrow':todays.length?'Add something for today':'Start with your frog: the task you’d most like to put off'} onAdd={add} when={addFor} onWhen={setAddFor}/>
-   {nudge&&<p className="abc-nudge" role="status">{nudge}</p>}
+   <div role="status" className="abc-live">{nudge&&<p className="abc-nudge">{nudge}</p>}</div>
    {ordered.length?<><ul className="todo-list big">{visible.map(t=><TodoItem key={t.id} t={t} onToggle={toggle} onRemove={remove} onPriority={p=>setPriority(t.id,p)}/>)}</ul>
    {(hidden>0||(showAll&&undone.length>8))&&<div className="list-folds">{hidden>0&&<button type="button" className="text-button" onClick={()=>setShowAll(true)}>Also today ({hidden})</button>}{showAll&&undone.length>8&&<button type="button" className="text-button" onClick={()=>setShowAll(false)}>Show fewer</button>}</div>}</>:!frog&&<p className="tl-empty">Nothing on the list yet. What would make today a good day?</p>}
    {focus&&frog&&<FrogFocus frog={frog} mutate={mutate} onClose={()=>setFocus(false)}/>}
