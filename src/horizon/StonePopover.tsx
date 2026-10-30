@@ -1,4 +1,4 @@
-// What you can do with one step: send it down the chain (today, this week, this month), finish it, move it, or edit it.
+// What you can do with one step (from the map or an area sheet): send it down the chain (today, this week, this month), finish it, move it, or edit it.
 import {useState} from 'react';
 import type {State,PlanGoal,PlanStep} from '../model';
 import {Popover} from './shared';
@@ -12,13 +12,13 @@ export function StonePopover({state,goal,step,now,anchor,evening,onAction,onRena
  const i=goal.steps.findIndex(x=>x.id===step.id),place=stepPlace(state,step,now),tag=stepTag(state,step,now);
  const act=(a:StoneAction)=>(e:React.MouseEvent<HTMLButtonElement>)=>onAction(a,e.currentTarget);
  return <Popover anchor={anchor} onClose={onClose} label={`Step ${i+1}: ${step.text}`} className="hz-stone-pop" width={300}>
-  <header className="hz-pop-head"><p className="hz-kicker">Step {i+1} of {goal.steps.length}</p><h3>{step.text}</h3>{(tag||place==='late')&&<p className="hz-pop-tag">{tag||'late'}</p>}
-   <button type="button" className="icon-button hz-pop-close" aria-label="Close" onClick={onClose}><X size={14}/></button></header>
+  <header className="hz-pop-head"><h3>{step.text}</h3><p className="hz-pop-tag">Step {i+1} of {goal.steps.length}{tag?` · ${tag}`:place==='late'?' · past its date':''}</p>
+   <button type="button" className="icon-button hz-pop-close" aria-label="Close" onClick={onClose}><X size={18}/></button></header>
   {mode==='menu'&&<div className="hz-pop-menu" role="group" aria-label="Step actions">
-   {!step.done&&<><button type="button" disabled={place==='today'} onClick={act('today')}><ArrowRight size={16}/>{evening?'Do tomorrow':'Do today'}<kbd>T</kbd></button>
-    <button type="button" disabled={place==='week'||place==='today'} onClick={act('week')}><ArrowRight size={16}/>This week<kbd>W</kbd></button>
-    <button type="button" disabled={place==='month'||place==='week'||place==='today'} onClick={act('month')}><ArrowRight size={16}/>This month<kbd>M</kbd></button></>}
-   <button type="button" onClick={act('done')}><Check size={16}/>{step.done?'Mark not done':'Mark done'}<kbd>X</kbd></button>
+   {!step.done&&<><button type="button" disabled={place==='today'} onClick={act('today')}><ArrowRight size={16}/>{evening?'Do tomorrow':'Do today'}</button>
+    <button type="button" disabled={place==='week'||place==='today'} onClick={act('week')}><ArrowRight size={16}/>This week</button>
+    <button type="button" disabled={place==='month'||place==='week'||place==='today'} onClick={act('month')}><ArrowRight size={16}/>This month</button></>}
+   <button type="button" onClick={act('done')}><Check size={16}/>{step.done?'Mark not done':'Mark done'}</button>
    <hr/>
    <button type="button" disabled={i<=0} onClick={act('earlier')}><ChevronUp size={16}/>Move earlier</button>
    <button type="button" disabled={i>=goal.steps.length-1} onClick={act('later')}><ChevronDown size={16}/>Move later</button>

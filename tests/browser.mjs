@@ -4,6 +4,9 @@ import assert from 'node:assert/strict';
 const base=process.env.REBOOT_URL??'http://127.0.0.1:5174/';
 const browser=await chromium.launch({channel:'msedge',headless:true});
 const context=await await (async()=>{const c=await browser.newContext({viewport:{width:1440,height:1000},acceptDownloads:true});await c.addInitScript(()=>{try{for(const k of ['reboot-tour-v1','reboot-tour-journal','reboot-tour-horizon','reboot-tour-progress','reboot-tour-review','reboot-tour-board'])localStorage.setItem(k,'done');localStorage.setItem('reboot-daily-open','1');}catch{}});return c;})();
+// Today opens with the morning ritual before 5 pm and the evening one after. Pin the clock to 10:00 today (time still runs)
+// so the run is the same at any hour; the ritual itself is covered by tests/ritual.test.ts.
+const ten=new Date();ten.setHours(10,0,0,0);await context.clock.install({time:ten});
 const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
 await fs.mkdir('.impeccable/review',{recursive:true});
 async function state(){return page.evaluate(async()=>{const db=await new Promise((res,rej)=>{const req=indexedDB.open('project-reboot',1);req.onsuccess=()=>res(req.result);req.onerror=()=>rej(req.error);});const result=await new Promise((res,rej)=>{const req=db.transaction('state').objectStore('state').get('private');req.onsuccess=()=>res(req.result);req.onerror=()=>rej(req.error);});db.close();return result;});}
@@ -14,14 +17,15 @@ assert.equal(await page.locator('.goal-table tbody > tr').count(),36);
 await page.screenshot({path:'.impeccable/review/board-first-launch.png',fullPage:true});
 for(const name of ['Meditate 10 min every night','Both face exercises, 60-day streak','Gym 4+ times a week for 10 weeks','Read 20 books','Reach 75 kg'])await page.getByRole('combobox',{name:`Status of ${name}`,exact:true}).selectOption('active');
 await page.getByRole('button',{name:/Start with 5 active goals/}).click();await saved();
-await nav('Today');await page.getByRole('button',{name:'Exercise A',exact:true}).click();await saved();
+await nav('Today');await page.locator('.ritual-morning').waitFor();await page.getByRole('button',{name:'Skip the plan and show my list',exact:true}).click();await page.locator('.today-doing').waitFor();
+await page.locator('.today-doing').getByRole('button',{name:'Exercise A',exact:true}).click();await saved();
 let s=await state();assert.deepEqual(s.logs.find(l=>l.goalId==='11').tasks,['Exercise A']);
-await page.getByRole('button',{name:'Exercise B',exact:true}).click();await page.getByRole('button',{name:'Mark “Meditate 10 min every night” done',exact:true}).click();await saved();
+await page.locator('.today-doing').getByRole('button',{name:'Exercise B',exact:true}).click();await page.locator('.today-doing').getByRole('button',{name:'Mark “Meditate 10 min every night” done',exact:true}).click();await saved();
 s=await state();assert.equal(s.logs.find(l=>l.goalId==='11').state,'success');assert.equal(s.journey.length,0);
 await page.screenshot({path:'.impeccable/review/desktop.png',fullPage:true});
 await page.getByRole('button',{name:'Write it',exact:true}).click();await page.getByRole('textbox',{name:'Who you’re becoming, in one sentence'}).fill('I keep the promises I make to myself.');await page.getByRole('button',{name:'Save',exact:true}).click();await saved();assert.equal((await state()).settings.identity,'I keep the promises I make to myself.');
 await nav('Journal');await page.locator('.book-proof').getByRole('radio',{name:'Shot taken'}).click();await page.getByRole('textbox',{name:'Add a shot taken'}).fill('Applied for a stretch role');await page.locator('.book-proof').getByRole('button',{name:'Add',exact:true}).click();await saved();s=await state();assert.equal(s.proofs.length,1);assert.equal(s.proofs[0].kind,'attempt');assert.equal(s.journey.length,0,'proof never moves the journey line');
-await nav('Today');await page.waitForFunction(()=>/1\s*shot taken/.test(document.querySelector('.rh-evidence')?.textContent??''),null,{timeout:5000});
+await nav('Today');await page.locator('.today-doing').waitFor();
 await page.getByRole('textbox',{name:'Add something for today'}).fill('Send two applications');await page.locator('.today-list').getByRole('button',{name:'Add',exact:true}).click();await saved();s=await state();assert.equal(s.todos.filter(t=>!t.routine&&!t.auto).length,1);assert(s.logs.some(l=>l.goalId==='35'&&l.state==='success'),'writing today’s list counts toward the to-do goal');
 // Eat That Frog: choose the frog, slice it, label a second task B, get nudged for doing B first, then eat the frog.
 await page.getByRole('button',{name:'Make “Send two applications” my frog',exact:true}).click();await saved();await page.locator('.frog-card').waitFor();
@@ -67,8 +71,8 @@ const touchContext=await await (async()=>{const c=await browser.newContext({view
 assert.deepEqual(errors,[]);await page.setViewportSize({width:1440,height:1000});await nav('Settings');await page.getByRole('button',{name:'Take the tour',exact:true}).click();await page.getByRole('dialog',{name:'Welcome to Reboot'}).waitFor();
 for(let n=0;n<20;n++){const done=page.locator('.tour-card').getByRole('button',{name:'Done',exact:true});if(await done.isVisible().catch(()=>false)){await done.click();break;}await page.locator('.tour-card').getByRole('button',{name:/^(Start|Next)/}).click();}
 await page.locator('.tour-root').waitFor({state:'detached'});assert.equal(await page.evaluate(()=>localStorage.getItem('reboot-tour-v1')),'done','finishing the tour remembers it');
-// Getting started: the checklist opens from the sidebar, ticks itself off, and "Show me" goes to the right place.
-await nav('Today');await page.getByRole('button',{name:/^Getting started: \d+ of \d+ done/}).click();const panel=page.getByRole('dialog',{name:'Getting started'});await panel.waitFor();
+// Getting started: the checklist lives in Settings → Guide only (no meter in the sidebar or on Today), ticks itself off, and "Show me" goes to the right place.
+await nav('Today');assert(await page.getByRole('button',{name:/^Getting started: \d+ of \d+ done/}).count()===0,'no Getting started meter on Today or in the sidebar');await page.goto(base+'#Settings');const panel=page.locator('.guide .quest-list');await panel.waitFor();
 assert(await panel.locator('li.done').filter({hasText:'Take the tour'}).count()===1,'the finished tour is ticked');
 assert(await panel.locator('li.done').filter({hasText:'Look at your progress'}).count()===1,'visiting Progress ticks it');
 await panel.getByRole('button',{name:'Show me: Set your frog reminders',exact:true}).click();await page.locator('.reminders').waitFor();

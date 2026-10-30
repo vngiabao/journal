@@ -3,19 +3,20 @@
 //  · ABCDE: label every task, and never do a B while an A is waiting;
 //  · slice it: break the frog into small steps you can start right now;
 //  · single-handle it: a focus session with only the frog on screen;
-//  · plan tomorrow tonight: choose tomorrow's frog before bed.
+//  · plan tomorrow tonight: choose tomorrow's frog before bed (the evening ritual's last step, src/ritual).
 import {useEffect,useRef,useState} from 'react';
 import {createPortal} from 'react-dom';
 import type {State,Todo,Priority} from './model';
 import {uid} from './model';
 import type {Mutate} from './GoalControls';
-import {addDays,label} from './dates';
+import {label} from './dates';
 import {Check,Plus,X,Play,Pause,Bell,CalendarPlus} from './icons';
 import {gsap,useGSAP,whenMotionOK} from './motion';
 import {inkStamp} from './delight';
+import {bondCelebrate} from './bond';
 import {download} from './storage';
 import {remindersOf,remindersIcs,askPermission,notificationsSupported,notify} from './reminders';
-import {PRIORITIES,PRIORITY_NAME,frogOf} from './frog-rules';
+import {PRIORITIES,PRIORITY_NAME} from './frog-rules';
 import {FLAGS,markFlag} from './flags';
 export {frogOf,frogStats,priorityRank} from './frog-rules';
 
@@ -45,7 +46,7 @@ export function FrogCard({frog,mutate,now,onFocus}:{frog:Todo;mutate:Mutate;now:
  const box=useRef<HTMLElement>(null),wasDone=useRef(frog.done),[slice,setSlice]=useState('');
  const late=!frog.done&&frog.date===now&&new Date().getHours()>=12,slices=frog.slices??[],sliced=slices.filter(s=>s.done).length;
  const edit=(fn:(t:Todo)=>void,what:string)=>mutate(s=>{const t=(s.todos??[]).find(x=>x.id===frog.id);if(t)fn(t);},what);
- const eat=(e?:React.MouseEvent<HTMLElement>)=>{if(!frog.done&&e){const r=e.currentTarget.getBoundingClientRect();inkStamp(Math.min(r.right-70,innerWidth-70),r.top+r.height/2,'Eaten');}edit(t=>{t.done=!t.done;t.doneAt=t.done?new Date().toISOString():undefined;},'frog eaten');};
+ const eat=(e?:React.MouseEvent<HTMLElement>)=>{if(!frog.done&&e){const r=e.currentTarget.getBoundingClientRect();inkStamp(Math.min(r.right-70,innerWidth-70),r.top+r.height/2,'Eaten');}if(!frog.done)bondCelebrate('frog-done');edit(t=>{t.done=!t.done;t.doneAt=t.done?new Date().toISOString():undefined;},'frog eaten');};
  useGSAP(()=>{const was=wasDone.current;wasDone.current=frog.done;if(!frog.done||was)return;const mm=whenMotionOK(()=>{gsap.timeline().fromTo('.frog-art',{y:0,rotation:0},{keyframes:{y:[0,-70,-20,0],rotation:[0,-12,6,0]},duration:.9,ease:'power2.out'}).from('.frog-eyebrow',{opacity:0,y:6,duration:.3},'-=.4');});return()=>mm.revert();},{dependencies:[frog.done],scope:box});
  return <section ref={box} className={`frog-card ${frog.done?'eaten':''} ${late?'late':''}`} aria-label="Today’s frog">
   <img className="frog-art" src={frog.done?FROG.leap:late?FROG.nervous:FROG.sit} alt=""/>
@@ -60,17 +61,6 @@ export function FrogCard({frog,mutate,now,onFocus}:{frog:Todo;mutate:Mutate;now:
    {!frog.done&&<div className="frog-actions"><button className="button frog-go" onClick={onFocus}><Play size={15}/>Eat it now</button><button className="text-button" onClick={()=>edit(t=>{t.frog=false;},'frog unset')}>Not my frog</button></div>}
   </div>
  </section>;
-}
-
-// Plan tomorrow tonight: one task, not a whole list. At midnight it becomes the day's frog.
-export function TomorrowFrog({state,mutate,now,always=false}:{state:State;mutate:Mutate;now:string;always?:boolean}){
- const tomorrow=addDays(now,1),set=frogOf(state,tomorrow),[text,setText]=useState(''),[open,setOpen]=useState(false);
- const evening=new Date().getHours()>=17;
- if(set&&!open)return <p className="tomorrow-frog is-set"><FrogGlyph/><span>Tomorrow’s frog: <b>{set.text}</b></span><button className="text-button" onClick={()=>{setText(set.text);setOpen(true);}}>Change</button></p>;
- if(!evening&&!open&&!always)return null;
- return <form className="tomorrow-frog" onSubmit={e=>{e.preventDefault();const v=text.trim();mutate(s=>{const list=(s.todos??[]).filter(t=>!(t.date===tomorrow&&t.frog&&!v));const ex=list.find(t=>t.date===tomorrow&&t.frog);if(v){if(ex)ex.text=v;else list.push({id:uid(),date:tomorrow,text:v,done:false,frog:true,priority:'A',createdAt:new Date().toISOString()});}s.todos=list;},'tomorrow frog');setOpen(false);setText('');}}>
-  <FrogGlyph/><label><span>Before bed: choose tomorrow’s frog</span><input aria-label="Tomorrow’s frog" value={text} maxLength={140} placeholder="Tomorrow’s first task" onChange={e=>setText(e.target.value)}/></label><button className="button secondary" disabled={!text.trim()&&!set}>{set&&!text.trim()?'Clear':'Set'}</button>
- </form>;
 }
 
 // Single-handle it: only the frog, a timer, and its slices. Phone face down.
@@ -92,7 +82,7 @@ export function FrogFocus({frog,mutate,onClose}:{frog:Todo;mutate:Mutate;onClose
    <div className="focus-clock" style={{['--p' as string]:progress}}><span role="timer" aria-live="off">{mm}:{ss}</span></div>
    {finished?<p className="focus-note">Time. Finish the slice you’re on, or go again.</p>:<div className="focus-presets" role="radiogroup" aria-label="Session length">{[25,50,90].map(m=><button key={m} type="button" role="radio" aria-checked={minutes===m} className={minutes===m?'selected':''} onClick={()=>pick(m)}>{m} min</button>)}</div>}
    <div className="focus-controls">{endAt?<button className="button secondary focus-start" onClick={()=>{setEndAt(null);}}><Pause size={16}/>Pause</button>:<button className="button focus-start" onClick={()=>{setFinished(false);setEndAt(Date.now()+(left||minutes*60)*1000);if(!left)setLeft(minutes*60);}}><Play size={16}/>{left<minutes*60&&left>0?'Resume':'Start'}</button>}
-    <button className={`button ${frog.done?'secondary':'frog-eat'}`} onClick={()=>{edit(t=>{t.done=!t.done;t.doneAt=t.done?new Date().toISOString():undefined;},'frog eaten');if(!frog.done)onClose();}}><Check size={16}/>{frog.done?'Not done yet':'I ate it'}</button></div>
+    <button className={`button ${frog.done?'secondary':'frog-eat'}`} onClick={()=>{edit(t=>{t.done=!t.done;t.doneAt=t.done?new Date().toISOString():undefined;},'frog eaten');if(!frog.done){bondCelebrate('frog-done');onClose();}}}><Check size={16}/>{frog.done?'Not done yet':'I ate it'}</button></div>
    {(frog.slices??[]).length>0&&<ul className="focus-slices">{frog.slices!.map(s=><li key={s.id}><button className={`check-action ${s.done?'checked':''}`} aria-pressed={s.done} onClick={()=>edit(t=>{const x=t.slices?.find(y=>y.id===s.id);if(x)x.done=!x.done;},'frog slice')}><span className="check-box">{s.done&&<Check size={13}/>}</span><span>{s.text}</span></button></li>)}</ul>}
    <button className="text-button focus-leave" onClick={onClose}>Leave focus</button>
   </div>

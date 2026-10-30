@@ -49,19 +49,19 @@ export function itemToWeek(s:State,id:string,week:string){const it=(s.plan?.item
 export function itemToDay(s:State,id:string,day:string){const it=(s.plan?.items??[]).find(x=>x.id===id);if(!it||it.done||(s.todos??[]).some(t=>t.fromPlan===id&&t.date===day))return false;
  s.todos=[...(s.todos??[]),{id:uid(),date:day,text:it.text,done:false,createdAt:new Date().toISOString(),priority:'A',fromPlan:id}];return true;}
 
-// Horizon: a step can go straight into a month or a week list. It stays linked, so ticking either side ticks both.
+// From the map: a step can go straight into a month or a week list. It stays linked, so ticking either side ticks both.
 export function stepToPeriod(s:State,goalId:string,stepId:string,scope:'week'|'month',period:string){
  const st=goal(s,goalId)?.steps.find(x=>x.id===stepId);if(!st||st.done)return false;
  if((s.plan?.items??[]).some(x=>x.stepId===stepId&&x.scope===scope&&x.period===period))return false;
  const it:PlanItem={id:uid(),scope,period,text:st.text,done:false,stepId,goalId};(s.plan!.items??=[]).push(it);return it;
 }
-export function reorderStep(s:State,goalId:string,from:number,to:number){const g=goal(s,goalId);if(!g||from<0||from>=g.steps.length)return;const j=Math.max(0,Math.min(g.steps.length-1,to));if(j===from)return;const [x]=g.steps.splice(from,1);g.steps.splice(j,0,x);}
 export function renameStep(s:State,goalId:string,stepId:string,text:string){const st=goal(s,goalId)?.steps.find(x=>x.id===stepId);if(st&&text.trim())st.text=text.trim();}
 export function setStepDue(s:State,goalId:string,stepId:string,due?:string){const st=goal(s,goalId)?.steps.find(x=>x.id===stepId);if(st){if(due)st.due=due;else delete st.due;}}
 export function removeStep(s:State,goalId:string,stepId:string){const g=goal(s,goalId);if(!g)return undefined;const index=g.steps.findIndex(x=>x.id===stepId);if(index<0)return undefined;const [step]=g.steps.splice(index,1);return {step,index};}
 export function restoreStep(s:State,goalId:string,step:PlanStep,index:number){const g=goal(s,goalId);if(!g||g.steps.some(x=>x.id===step.id))return;g.steps.splice(Math.min(index,g.steps.length),0,step);}
-export function reachGoal(s:State,id:string,date:string){const g=goal(s,id);if(g)g.reachedAt=date;}
-export function unreachGoal(s:State,id:string){const g=goal(s,id);if(g)delete g.reachedAt;}
+// The goal itself: its words and its deadline ("By 1 Mar 2027").
+export function renameGoal(s:State,id:string,text:string){const g=goal(s,id);if(g&&text.trim())g.text=text.trim();}
+export function setGoalDeadline(s:State,id:string,date?:string){const g=goal(s,id);if(!g)return;if(date)g.deadline=date;else delete g.deadline;}
 export function linkBoard(s:State,id:string,boardId?:string){const g=goal(s,id);if(!g)return;if(boardId)g.boardGoal=boardId;else delete g.boardGoal;}
 // Removing a goal hands it back, with its place, so "Undo" can put it back exactly where it was.
 export function removeGoal(s:State,id:string){const p=s.plan;if(!p)return undefined;const index=p.goals.findIndex(g=>g.id===id);if(index<0)return undefined;const [g]=p.goals.splice(index,1);return {goal:g,index};}
@@ -79,7 +79,7 @@ export function stepPlace(s:State,step:PlanStep,now:string):StepPlace{
  if(step.due&&step.due<now)return 'late';
  return 'open';
 }
-// The 13px tag a stone carries: "On today", "This week", "In November", "Done Oct 21".
+// The tag a step carries on the map: "On today", "This week", "In November", "Done Oct 21".
 export function stepTag(s:State,step:PlanStep,now:string){
  const place=stepPlace(s,step,now);
  if(place==='done')return step.doneAt?`Done ${label(step.doneAt.slice(0,10))}`:'Done';
@@ -92,4 +92,3 @@ export function stepTag(s:State,step:PlanStep,now:string){
  if(month)return `In ${label(`${month.period}-01`,{month:'long'})}`;
  return '';
 }
-export const isLate=(step:PlanStep,now:string)=>!step.done&&!!step.due&&step.due<now;

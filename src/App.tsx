@@ -20,7 +20,7 @@ import {PocketPets,usePocketPets} from './Pet';
 import {burst,inkStamp,installHoverPhysics} from './delight';
 import {remindersOf,dueReminder,isDue,notify} from './reminders';
 import {Tour,tourSeen,startTour,TOUR_FOR_PAGE,type TourId} from './Tour';
-import {quests,QuestMeter,QuestPanel} from './Quests';
+import {quests,QuestPanel} from './Quests';
 import {FLAGS,markFlag} from './flags';
 import {gsap,useGSAP,motionOK,whenMotionOK,SplitText,Flip} from './motion';
 
@@ -123,7 +123,7 @@ export default function App(){
    <p className="sidebar-caption">Make room for who you’re becoming.</p>
    <Chibi pose="avatar" className="sidebar-chibi"/>
    <nav aria-label="Main navigation">{[...nav,['Settings','Settings','Settings',SettingsIcon] as const].map(([key,name,,Icon])=>{const on=navKey(page)===key;return <button key={key} className={`${on?'current':''} ${key==='Settings'?'nav-settings':''}`} onClick={()=>go(key)} aria-current={on?'page':undefined}>{on&&<span className="nav-ink" data-flip-id="nav-ink" aria-hidden="true"/>}<Icon size={18} strokeWidth={1.5}/>{name}</button>;})}</nav>
-   <div className="sidebar-bottom"><p>Progress isn’t linear.<br/><em>Keep showing up.</em></p><span className={saved==='Not saved'?'error sidebar-status':'sidebar-status'} role="status"><Check size={13}/>{saved}</span><CloudStatus/><QuestMeter list={quests(state,pet)} onOpen={()=>setQuestsOpen(true)}/><button type="button" className="text-button sidebar-tour" onClick={()=>startTour()}>Show me around</button><span className="sidebar-private"><ShieldCheck size={14}/>Private on this device</span></div>
+   <div className="sidebar-bottom"><p>Progress isn’t linear.<br/><em>Keep showing up.</em></p><span className={saved==='Not saved'?'error sidebar-status':'sidebar-status'} role="status"><Check size={13}/>{saved}</span><CloudStatus/><button type="button" className="text-button sidebar-tour" onClick={()=>startTour()}>Show me around</button><span className="sidebar-private"><ShieldCheck size={14}/>Private on this device</span></div>
   </aside>
   {pet&&<PocketPets choice={petChoice} state={state} now={now} cheer={cheer} onCheerDone={()=>setCheer(null)}/>}
   {touring&&<Tour key={touring} which={touring} onClose={()=>setTouring(null)}/>}

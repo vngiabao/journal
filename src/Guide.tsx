@@ -1,59 +1,11 @@
-// Where to next: the right side of Today. Each place you haven't been to yet today, with where you stand and a
-// tap that takes you there and points at the spot. Finished ones stay, ticked. Tomorrow's frog closes the day.
+// Every day: the board's daily promises, ticked on Today and in the evening check-in. ("Where to next" lived here;
+// the daily ritual replaced it, so Today no longer lists the app's own features as things to do.)
 import type {State} from './model';
 import {putActivity,type Mutate} from './GoalControls';
 import {goalName} from './Board';
 import {stats,dayState,atRiskStreaks,criteriaAt} from './engine';
-import {showMe} from './Quests';
-import {TomorrowFrog} from './Frog';
-import {oneGoal,periodItems,weekOf,nextWeek} from './plan';
-import {addDays,weekStart} from './dates';
 import {useState} from 'react';
-import {BookOpen,Trophy,TrendingUp,ChartNoAxesCombined,Target,Check,ArrowRight,ChevronDown} from './icons';
-
-const FELT:Record<string,string>={Great:'a big step forward',Good:'a step forward',Okay:'a steady day',Low:'a setback',Difficult:'a hard day'};
-type Place={id:string;title:string;sub:string;done:boolean;page:string;target:string;Icon:typeof BookOpen;before?:()=>void};
-
-export function places(s:State,now:string):Place[]{
- const entry=s.journals.find(j=>j.date===now&&j.kind==='daily'),words=entry?.text.trim()?entry.text.trim().split(/\s+/).length:0,mood=entry?.mood;
- const proofs=s.proofs.filter(p=>p.date===now),onLine=s.journey.find(d=>d.date===now),one=oneGoal(s);
- const dow=new Date(`${now}T12:00:00`).getDay(),[y,m]=now.split('-').map(Number),lastDay=new Date(y,m,0).getDate(),day=Number(now.slice(8)),ws=weekStart(now);
- const review=(kind:'weekly'|'monthly')=>()=>{try{sessionStorage.setItem('reboot-review-write',kind);}catch{/* fine */}};
- const list:Place[]=[
-  {id:'journal',title:'Write today’s page',Icon:BookOpen,page:'Journal',target:'.verso .mood-picker',done:!!mood&&words>0,
-   sub:mood&&words?`Felt ${mood.toLowerCase()} · ${words} ${words===1?'word':'words'}`:mood?`Felt ${mood.toLowerCase()}. Add a few lines.`:words?`${words} words. How did today feel?`:'How today felt, and a few honest lines.'},
-  {id:'proof',title:'Add a win or a shot you took',Icon:Trophy,page:'Journal',target:'.book-proof',done:proofs.length>0,
-   sub:proofs.length?`${proofs.length} on the record today`:'However small. You’ll reread these on hard days.'},
-  {id:'line',title:'See your line',Icon:TrendingUp,page:'Journey',target:'.chart-frame',done:!!onLine,
-   sub:onLine?mood?`Today marked as ${FELT[mood]??'a moment'}`:'Today is marked':'Your mood in the journal marks today on it.'},
- ];
- if(dow===5||dow===6||dow===0)list.push({id:'weekly',title:'Write your weekly review',Icon:ChartNoAxesCombined,page:'Review',target:'#main .board-topline .button',before:review('weekly'),
-  done:s.journals.some(j=>j.kind==='weekly'&&!!j.text.trim()&&j.date>=ws&&j.date<=addDays(ws,6)),sub:'What improved, what didn’t, what changes next week.'});
- if(lastDay-day<3||day===1)list.push({id:'monthly',title:'Write your monthly review',Icon:ChartNoAxesCombined,page:'Review',target:'#main .board-topline .button',before:review('monthly'),
-  done:s.journals.some(j=>j.kind==='monthly'&&!!j.text.trim()&&j.date.slice(0,7)===(day===1?addDays(now,-1):now).slice(0,7)),sub:'The same look back, for the whole month.'});
- const weekNow=periodItems(s,'week',weekOf(now)),weekNext=periodItems(s,'week',nextWeek(now)),weekend=dow===0||dow===6;
- list.push({id:'week',title:weekend?'Plan next week':'Plan this week',Icon:Target,page:'Horizon',target:'.hz-camp',
-  done:weekend?weekNext.length>0:weekNow.length>0,sub:(weekend?weekNext:weekNow).length?`${(weekend?weekNext:weekNow).length} on the list · move tomorrow’s onto your to-do`:'Write the week’s list, pulled from the month.'});
- list.push({id:'plan',title:one?'Your one goal':'Plan your year',Icon:Target,page:'Horizon',target:'.hz-ridge-wrap, .hz-first',
-  done:!!one&&one.steps.length>0&&(s.todos??[]).some(t=>t.date===now&&!!t.fromPlan),
-  sub:one?`${one.steps.filter(x=>x.done).length} of ${one.steps.length} steps · ${(s.todos??[]).some(t=>t.date===now&&!!t.fromPlan)?'a step is on today’s list':'put one step on today’s list'}`:'Ten goals, then the one that would change the most.'});
- return list;
-}
-
-export function Guide({state,mutate,now,go}:{state:State;mutate:Mutate;now:string;go:(p:string)=>void}){
- const list=places(state,now),done=list.filter(p=>p.done).length;
- const open=(p:Place)=>{p.before?.();showMe({id:p.id,title:p.title,how:'',page:p.page,target:p.target,done:p.done},go);};
- return <section className="guide-panel" aria-labelledby="guide-title">
-  <div className="gp-head"><h2 id="guide-title">Where to next</h2><span>{done} of {list.length}</span></div>
-  <ul className="gp-list">{list.filter(p=>!p.done).map(p=><li key={p.id}><button type="button" className="gp-item" onClick={()=>open(p)}>
-   <span className="gp-mark" aria-hidden="true"/>
-   <span className="gp-text"><strong>{p.title}</strong><small>{p.sub}</small></span>
-   <ArrowRight size={16} className="gp-arrow"/>
-  </button></li>)}</ul>
-  {done>0&&<p className="gp-done"><Check size={14}/>Done today: {list.filter(p=>p.done).map(p=>p.title).join(' · ')}</p>}
-  <div className="close-day"><h3>Close the day</h3><TomorrowFrog state={state} mutate={mutate} now={now} always/></div>
- </section>;
-}
+import {Check,ChevronDown} from './icons';
 
 // Every day: all the board's daily goals in one list, styled like the to-do list. Ticking one counts it, and starts
 // tracking it if it wasn't on yet. Two-part goals get two small checks; "2+ meals" gets a small counter.
@@ -72,7 +24,7 @@ export function DailyTicks({state,mutate,now}:{state:State;mutate:Mutate;now:str
  </section>;
 }
 
-function DailyRow({g,state,mutate,now,risk}:{g:State['goals'][number];state:State;mutate:Mutate;now:string;risk:boolean}){
+export function DailyRow({g,state,mutate,now,risk}:{g:State['goals'][number];state:State;mutate:Mutate;now:string;risk:boolean}){
  const c=criteriaAt(g,now),ds=dayState(g,state.logs,now),done=ds==='success',st=stats(g,state.logs,now),name=goalName(g,state);
  const mine=(l:State['logs'][number],s:State)=>l.goalId===g.id&&l.run===s.goals.find(x=>x.id===g.id)!.run&&l.date===now&&!l.title&&!l.stage;
  const today=state.logs.find(l=>mine(l,state)),tasks=new Set(today?.tasks??[]),count=today?.value??0;

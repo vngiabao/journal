@@ -1,0 +1,230 @@
+/* Today as a two-minute ritual. One calm card, one question at a time; then the doing view.
+   Readability floor (Bao, 2026-10-24): reading text 20px desktop / 18px phone, secondary 16px+, nothing under 14px. */
+
+/* ---- Page ---- */
+#main .today-page{display:flex;flex-direction:column;gap:var(--s-6)}
+#main .today-top{display:grid;gap:var(--s-2);padding:var(--s-1) 0 0}
+#main .today-top .tt-line{display:flex;align-items:baseline;flex-wrap:wrap;gap:var(--s-1) var(--s-5)}
+#main .today-top .dateline{margin:0;font-size:14px;letter-spacing:.08em;color:var(--ink-soft)}
+#main .today-top .tt-greet{margin:0;font:500 clamp(36px,3vw,48px)/1.08 var(--serif);letter-spacing:-.015em;color:var(--ink)}
+#main .today-top .rh-statement{display:flex;align-items:baseline;flex-wrap:wrap;gap:var(--s-1) var(--s-4)}
+#main .today-top .rh-becoming{max-width:64ch;margin:0;font:italic 500 24px/1.3 var(--serif);letter-spacing:0;color:var(--ink-soft);text-wrap:pretty}
+#main .today-top .rh-becoming.empty{font-style:normal;color:var(--ink-soft)}
+#main .today-top .rh-edit{font-size:16px;min-height:44px}
+#main .today-top .rh-edit-form{max-width:640px}
+#main .today-top .rh-edit-form textarea{font:500 24px/1.3 var(--serif)}
+#main .ritual-escape{margin:calc(-1 * var(--s-3)) 0 0}
+#main .ritual-escape .text-button{font-size:16px;color:var(--ink-soft);text-decoration:underline;text-underline-offset:4px;text-decoration-color:var(--line-strong)}
+/* ---- The ritual card ---- */
+#main .ritual-card{display:grid;grid-template-columns:minmax(300px,5fr) minmax(0,8fr);min-height:440px;overflow:hidden;background:var(--sheet);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow-2)}
+#main .rs-side{position:relative;display:flex;flex-direction:column;gap:var(--s-4);padding:var(--s-8) var(--s-8) 0;background:radial-gradient(110% 80% at 0% 0%,var(--gold-wash),transparent 70%),var(--page-leaf);border-right:1px solid var(--page-rule)}
+#main .rs-count{display:flex;align-items:center;gap:var(--s-3);margin:0;font:600 15px/1.3 var(--sans);letter-spacing:.02em;color:var(--ink-soft)}
+#main .rs-dots{display:inline-flex;gap:6px}
+#main .rs-dots i{width:8px;height:8px;border-radius:var(--r-chip);background:var(--line-strong);transition:width 260ms var(--ease-move),background-color 260ms var(--ease)}
+#main .rs-dots i.past{background:var(--gold)}
+#main .rs-dots i.now{width:22px;background:var(--blue)}
+#main .rs-question:focus{outline:none}
+#main .rs-question{max-width:15ch;margin:var(--s-2) 0 0;font:500 clamp(32px,2.5vw,38px)/1.1 var(--serif);letter-spacing:-.012em;color:var(--ink)}
+#main .rs-help{max-width:32ch;margin:0;font-size:20px;line-height:1.45;color:var(--ink-soft)}
+#main .rs-art{align-self:flex-end;width:auto;height:150px;margin-top:auto;object-fit:contain;filter:drop-shadow(0 10px 14px #1f2a441a);pointer-events:none}
+#main .step-week .rs-art{height:170px}
+#main .rs-main{display:flex;flex-direction:column;gap:var(--s-7);min-width:0;padding:var(--s-8) var(--s-9) var(--s-7)}
+#main .rs-controls{display:flex;flex-direction:column;gap:var(--s-5);font-size:20px;line-height:1.4;color:var(--ink)}
+#main .rs-controls>div{display:flex;flex-direction:column;gap:var(--s-5)}
+#main .rs-foot{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s-3) var(--s-6);margin-top:auto;padding-top:var(--s-5);border-top:1px solid var(--line)}
+#main .rs-primary{min-height:56px;padding:0 var(--s-7);font-size:18px;font-weight:600;transition:transform 160ms var(--ease),background-color 160ms var(--ease)}
+#main .rs-primary:active{transform:scale(.97)}
+#main .rs-skip,#main .rs-back{min-height:44px;font-size:16px;font-weight:550;color:var(--ink-soft)}
+#main .rs-back{margin-left:auto}
+@media(hover:hover) and (pointer:fine){#main .rs-skip:hover,#main .rs-back:hover{color:var(--blue)}}
+/* Evening: the notebook's night cover on the question side. */
+#main .ritual-evening .rs-side{background:radial-gradient(110% 70% at 100% 100%,#27476999,transparent 70%),var(--blue-deep);border-right-color:var(--blue-deeper)}
+#main .ritual-evening .rs-count{color:var(--cover-muted)}
+#main .ritual-evening .rs-dots i{background:#ffffff38}
+#main .ritual-evening .rs-dots i.past{background:var(--metal)}
+#main .ritual-evening .rs-dots i.now{background:var(--metal)}
+#main .ritual-evening .rs-question{color:var(--cover-text)}
+#main .ritual-evening .rs-help{color:var(--cover-muted)}
+#main .ritual-evening .rs-art{filter:drop-shadow(0 10px 18px #0006)}
+/* Shared controls */
+#main .rs-sub{display:flex;align-items:center;gap:var(--s-2);margin:var(--s-2) 0 0;font:500 24px/1.2 var(--serif);color:var(--ink)}
+#main .rs-empty,#main .rs-note{margin:0;font-size:18px;color:var(--ink-soft)}
+#main .rs-note{font-size:16px}
+#main .rs-write{display:flex;flex-direction:column;gap:var(--s-2);font-size:16px;font-weight:600;color:var(--ink-soft)}
+#main .rs-write input{min-height:58px;padding:var(--s-3) var(--s-4);font:400 22px var(--serif);color:var(--ink);background:var(--sheet)}
+#main .rs-add{display:flex;align-items:center;gap:var(--s-3);padding:var(--s-1) var(--s-1) var(--s-1) var(--s-4);border:1.5px solid var(--line-strong);border-radius:var(--r-tile);background:var(--sheet-2);transition:border-color 160ms var(--ease)}
+#main .rs-add:focus-within{border-color:var(--blue)}
+#main .rs-add>svg{flex:none;color:var(--blue)}
+#main .rs-add input{flex:1;min-width:0;min-height:52px;padding:var(--s-2) 0;border:0;background:transparent;font:400 21px var(--serif);box-shadow:none}
+#main .rs-add input:focus{box-shadow:none}
+#main .rs-add .button{min-height:48px;font-size:16px}
+#main .rs-list{display:flex;flex-direction:column;margin:0;padding:0;list-style:none}
+#main .rs-list li{display:flex;align-items:center;gap:var(--s-4);min-height:66px;padding:var(--s-2) 0;border-bottom:1px solid var(--line)}
+#main .rs-list li:last-child{border-bottom:0}
+#main .rs-num{flex:none;width:28px;font:500 34px/1 var(--serif);color:var(--gold-text);font-variant-numeric:lining-nums}
+#main .rs-task{flex:1;min-width:0;font:500 23px/1.25 var(--serif);color:var(--ink);overflow-wrap:anywhere;white-space:normal;text-align:left}
+#main .rs-list li.done .rs-task{color:var(--ink-soft)}
+#main .rs-list li.done svg{color:var(--green)}
+#main .rs-later{font-size:16px;color:var(--ink-soft)}
+@media(hover:hover) and (pointer:fine){#main .rs-later:hover{color:var(--blue)}}
+#main .rs-list .prio-chip{width:36px;height:36px;font-size:15px}
+#main .rs-list .prio-chip.prio-none{font-size:14px;padding:0 8px}
+/* Morning 1: the frog */
+#main .rs-choices{display:flex;flex-direction:column;gap:var(--s-2);margin:0;padding:0;list-style:none}
+#main .rs-choice{display:flex;align-items:center;gap:var(--s-4);width:100%;min-height:62px;padding:var(--s-2) var(--s-4);border:1.5px solid var(--line-strong);border-radius:var(--r-tile);background:var(--sheet);color:var(--ink);text-align:left;transition:border-color 160ms var(--ease),background-color 160ms var(--ease),transform 160ms var(--ease)}
+#main .rs-choice:active{transform:scale(.99)}
+#main .rs-choice.on{border-color:#7fae6b;background:#f1f7ec}
+@media(hover:hover) and (pointer:fine){#main .rs-choice:not(.on):hover{border-color:var(--ink-soft);background:var(--sheet-hover)}}
+#main .rs-choice-text{flex:1;min-width:0;font:500 23px/1.25 var(--serif)}
+#main .rs-choice .prio-chip{width:32px;height:32px;font-size:15px}
+#main .rs-radio{flex:none;display:grid;place-items:center;width:36px;height:36px;border:2px solid var(--line-strong);border-radius:50%;background:var(--sheet)}
+#main .rs-choice.on .rs-radio{border-color:#7fae6b;background:#fff}
+#main .rs-radio .frog-glyph{width:26px;height:26px}
+#main .rs-write.on input{border-color:var(--line-strong)}
+/* Morning 2: today's three */
+#main .rs-frog-line{display:flex;align-items:center;gap:var(--s-3);margin:0;padding:var(--s-3) var(--s-4);border-radius:var(--r-tile);background:#f1f7ec;font-size:18px;color:var(--ink-soft)}
+#main .rs-frog-line b{font:500 22px var(--serif);color:var(--ink)}
+#main .rs-then{display:flex;flex-wrap:wrap;gap:var(--s-1) var(--s-3);margin:0;font-size:18px;line-height:1.45;color:var(--ink-soft)}
+#main .rs-then span{font-weight:650;color:var(--ink)}
+/* Morning 3: go */
+#main .rs-go-frog{display:flex;align-items:center;gap:var(--s-5);padding:var(--s-5) var(--s-6);border:1px solid #cfe0c4;border-radius:var(--r-card);background:radial-gradient(120% 140% at 0% 0%,#eef6e7,transparent 62%),var(--sheet)}
+#main .rs-go-frog .frog-glyph{width:64px;height:64px}
+#main .rs-go-frog div{display:grid;gap:var(--s-1)}
+#main .rs-go-frog span{font-size:16px;font-weight:650;color:var(--green)}
+#main .rs-go-frog strong{font:500 clamp(26px,2.2vw,32px)/1.15 var(--serif);color:var(--ink)}
+#main .rs-go-list li{min-height:56px}
+#main .rs-go-gym{margin:0;font-size:18px;color:var(--ink-soft)}
+#main .rs-go-gym b{color:var(--ink);font-weight:600}
+/* Evening 1: ticks */
+#main .rs-checks{display:flex;flex-direction:column;margin:0;padding:0;list-style:none}
+#main .rs-checks li{border-bottom:1px solid var(--line)}
+#main .rs-checks li:last-child{border-bottom:0}
+#main .rs-check{width:100%;min-height:60px;gap:var(--s-3);padding:var(--s-2) 0;border-radius:0;white-space:normal}
+#main .rs-check .check-box{width:34px;min-width:34px;height:34px}
+#main .rs-check.checked .check-box{background:var(--green);border-color:var(--green);color:var(--sheet)}
+#main .rs-checks li.done .rs-task{color:var(--ink-soft)}
+#main .rs-daily .dt-text strong{font-size:21px}
+#main .rs-daily .dt-text small{font-size:16px;color:var(--ink-soft)}
+#main .rs-daily .check-box{width:34px;min-width:34px;height:34px}
+#main .rs-daily .dt-part{min-height:44px;font-size:16px}
+#main .rs-daily .dt-counter{font-size:16px}
+/* Evening 2: mood */
+#main .rs-moods{display:flex;flex-wrap:wrap;gap:var(--s-2)}
+#main .rs-mood-btn{min-height:58px;min-width:112px;padding:0 var(--s-5);border:1.5px solid var(--line-strong);border-radius:var(--r-chip);background:var(--sheet);color:var(--ink);font:550 20px/1 var(--sans);transition:background-color 160ms var(--ease),border-color 160ms var(--ease),color 160ms var(--ease),transform 160ms var(--ease)}
+#main .rs-mood-btn:active{transform:scale(.97)}
+#main .rs-mood-btn.on{background:var(--blue);border-color:var(--blue);color:var(--sheet)}
+@media(hover:hover) and (pointer:fine){#main .rs-mood-btn:not(.on):hover{border-color:var(--blue);color:var(--blue)}}
+/* Evening 3: tomorrow */
+#main .rs-settle{display:flex;flex-direction:column;margin:0;padding:0;list-style:none}
+#main .rs-settle-row{display:grid;gap:var(--s-2);padding:var(--s-3) 0;border-bottom:1px solid var(--line)}
+#main .rs-settle-row:last-child{border-bottom:0}
+#main .rs-was{display:flex;align-items:center;gap:var(--s-2);margin:0;font:500 22px/1.25 var(--serif);color:var(--ink)}
+#main .rs-was small{font:400 15px var(--sans);color:var(--ink-soft)}
+#main .rs-settle-row form{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s-2) var(--s-3)}
+#main .rs-settle-row input{flex:1 1 240px;min-height:50px;font:400 19px var(--serif)}
+#main .rs-settle-row .button{min-height:50px;font-size:16px}
+#main .rs-settle-row .text-button{font-size:16px;color:var(--ink-soft)}
+#main .rs-settled{display:flex;align-items:center;gap:var(--s-2);margin:0;font-size:18px;color:var(--green)}
+#main .rs-tfrog{display:grid;gap:var(--s-3);padding:var(--s-5) var(--s-6);border:1px solid #cfe0c4;border-radius:var(--r-card);background:#f4f9f0}
+#main .rs-tfrog .rs-sub{margin:0}
+#main .rs-tfrog-set{display:flex;align-items:baseline;flex-wrap:wrap;gap:var(--s-2) var(--s-4);margin:0}
+#main .rs-tfrog-set b{font:500 26px/1.2 var(--serif)}
+#main .rs-tfrog-set .text-button{font-size:16px}
+#main .rs-chips{display:flex;flex-wrap:wrap;gap:var(--s-2)}
+#main .rs-chip{min-height:48px;padding:var(--s-1) var(--s-4);border:1.5px solid #b9d1aa;border-radius:var(--r-chip);background:var(--sheet);font:500 20px/1.2 var(--serif);color:var(--ink);text-align:left}
+@media(hover:hover) and (pointer:fine){#main .rs-chip:hover{border-color:var(--green);background:#fff}}
+#main .rs-tfrog .rs-add{background:var(--sheet);padding-left:var(--s-2)}
+/* Sunday: the week */
+#main .rs-period{display:flex;flex-direction:column;gap:var(--s-3)}
+#main .rs-rooms{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s-1) var(--s-6);padding-top:var(--s-2)}
+#main .rs-rooms span{font-size:16px;font-weight:650;color:var(--ink)}
+#main .rs-rooms .text-button{font-size:17px}
+/* ---- The doing view ---- */
+#main .today-doing{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(340px,1fr);gap:var(--s-6);align-items:start}
+#main .today-do,#main .today-side{display:flex;flex-direction:column;gap:var(--s-5);min-width:0}
+#main .today-do .today-list{margin:0}
+#main .ritual-note{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s-3);margin:0;padding:var(--s-4) var(--s-5);background:var(--sheet);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow-1);font-size:18px;line-height:1.4;color:var(--ink-soft)}
+#main .ritual-note>svg{flex:none;color:var(--green)}
+#main .ritual-note span{flex:1 1 200px}
+#main .ritual-note b{font:500 21px var(--serif);color:var(--ink)}
+#main .ritual-note .button{min-height:48px;font-size:16px}
+/* Readability floor inside Today: nothing under 14px, secondary lines 16px, buttons 16px. */
+#main .today-page .text-button{font-size:16px}
+#main .today-page .tl-head h2{font-size:34px}
+#main .today-page .tl-breakdown,#main .today-page .frog-streak,#main .today-page .frog-streak small{font-size:15px}
+#main .today-page .tl-score small{font-size:16px}
+#main .today-page .todo-list .todo-text{font-size:21px}
+#main .today-page .todo-tag{font-size:14px}
+#main .today-page .todo-hint{font-size:15px;color:var(--ink-soft)}
+#main .today-page .todo-add .add-when button{min-height:40px;font-size:15px}
+#main .today-page .todo-add .button{font-size:16px}
+#main .today-page .prio-chip{font-size:15px}
+#main .today-page .prio-chip.prio-none{font-size:14px}
+#main .today-page .day-quote blockquote{font-size:21px}
+#main .today-page .day-quote figcaption,#main .today-page .day-quote figcaption span{font-size:15px}
+#main .today-page .frog-eyebrow{font-size:16px}
+#main .today-page .frog-title .todo-text{font-size:26px}
+#main .today-page .frog-slices li,#main .today-page .slice-add input{font-size:17px}
+#main .today-page .frog-pick{font-size:17px}
+#main .today-page .frog-choice{min-height:44px;font-size:18px}
+#main .today-page .rewrite p,#main .today-page .rewrite-done{font-size:17px}
+#main .today-page .rewrite h3 span{font-size:15px}
+#main .today-page .rewrite-was,#main .today-page .rewrite-was span{font-size:19px}
+#main .today-page .rewrite-row input{min-height:48px;font-size:18px}
+#main .today-page .rewrite-row .button{min-height:48px;font-size:16px}
+#main .today-page .abc-nudge{font-size:17px}
+#main .today-page .later-list,#main .today-page .later-list span{font-size:17px}
+#main .today-page .training-day{font-size:14px}
+#main .today-page .training h2{font-size:28px}
+#main .today-page .training-count,#main .today-page .training-note,#main .today-page .training-rest{font-size:15px;color:var(--ink-soft)}
+#main .today-page .exercise-name{font-size:19px}
+#main .today-page .exercise-dose{font-size:15px}
+#main .today-page .training-all{font-size:16px}
+#main .today-page .daily-ticks h2{font-size:26px}
+#main .today-page .dt-count,#main .today-page .dt-left{font-size:16px;color:var(--ink-soft)}
+#main .today-page .dt-text strong{font-size:19px}
+#main .today-page .dt-text small{font-size:15px;color:var(--ink-soft)}
+#main .today-page .dt-part,#main .today-page .dt-counter{font-size:15px}
+#main .today-page .promise-text strong{font-size:19px}
+#main .today-page .promise-text small,#main .today-page .count-note{font-size:15px;color:var(--ink-soft)}
+#main .today-page .promises .button,#main .today-page .promises button{font-size:15px}
+/* ---- Sizes ---- */
+@media(min-width:1700px){#main .today-doing{grid-template-columns:minmax(0,1.6fr) minmax(400px,1fr);gap:var(--s-7)}
+#main .ritual-card{min-height:480px}}
+@media(max-width:1180px){#main .today-doing{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:1000px){
+ #main .ritual-card{grid-template-columns:minmax(0,1fr);min-height:0}
+ #main .rs-side{padding:var(--s-6) var(--s-6) var(--s-4);padding-right:150px;border-right:0;border-bottom:1px solid var(--page-rule);min-height:200px}
+ #main .ritual-evening .rs-side{border-bottom-color:var(--blue-deeper)}
+ #main .rs-art{position:absolute;right:var(--s-5);bottom:0;height:130px;margin:0}
+ #main .step-week .rs-art{height:140px}
+ #main .rs-main{padding:var(--s-6)}
+}
+@media(max-width:650px){
+ #main .today-page{gap:var(--s-5)}
+ #main .today-top .tt-greet{font-size:34px}
+ #main .today-top .rh-becoming{font-size:20px}
+ #main .rs-side{padding:var(--s-5) 112px var(--s-4) var(--s-4);min-height:0;gap:var(--s-3)}
+ #main .rs-art{right:var(--s-2);height:96px}
+ #main .step-week .rs-art{height:104px}
+ #main .rs-question{font-size:30px;max-width:none}
+ #main .rs-help{font-size:18px}
+ #main .rs-main{padding:var(--s-5) var(--s-4) var(--s-4);gap:var(--s-5)}
+ #main .rs-controls{font-size:18px}
+ #main .rs-choice-text,#main .rs-task,#main .rs-go-list{font-size:20px}
+ #main .rs-list li{gap:var(--s-3);min-height:58px}
+ #main .rs-num{width:20px;font-size:28px}
+ #main .rs-mood-btn{flex:1 1 40%;min-width:0;font-size:18px}
+ #main .rs-foot{gap:var(--s-2) var(--s-4)}
+ #main .rs-primary{flex:1 1 100%}
+ #main .rs-skip{margin-right:auto}
+ #main .rs-back{margin-left:0}
+ #main .rs-settle-row input{flex-basis:100%}
+ #main .rs-go-frog{padding:var(--s-4);gap:var(--s-3)}
+ #main .rs-go-frog .frog-glyph{width:48px;height:48px}
+ #main .rs-add .button{padding:0 var(--s-4)}
+ #main .ritual-note{font-size:17px}
+}
+@media(prefers-reduced-motion:reduce){#main .rs-dots i,#main .rs-primary,#main .rs-choice,#main .rs-mood-btn{transition:none}}
+#main .today-side .promise{flex-wrap:wrap}
+#main .today-side .promise-text{flex:1 1 200px}

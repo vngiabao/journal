@@ -1,13 +1,14 @@
-// Small pieces shared across Horizon's views: sizes, text measuring, the popover shell, the undo bar, Bond, and the sky line.
+// Small pieces shared across Horizon: keys, sizes, text measuring, the popover shell, the undo bar, Bond, and the sky line.
 import {useEffect,useLayoutEffect,useRef,useState,useSyncExternalStore,type ReactNode,type RefObject} from 'react';
 import {createPortal} from 'react-dom';
-import type {State,PlanGoal,Goal} from '../model';
+import type {State,Goal} from '../model';
 import type {Mutate} from '../GoalControls';
 import {goalName} from '../Board';
 import {gsap,whenMotionOK} from './motion';
 import {parse,daysBetween} from '../dates';
 
-export const SHORTCUT_SKIP='input,textarea,select,[contenteditable="true"]';
+// Which horizon map is open, and an area to open on arrival (the Board's "Open Horizon" sets it). Ten goals at most.
+export const HORIZON_KEY='reboot-life-horizon',OPEN_AREA_KEY='reboot-life-open-area',GOAL_MAX=10;
 export const ss={get:(k:string)=>{try{return sessionStorage.getItem(k);}catch{return null;}},set:(k:string,v:string)=>{try{sessionStorage.setItem(k,v);}catch{/* private mode: lasts this visit */}}};
 
 // Width of an element, kept current with a ResizeObserver.
@@ -18,11 +19,8 @@ export function useWidth(ref:RefObject<HTMLElement|null>,fallback=0,key:unknown=
  return w;
 }
 const mq=(q:string)=>({sub:(cb:()=>void)=>{const m=window.matchMedia(q);m.addEventListener('change',cb);return()=>m.removeEventListener('change',cb);},get:()=>window.matchMedia(q).matches});
-const PHONE=mq('(max-width: 650px)'),SHORT=mq('(max-height: 820px)'),TALL=mq('(min-height: 980px)'),MID=mq('(min-height: 860px)');
+const PHONE=mq('(max-width: 650px)');
 export const usePhone=()=>useSyncExternalStore(PHONE.sub,PHONE.get,()=>false);
-export const useShort=()=>useSyncExternalStore(SHORT.sub,SHORT.get,()=>false);
-// How many open stones the trail shows before folding: fewer on short windows so the next stone stays above the fold.
-export function useMaxOpen(){const tall=useSyncExternalStore(TALL.sub,TALL.get,()=>true),mid=useSyncExternalStore(MID.sub,MID.get,()=>true),short=useSyncExternalStore(SHORT.sub,SHORT.get,()=>false);return tall?6:mid?5:short?3:4;}
 
 // Measures text with a canvas in the real web font, and re-measures once the fonts have loaded.
 let canvas:HTMLCanvasElement|null=null;
@@ -33,14 +31,9 @@ export function useMeasure(font:string){
  return {v,measure:(t:string)=>{if(!ctx)return t.length*7.5;ctx.font=font;return ctx.measureText(t).width;}};
 }
 
-// Board squares: "4.3 Get a job", tinted by ring like the board (outer, middle, centre four).
-export const ringOf=(g:{row:number;col:number})=>Math.min(g.row-1,g.col-1,6-g.row,6-g.col);
-export const RINGS=['Outer ring','Middle ring','Centre four'];
+// Board squares: "4.3 Get a job".
 export const shortName=(n:string)=>{const words=n.split(/[,(]/)[0].trim().split(/\s+/);let out='';for(const w of words){if(out&&(out+' '+w).length>34)break;out=out?out+' '+w:w;}return out;};
 export const squareLabel=(g:Goal,s:State)=>`${g.row}.${g.col} ${shortName(goalName(g,s))}`;
-export const boardSquare=(s:State,id?:string)=>id?s.goals.find(g=>g.id===id):undefined;
-export const isReached=(s:State,g:PlanGoal)=>!!g.reachedAt||boardSquare(s,g.boardGoal)?.status==='completed';
-export const goalLabel=(g:PlanGoal,i:number,n:number,dueText:string)=>`Goal ${i+1}${g.one?', the one':''}: ${g.text}. ${g.steps.filter(x=>x.done).length} of ${g.steps.length} steps.${dueText?` ${dueText}`:''}`;
 
 // A focus-trapped popover anchored to the element that opened it. It grows from the side nearest that element,
 // closes on Esc or a click outside, and hands focus back where it came from.
@@ -49,8 +42,10 @@ export function Popover({anchor,onClose,label,children,className='',width=280}:{
  const [pos,setPos]=useState<{left:number;top:number;origin:string}|null>(null);
  useLayoutEffect(()=>{
   const place=()=>{const el=box.current;if(!el)return;const r=anchor?.getBoundingClientRect()??{left:innerWidth/2,right:innerWidth/2,top:innerHeight/3,bottom:innerHeight/3,width:0,height:0} as DOMRect;
-   const h=el.offsetHeight,w=Math.min(width,innerWidth-24),below=r.bottom+8+h<=innerHeight-12||r.top-8-h<12;
-   const left=Math.max(12,Math.min(innerWidth-w-12,r.left+r.width/2-w/2)),top=(below?r.bottom+8:r.top-8-h)+scrollY;
+   // Below the anchor when it fits, else above; when neither fits (a long menu on a short window) it sits fully in view.
+   const h=el.offsetHeight,w=Math.min(width,innerWidth-24),fitsBelow=r.bottom+8+h<=innerHeight-12,fitsAbove=r.top-8-h>=12;
+   const y=fitsBelow?r.bottom+8:fitsAbove?r.top-8-h:Math.max(12,innerHeight-h-12),below=y>=r.top;
+   const left=Math.max(12,Math.min(innerWidth-w-12,r.left+r.width/2-w/2)),top=y+scrollY;
    const ox=Math.max(12,Math.min(w-12,r.left+r.width/2-left));setPos({left:left+scrollX,top,origin:`${ox}px ${below?'0%':'100%'}`});};
   place();window.addEventListener('resize',place);return()=>window.removeEventListener('resize',place);
  },[anchor,width]);

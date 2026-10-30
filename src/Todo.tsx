@@ -12,8 +12,6 @@ import {FrogCard,FrogFocus,FrogGlyph,PriorityChip,frogStats,priorityRank} from '
 import {leftovers} from './frog-rules';
 import {setAll} from './training';
 import {syncStepFromTodo} from './plan';
-import {routineTarget} from './Routine';
-import {showMe} from './Quests';
 import type {Priority} from './model';
 
 // Goal 6.5 on the board: write a to-do list every day.
@@ -21,7 +19,7 @@ export const TODO_GOAL='35';
 
 // Today's list: the featured card under the greeting. The day's line and progress up top, then a big list you can work through.
 export function TodayList({state,mutate,now}:{state:State;mutate:Mutate;now:string}){
- const todays=(state.todos??[]).filter(t=>t.date===now&&!t.dismissed),done=todays.filter(t=>t.done).length,unfinished=todays.length-done;
+ const todays=(state.todos??[]).filter(t=>t.date===now&&!t.dismissed&&!t.routine),done=todays.filter(t=>t.done).length,unfinished=todays.length-done;
  const frog=todays.find(t=>t.frog),rest=todays.filter(t=>!t.frog),ordered=[...rest].sort((a,b)=>priorityRank(a)-priorityRank(b));
  const undone=ordered.filter(t=>!t.done),finished=ordered.filter(t=>t.done),[showAll,setShowAll]=useState(false);
  // The next three tasks are what you see, then everything you've finished; the rest of today folds away until asked for.
@@ -38,8 +36,6 @@ export function TodayList({state,mutate,now}:{state:State;mutate:Mutate;now:stri
  const card=useRef<HTMLElement>(null),flip=useRef<{state:Flip.FlipState;id:string;kind?:'priority'}|null>(null),prevAll=useRef(todays.length>0&&!unfinished);
  // Capture the list before a check, so the item can glide to its new place after React re-renders.
  const toggle=(id:string,e?:React.MouseEvent<HTMLElement>)=>{const item=todays.find(x=>x.id===id);
-  // Routine tasks tick themselves when you do the real thing, so a tap takes you there instead.
-  if(item?.routine){const w=routineTarget(item,state,now);if(w){if(w.id==='weekly'||w.id==='monthly')try{sessionStorage.setItem('reboot-review-write',w.id);}catch{/* fine */}showMe({id:w.id,title:w.text,how:'',page:w.page,target:w.target,done:w.done},p=>{location.hash=encodeURIComponent(p);});}return;}
   if(item&&!item.done&&(item.priority==='B'||item.priority==='C')){const waiting=frog&&!frog.done?'Your frog':todays.some(x=>!x.done&&x.priority==='A'&&x.id!==id)?'An A task':'';if(waiting){setNudge(`${waiting} is still waiting. Done is done, but next time, A before ${item.priority}.`);clearTimeout(nudgeTimer.current);nudgeTimer.current=window.setTimeout(()=>setNudge(''),6000);}}if(item&&!item.done&&e&&todays.filter(x=>!x.done&&!x.routine).length===1){const r=(e.currentTarget.closest('li')??e.currentTarget).getBoundingClientRect();inkStamp(r.right-78,r.top+r.height/2,'Clear');}if(motionOK()&&card.current)flip.current={state:Flip.getState(card.current.querySelectorAll('.todo-list li')),id};mutate(s=>{const t=(s.todos??[]).find(x=>x.id===id);if(!t)return;if(t.auto==='workout'){setAll(s,t.date,!t.done);return;}t.done=!t.done;t.doneAt=t.done?new Date().toISOString():undefined;syncStepFromTodo(s,t.id);},'todo check');};
  // Labelling a task re-sorts the list A to E; the task glides to its new place so you can see it move.
  const setPriority=(id:string,p?:Priority)=>{if(motionOK()&&card.current)flip.current={state:Flip.getState(card.current.querySelectorAll('.todo-list li')),id,kind:'priority'};mutate(s=>{const t=(s.todos??[]).find(x=>x.id===id);if(t)t.priority=p;},'todo priority');};
@@ -61,7 +57,6 @@ export function TodayList({state,mutate,now}:{state:State;mutate:Mutate;now:stri
  return <section ref={card} className="today-list" aria-labelledby="today-list-title">
   <header className="tl-head">
    <div className="tl-title">
-    <p className="dateline">{label(now,{weekday:'long',month:'long',day:'numeric'}).toUpperCase()}</p>
     <h2 id="today-list-title">For today</h2>
     <MorningQuote state={state} mutate={mutate} now={now}/>
    </div>
@@ -75,7 +70,7 @@ export function TodayList({state,mutate,now}:{state:State;mutate:Mutate;now:stri
   </header>
   <div className="tl-body">
    <Rewrite state={state} mutate={mutate} now={now}/>
-   {frog?<FrogCard frog={frog} mutate={mutate} now={now} onFocus={()=>setFocus(true)}/>:rest.some(x=>!x.done&&!x.routine&&!x.auto)?<div className="frog-pick"><FrogGlyph/><div><p><b>Pick today’s frog.</b> The task you’d most like to put off. You’ll do it first.</p><div className="frog-choices">{rest.filter(x=>!x.done&&!x.routine&&!x.auto&&x.priority!=='D'&&x.priority!=='E').map(x=><button key={x.id} type="button" className="frog-choice" aria-label={`Make “${x.text}” my frog`} onClick={()=>makeFrog(x.id)}>{x.text}</button>)}</div></div></div>:null}
+   {frog?<FrogCard frog={frog} mutate={mutate} now={now} onFocus={()=>setFocus(true)}/>:new Date().getHours()<17&&rest.some(x=>!x.done&&!x.routine&&!x.auto)?<div className="frog-pick"><FrogGlyph/><div><p><b>Pick today’s frog.</b> The task you’d most like to put off. You’ll do it first.</p><div className="frog-choices">{rest.filter(x=>!x.done&&!x.routine&&!x.auto&&x.priority!=='D'&&x.priority!=='E').map(x=><button key={x.id} type="button" className="frog-choice" aria-label={`Make “${x.text}” my frog`} onClick={()=>makeFrog(x.id)}>{x.text}</button>)}</div></div></div>:null}
    <AddTodo label={addFor==='today'?'Add something for today':'Add something for tomorrow'} placeholder={addFor==='tomorrow'?'Add something for tomorrow':todays.length?'Add something for today':'Start with your frog: the task you’d most like to put off'} onAdd={add} when={addFor} onWhen={setAddFor}/>
    {nudge&&<p className="abc-nudge" role="status">{nudge}</p>}
    {ordered.length?<><ul className="todo-list big">{visible.map(t=><TodoItem key={t.id} t={t} onToggle={toggle} onRemove={remove} onPriority={p=>setPriority(t.id,p)}/>)}</ul>
@@ -111,7 +106,7 @@ function MorningQuote({state,mutate,now}:{state:State;mutate:Mutate;now:string})
 
 // Rewrite, don't carry: yesterday's unfinished tasks wait here until you type each one again into today, or let it go.
 function Rewrite({state,mutate,now}:{state:State;mutate:Mutate;now:string}){
- const left=leftovers(state.todos??[],now),resolved=(state.todos??[]).filter(t=>t.carriedOn===now).length;
+ const left=leftovers(state.todos??[],now),resolved=(state.todos??[]).filter(t=>t.carriedOn===now&&t.date<now).length;
  if(!left.length)return resolved?<p className="rewrite-done"><Check size={14}/>Yesterday’s list is settled: {resolved} rewritten or let go.</p>:null;
  const yesterday=addDays(now,-1),from=left.every(t=>t.date===yesterday)?'yesterday':'earlier days';
  return <section className="rewrite" aria-labelledby="rewrite-title">

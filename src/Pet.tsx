@@ -118,13 +118,17 @@ function PocketDog({dog,state,now,cheer,onCheerDone,lead,pos,speaks}:{dog:Dog;st
  },[]);
 
  // Promises kept: a happy jump. A finished goal or a bingo: up on the hind legs, with confetti.
- useEffect(()=>{if(!cheer)return;const big=cheer.pose==='bingo',a=api.current;
-  clearTimeout(timers.current.mood);a.setMood('cheer');a.say(cheer.text,big?3400:2400);a.jump(big?26:14,big?3:1);
+ const [bigCheer,setBigCheer]=useState(false);
+ const celebrate=(text:string,big:boolean,done?:()=>void)=>{const a=api.current;setBigCheer(big);
+  clearTimeout(timers.current.mood);a.setMood('cheer');a.say(text,big?3400:2400);a.jump(big?26:14,big?3:1);
   if(big&&speaks){const r=hop.current?.getBoundingClientRect();if(r)burst(r.left+r.width/2,r.top+12,44);}
-  timers.current.mood=window.setTimeout(()=>{a.setMood('follow');latest.current.onCheerDone?.();},big?3400:2400);
- },[cheer?.key]);
+  timers.current.mood=window.setTimeout(()=>{a.setMood('follow');done?.();},big?3400:2400);};
+ useEffect(()=>{if(!cheer)return;celebrate(cheer.text,cheer.pose==='bingo',()=>latest.current.onCheerDone?.());},[cheer?.key]);
+ // Bond's journey (src/bond) asks him to cheer for a finished ritual or a milestone.
+ useEffect(()=>{const on=(e:Event)=>{const d=(e as CustomEvent<{text:string;big:boolean}>).detail;if(d)celebrate(d.text,d.big);};
+  window.addEventListener('reboot-bond-cheer',on);return()=>window.removeEventListener('reboot-bond-cheer',on);},[]);
 
- const big=mood==='cheer'&&cheer?.pose==='bingo',walking=move!=='still'&&!['private','rest','sleep','peek'].includes(mood);
+ const big=mood==='cheer'&&bigCheer,walking=move!=='still'&&!['private','rest','sleep','peek'].includes(mood);
  const frame:Frame=walking?(move==='run'?'run':'walk'):big?'cheer':STILL[mood];
  // Every change of pose lands with a little squash, like a flip-book frame.
  const first=useRef(true);
