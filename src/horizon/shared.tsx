@@ -81,15 +81,17 @@ export function Bond({pose,className='',style}:{pose:BondPose;className?:string;
 }
 
 // The vision, in one line above everything: the same sentence Today shows, so there is one source of truth.
-export function SkyLine({state,mutate,className=''}:{state:State;mutate:Mutate;className?:string}){
+// `lines` sets where it breaks (inside the map's "Me" cloud the lines follow the cloud's shape).
+export const SKY_EMPTY='Who are you becoming? Write one line.';
+export function SkyLine({state,mutate,className='',lines}:{state:State;mutate:Mutate;className?:string;lines?:string[]}){
  const text=state.settings.identity?.trim()??'',[editing,setEditing]=useState(false),[value,setValue]=useState(text);
  const save=()=>{const v=value.trim();if(v!==text)mutate(s=>{s.settings.identity=v;},'identity statement');setEditing(false);};
  if(editing)return <form className={`hz-sky editing ${className}`} onSubmit={e=>{e.preventDefault();save();}}>
   <label className="visually-hidden" htmlFor="hz-sky-input">Who you’re becoming, in one line</label>
-  <input id="hz-sky-input" autoFocus value={value} maxLength={160} placeholder="Who are you becoming? Write one line." onChange={e=>setValue(e.target.value)} onBlur={save} onKeyDown={e=>{if(e.key==='Escape'){e.stopPropagation();setValue(text);setEditing(false);}}}/>
+  <input id="hz-sky-input" autoFocus value={value} maxLength={160} placeholder={SKY_EMPTY} onChange={e=>setValue(e.target.value)} onBlur={save} onKeyDown={e=>{if(e.key==='Escape'){e.stopPropagation();setValue(text);setEditing(false);}}}/>
  </form>;
  return <div className={`hz-sky ${className}`}>
-  <button type="button" className={`hz-sky-text ${text?'':'empty'}`} onClick={()=>{setValue(text);setEditing(true);}} aria-label={text?`Your vision: ${text}. Edit`:'Write who you are becoming'}>{text||'Who are you becoming? Write one line.'}</button>
+  <button type="button" className={`hz-sky-text ${text?'':'empty'}`} onClick={()=>{setValue(text);setEditing(true);}} aria-label={text?`Your vision: ${text}. Edit`:'Write who you are becoming'}>{lines?.length?lines.map((l,i)=><span key={i} className="hz-sky-line">{l}</span>):text||SKY_EMPTY}</button>
   <svg className="hz-sun" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 4.5c8.4.3 15.6 7 15.2 15.6-.4 8.3-7.2 15.4-15.6 15.1C11.3 34.9 4.6 28 4.8 19.7 5 11.2 12 4.6 20.6 4.9" fill="none" strokeWidth="1.4" strokeLinecap="round"/></svg>
  </div>;
 }

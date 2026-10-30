@@ -40,19 +40,19 @@ export interface MindRowIn{h:number;base:number;w:number;horizon:number}
 export interface MindAreaIn{rows:MindRowIn[];minH:number;nameW?:number}
 export interface MindTwig{p0:Pt;c1:Pt;c2:Pt;p3:Pt;x:number;y:number;len:number;top:number}
 export interface MindBranch{index:number;side:1|-1;p0:Pt;c1:Pt;c2:Pt;knee:Pt;tip:Pt;name:{x:number;y:number;w:number};top:number;bottom:number;room:number;twigs:MindTwig[]}
-export interface MindOpts{width:number;height:number;mode?:'both'|'right'|'auto';twig?:number;stagger?:number;gap?:number;pad?:number;cloudW?:number;branchLen?:number;tail?:number;nameGap?:number;minRoom?:number}
+export interface MindOpts{width:number;height:number;mode?:'both'|'right'|'auto';twig?:number;stagger?:number;gap?:number;pad?:number;cloudW?:number;branchLen?:number;tail?:number;nameGap?:number;minRoom?:number;maxRoom?:number}
 export interface MindLayout{mode:'both'|'right';width:number;height:number;cloud:{cx:number;cy:number;w:number;h:number};branches:MindBranch[]}
 const clampN=(v:number,a:number,b:number)=>Math.max(a,Math.min(b,v));
 // Sizes that depend on the width and the area names: two-sided when every area keeps `minRoom` for its words, else
-// one-sided. `rooms[i]` is how wide area i's words may run.
+// one-sided. `rooms[i]` is how wide area i's words may run, never more than `maxRoom` (bigger words get a bigger cap).
 export function mindSizes(o:MindOpts,nameWs:number[]=[0]){
- const W=Math.max(280,o.width),pad=o.pad??16,twig=o.twig??20,stagger=o.stagger??8,tail=o.tail??26,nameGap=o.nameGap??10,minRoom=o.minRoom??110;
+ const W=Math.max(280,o.width),maxRoom=o.maxRoom??320,pad=o.pad??16,twig=o.twig??20,stagger=o.stagger??8,tail=o.tail??26,nameGap=o.nameGap??10,minRoom=o.minRoom??110;
  const arm=(cw:number,bl:number,nw:number)=>cw/2+bl+nw+2*nameGap+tail+twig+3*stagger+pad;
  const cwB=o.cloudW??clampN(W*.22,220,330),blB=o.branchLen??clampN(W*.035,30,80);
  const bothRooms=nameWs.map(nw=>W/2-arm(cwB,blB,nw));
  const mode:'both'|'right'=o.mode&&o.mode!=='auto'?o.mode:Math.min(...bothRooms)>=minRoom?'both':'right';
  const cw=mode==='both'?cwB:(o.cloudW??clampN(W*.3,96,220)),bl=mode==='both'?blB:(o.branchLen??clampN(W*.05,24,60));
- const rooms=nameWs.map(nw=>Math.max(70,Math.floor(Math.min(320,mode==='both'?W/2-arm(cw,bl,nw):W-cw/2-pad-arm(cw,bl,nw)))));
+ const rooms=nameWs.map(nw=>Math.max(70,Math.floor(Math.min(maxRoom,mode==='both'?W/2-arm(cw,bl,nw):W-cw/2-pad-arm(cw,bl,nw)))));
  return {W,pad,twig,stagger,tail,nameGap,mode,cw,ch:Math.round(cw*.56),bl,rooms,room:Math.min(...rooms)};
 }
 // Two-sided: the first areas run down the right, the rest come back up the left (clockwise, like a clock face).
@@ -96,5 +96,23 @@ export const spinePath=(b:{p0:Pt;c1:Pt;c2:Pt;knee:Pt;tip:Pt})=>{const f=(p:Pt)=>
 // A soft cloud: an ellipse with gentle scallops, closed so rough.js can trace it.
 export function cloudPoints(cx:number,cy:number,w:number,h:number,bumps=9,n=90):Pt[]{
  return Array.from({length:n+3},(_,i)=>{const a=i/n*Math.PI*2,r=.92+.08*Math.abs(Math.sin(a*bumps/2));return [cx+Math.cos(a)*w/2*r,cy+Math.sin(a)*h/2*r] as Pt;});
+}
+// Words inside the "Me" cloud: the cloud is an ellipse, so a line low in it has less room than one through the middle.
+// The block (a heading of `head` px, then the lines) is centred on the cloud; each line gets the width of the ellipse
+// at its top and bottom edge, `inset` px in from the scallops. Uses the fewest lines (up to `maxLines`) that hold every
+// word, and ends the last one with an ellipsis only when even that many cannot.
+export function ellipseLines(text:string,measure:(t:string)=>number,o:{w:number;h:number;head:number;lineH:number;minH?:number;maxLines?:number;inset?:number;r?:number}){
+ const words=text.trim().split(/\s+/).filter(Boolean);if(!words.length)return {lines:[] as string[],widths:[] as number[],truncated:false};
+ const r=o.r??.92,a=o.w/2*r-(o.inset??6),b=o.h/2*r,maxN=Math.max(1,o.maxLines??3);
+ const half=(dy:number)=>{const t=1-(dy/b)**2;return t>0?Math.max(0,a*Math.sqrt(t)):0;};
+ const widths=(n:number)=>{const textH=Math.max(o.minH??0,n*o.lineH),top=-(o.head+textH)/2+o.head+(textH-n*o.lineH)/2;
+  return Array.from({length:n},(_,k)=>{const y0=top+k*o.lineH,y1=y0+o.lineH;return Math.floor(2*Math.min(half(Math.abs(y0)),half(Math.abs(y1))));});};
+ const fill=(ws:number[])=>{const lines:string[]=[];let i=0;
+  for(const mw of ws){let line='';while(i<words.length){const t=line?`${line} ${words[i]}`:words[i];if(measure(t)<=mw){line=t;i++;}else break;}if(!line)break;lines.push(line);}
+  return {lines,rest:words.slice(i)};};
+ for(let n=1;n<=maxN;n++){const ws=widths(n),f=fill(ws);if(!f.rest.length)return {lines:f.lines,widths:ws,truncated:false};}
+ const ws=widths(maxN),f=fill(ws),lines=f.lines.slice(0,maxN),k=Math.max(0,lines.length-1);
+ lines[k]=ellipsize([lines[k],...f.rest].filter(Boolean).join(' '),ws[k]??ws[ws.length-1],measure);
+ return {lines,widths:ws,truncated:true};
 }
 export function bezLength(p0:Pt,c1:Pt,c2:Pt,p3:Pt,n=24){let len=0,prev=p0;for(let i=1;i<=n;i++){const p=bez(p0,c1,c2,p3,i/n);len+=Math.hypot(p[0]-prev[0],p[1]-prev[1]);prev=p;}return len;}

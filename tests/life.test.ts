@@ -5,7 +5,7 @@ import {validateImport} from '../src/storage';
 import type {State} from '../src/model';
 import {addGoal} from '../src/plan';
 import {lifeAreas,ensureAreas,addVision,editVision,removeVision,restoreVision,visionsAt,addArea,renameArea,removeArea,restoreArea,setGoalArea,goalsIn,unassignedGoals,furthestVision,lifeHorizons,visionHorizons,addHorizon,renameHorizon,removeHorizon,restoreHorizon,horizonRank,horizonTitle,horizonPhrase,DEFAULT_AREAS,AREA_MAX,AREA_MIN} from '../src/horizon/life';
-import {mindLayout,mindSizes,mindSplit,spinePath,branchPoints,taperedPoly,cloudPoints,bezLength,type MindAreaIn} from '../src/horizon/geometry';
+import {mindLayout,mindSizes,mindSplit,spinePath,branchPoints,taperedPoly,cloudPoints,bezLength,ellipseLines,type MindAreaIn} from '../src/horizon/geometry';
 
 const fresh=()=>{const s=seed('2026-05-04');s.todos=[];return s;};
 
@@ -95,4 +95,24 @@ describe('Life map geometry: the mind map',()=>{
   expect(o).toHaveLength(2*n);expect(Math.abs(o[0][1]-o[2*n-1][1])).toBeCloseTo(20,0);expect(Math.abs(o[n-1][1]-o[n][1])).toBeLessThan(6);});
  it('draws a closed, soft cloud',()=>{const p=cloudPoints(100,100,200,100);expect(Math.hypot(p[0][0]-p[90][0],p[0][1]-p[90][1])).toBeLessThan(1);for(const [x,y] of p){expect(Math.abs(x-100)).toBeLessThanOrEqual(100.5);expect(Math.abs(y-100)).toBeLessThanOrEqual(50.5);}});
  it('measures a branch',()=>{expect(bezLength([0,0],[10,0],[20,0],[30,0])).toBeCloseTo(30,0);});
+ it('lets bigger words have a bigger room cap on a wide map',()=>{
+  expect(Math.max(...mindSizes({width:2400,height:1200},[200]).rooms)).toBe(320);
+  expect(Math.max(...mindSizes({width:2400,height:1200,maxRoom:420},[200]).rooms)).toBe(420);
+ });
+ it('breaks the line under "Me" so every line stays inside the cloud',()=>{
+  const m=(t:string)=>t.length*8,o={w:380,h:213,head:96,lineH:20,minH:44,maxLines:3};
+  const r=ellipseLines('SAMPLE: I am someone who keeps the promises I make to myself.',m,o);
+  expect(r.truncated).toBe(false);expect(r.lines.join(' ')).toBe('SAMPLE: I am someone who keeps the promises I make to myself.');
+  r.lines.forEach((l,i)=>expect(m(l)).toBeLessThanOrEqual(r.widths[i]));
+  // Every line is narrower than the cloud at its own height (the ellipse, 0.92 in from the scallops).
+  const a=o.w/2*.92,b=o.h/2*.92;for(const w of r.widths)expect(w).toBeLessThan(2*a);
+  const top=-(o.head+Math.max(o.minH,r.lines.length*o.lineH))/2+o.head;expect(Math.abs(top+r.lines.length*o.lineH)).toBeLessThan(b);
+  expect(ellipseLines('Short line',m,o).lines).toHaveLength(1);
+ });
+ it('ends an identity too long for three lines with an ellipsis',()=>{
+  const m=(t:string)=>t.length*8,r=ellipseLines('word '.repeat(60),m,{w:330,h:185,head:86,lineH:20,minH:44,maxLines:3});
+  expect(r.truncated).toBe(true);expect(r.lines.length).toBeLessThanOrEqual(3);expect(r.lines[r.lines.length-1].endsWith('…')).toBe(true);
+  r.lines.forEach((l,i)=>expect(m(l)).toBeLessThanOrEqual(r.widths[i]));
+  expect(ellipseLines('   ',m,{w:330,h:185,head:86,lineH:20}).lines).toEqual([]);
+ });
 });

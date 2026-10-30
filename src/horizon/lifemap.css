@@ -1,6 +1,8 @@
 /* Life map · a hand-drawn Buzan mind map of the life Bao wants, one per horizon. Branch = area of life.
  * Tokens only (tokens.css); values that don't exist there live here as custom properties on .lm and the popovers.
- * Readability floor: words on the map 20px (18px on a phone), lines under them 15px in full ink, nothing under 14px. */
+ * Readability floor: words on the map 20px (18px on a phone), lines under them 16px in full ink, nothing under 14px.
+ * The map's text sizes come from LifeMap.tsx (SIZES) as --mm-* custom properties on .mm, the same numbers its canvas
+ * measures with, so every label box fits its words at both scales and every zoom. */
 .lm,.lm-pop,.lm-sheet-root{--lm-rung-col:96px;
  /* Area inks the tokens don't have, mixed from them: plum, rust and olive sit apart from blue, violet, green and gold */
  --lm-plum:color-mix(in srgb,var(--red) 55%,var(--violet));--lm-rust:color-mix(in srgb,var(--gold-text) 60%,var(--red));--lm-olive:color-mix(in srgb,var(--green) 50%,var(--gold-text));
@@ -37,10 +39,11 @@
 /* "Me" is the biggest thing on the map: Me, the horizon, and who you're becoming */
 .mm-centre{position:absolute;z-index:1;display:grid;flex-direction:column;gap:2px;place-items:center;align-content:center;text-align:center}
 .mm-me{font:600 var(--mm-me,52px)/.95 var(--hand);color:var(--ink)}
-.mm-when{font:500 22px/1.15 var(--hand);color:var(--gold-text)}
-.mm.scale-l .mm-when{font-size:25px}
+.mm-when{font:500 var(--mm-when-fs,22px)/1.15 var(--hand);color:var(--gold-text)}
 .mm-centre .hz-sky{justify-content:center;min-height:0;margin-top:2px}
-.mm-centre .hz-sky-text{font:400 var(--fs-meta)/1.25 var(--sans);color:var(--ink-soft);min-height:44px;text-align:center;max-width:100%}
+.mm-centre .hz-sky-text{display:flex;flex-direction:column;align-items:center;justify-content:center;font:400 var(--fs-meta)/20px var(--sans);color:var(--ink-soft);min-height:44px;text-align:center;max-width:100%}
+/* Lines are broken in LifeMap.tsx to follow the cloud's curve, so the browser must not re-break them */
+.hz-sky-line{display:block;white-space:nowrap}
 .mm-centre .hz-sun{display:none}
 
 /* The area's name, hand-lettered level along its branch. The whole word is the button, with no box behind it. */
@@ -52,8 +55,7 @@
 .mm-icon.tilt-l{transform:rotate(-6deg)}.mm-icon.tilt-r{transform:rotate(5deg)}
 
 /* One idea: its words sit on top of their own line, like an underline. Lines are measured, so nothing truncates. */
-.mm-row{position:absolute;z-index:2;display:flex;flex-direction:column;align-items:flex-start;padding:0;border:0;background:transparent;text-align:left;color:var(--ink);font:500 20px/24px var(--serif);transition:color 160ms var(--ease),transform 160ms var(--ease)}
-.mm.scale-l .mm-row{font-size:22px;line-height:27px}
+.mm-row{position:absolute;z-index:2;display:flex;flex-direction:column;align-items:flex-start;padding:0;border:0;background:transparent;text-align:left;color:var(--ink);font:500 var(--mm-fs,20px)/var(--mm-lh,24px) var(--serif);white-space:nowrap;transition:color 160ms var(--ease),transform 160ms var(--ease)}
 .mm-row::after{content:'';position:absolute;inset:-10px -4px}
 .mm-row.side-l{align-items:flex-end;text-align:right}
 .mm-row span{white-space:nowrap}
@@ -64,8 +66,7 @@
 .mm-meta{display:flex;flex-direction:column;align-items:inherit;margin-top:6px;font:450 var(--fs-meta)/19px var(--sans);color:var(--ink-soft)}
 .mm-meta.late{color:var(--red);font-weight:600}
 /* The next step: smaller words, and "Do today" right under them */
-.mm-row.nextstep{font-size:var(--fs-ui);line-height:22px}
-.mm.scale-l .mm-row.nextstep{font-size:20px;line-height:24px}
+.mm-row.nextstep{font-size:var(--mm-step-fs,18px);line-height:var(--mm-step-lh,22px)}
 .mm-row.nextstep::after{display:none}
 .mm-step{position:relative;display:flex;flex-direction:column;align-items:inherit;padding:0;border:0;background:transparent;font:inherit;color:var(--ink);text-align:inherit;border-radius:var(--r-small);transition:color 160ms var(--ease),transform 160ms var(--ease)}
 .mm-step::after{content:'';position:absolute;inset:-11px -4px}
@@ -76,8 +77,8 @@
 .mm-do svg{transition:transform 160ms var(--ease)}
 .mm-on{display:inline-flex;align-items:center;gap:4px;font:600 var(--fs-meta)/1 var(--sans);color:var(--green)}
 .mm-tag{font:450 var(--fs-meta)/1 var(--sans);color:var(--ink-soft)}
-/* "+ Add a goal", "+ First step", "+3 more": the dashed twigs that say what to do next */
-.mm-row.add,.mm-row.addstep,.mm-row.more{font:600 var(--fs-meta)/30px var(--sans);color:var(--c)}
+/* "+ Add", "+ First step", "+3 more": the dashed twigs that say what to do next, always on one line */
+.mm-row.add,.mm-row.addstep,.mm-row.more{font:600 var(--mm-chip-fs,16px)/30px var(--sans);color:var(--c)}
 /* Touch screens: every line on the map keeps a 44px target */
 @media(pointer:coarse){.mm-row::after{inset:-12px -4px}}
 :is(.mm-name,.mm-row,.mm-step,.mm-do,.mm-mini-name):focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:var(--r-small);box-shadow:0 0 0 4px var(--focus-halo)}
@@ -95,7 +96,7 @@
 
 /* Under the map: a hint on an empty horizon, goals with no area yet, and "Edit areas" */
 .lm-under{display:flex;flex-direction:column;align-items:center;gap:var(--s-4);margin-top:var(--s-4)}
-.lm-hint{max-width:640px;text-align:center;font-size:var(--fs-ui);line-height:1.45;color:var(--ink-soft)}
+.lm-hint{max-width:640px;text-align:center;text-wrap:balance;font-size:var(--fs-ui);line-height:1.45;color:var(--ink-soft)}
 .lm-hint b{color:var(--ink);font-weight:600}
 .lm-under-tray{max-width:760px;width:100%}
 .lm-edit-areas{align-self:center;font-size:var(--fs-meta)}

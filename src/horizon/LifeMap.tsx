@@ -1,17 +1,18 @@
 // Life map: one hand-drawn Buzan mind map per horizon. "Me" always sits in the middle, in a soft cloud, with the
 // horizon under it ("this year", "in 5 years", "at 40"). Each area of life is a thick, tapering branch with its name
 // written along it; its twigs hold only that horizon's ideas. On "This year" they are the area's goals, each with its
-// next step and "Do today", and every branch ends in a dashed "+ Add a goal". Switch horizons above the map; tap an
-// area's name to open it across every horizon in a sheet, without moving the map.
+// next step and "Do today". Once a horizon has something on it, every branch ends in a short dashed "+ Add"; an empty
+// horizon shows no add twigs at all (the first question, or "tap an area", is the one action). Switch horizons above
+// the map; tap an area's name to open it across every horizon in a sheet, without moving the map.
 import {Fragment,useEffect,useLayoutEffect,useMemo,useRef,useState,type ComponentType,type ReactNode,type RefObject} from 'react';
 import {createPortal} from 'react-dom';
 import './lifemap.css';
 import type {State,PlanGoal,PlanStep,Vision,VisionWhen,LifeArea,LifeHorizon} from '../model';
 import type {Mutate} from '../GoalControls';
 import {Rough,sk,seedOf} from '../Sketch';
-import {mindLayout,mindSizes,cloudPoints,spinePath,branchPoints,taperedPoly,taperedOutline,wrapText,type Pt} from './geometry';
-import {AreaCareer,AreaEducation,AreaHealth,AreaRelationship,AreaConnection,AreaOwnership,AreaMind,AreaOther,ArrowRight,Check,ChevronRight,X} from '../icons';
-import {SkyLine,Popover,UndoBar,ss,useWidth,usePhone,useMeasure,deadlineText,HORIZON_KEY,OPEN_AREA_KEY} from './shared';
+import {mindLayout,mindSizes,cloudPoints,spinePath,branchPoints,taperedPoly,taperedOutline,wrapText,ellipseLines,type Pt} from './geometry';
+import {AreaCareer,AreaEducation,AreaHealth,AreaRelationship,AreaConnection,AreaOwnership,AreaMind,AreaOther,ArrowRight,Check,ChevronRight,Plus,X} from '../icons';
+import {SkyLine,SKY_EMPTY,Popover,UndoBar,ss,useWidth,usePhone,useMeasure,deadlineText,HORIZON_KEY,OPEN_AREA_KEY} from './shared';
 import {stepTag,nextStep} from '../plan';
 import {lifeAreas,lifeVisions,visionsAt,goalsIn,unassignedGoals,addVision,editVision,removeVision,restoreVision,addArea,renameArea,removeArea,restoreArea,setGoalArea,areaOf,
  lifeHorizons,visionHorizons,horizonOf,horizonTitle,horizonPhrase,isDefaultHorizon,addHorizon,renameHorizon,removeHorizon,restoreHorizon,AREA_HINTS,AREA_MIN,AREA_MAX} from './life';
@@ -23,7 +24,8 @@ const ARRIVED_KEY='reboot-life-arrived';
 // Canvas measuring uses the same families as the CSS tokens, so a font change in tokens.css carries over.
 const tok=(name:string,fallback:string)=>{try{return getComputedStyle(document.documentElement).getPropertyValue(name).trim()||fallback;}catch{return fallback;}};
 const SERIF=tok('--serif','"Cormorant Garamond", serif'),SANS=tok('--sans','"Source Sans 3", sans-serif'),HAND=tok('--hand','Caveat, cursive');
-const F={miniName:`600 19px ${HAND}`,small:`450 16px ${SANS}`,chip:`600 16px ${SANS}`};
+// Fonts that don't change with the map's scale; they match .mm-meta and .mm-centre .hz-sky-text (both --fs-meta, 16px).
+const F={miniName:`600 19px ${HAND}`,small:`450 16px ${SANS}`,sky:`400 16px ${SANS}`};
 const ink=(i:number)=>INK[i%INK.length];
 const plural=(n:number,one:string,many=one+'s')=>`${n} ${n===1?one:many}`;
 // One small drawing per area, in its ink, beside its branch (Buzan's doodles). Areas you add get a leaf.
@@ -65,6 +67,9 @@ export function LifeMap({state,mutate,goals,now,actions}:{state:State;mutate:Mut
  const setSheet=(id:string,side?:1|-1)=>{if(side)setSheetFrom(side===1?'left':'right');setSheetId(id);};
  const [pop,setPop]=useState<Pop|null>(null),[undo,setUndo]=useState<Undo|null>(null);
  const visions=lifeVisions(state),emptyHere=!year&&!visions.some(v=>v.when===horizon.id);
+ // An empty horizon shows no "+ Add" twigs, so it never repeats one promise seven times. On "This year" the first
+ // question is the action; on an empty vision horizon an area's name opens "add" for it directly (still one tap).
+ const bare=year?goals.length===0:emptyHere;
 
  // ← and → move between horizons (outside text fields, and not while a sheet or popover is open).
  useEffect(()=>{const key=(e:KeyboardEvent)=>{if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;if(e.altKey||e.ctrlKey||e.metaKey||sheet||document.querySelector('.hz-popover'))return;
@@ -113,15 +118,16 @@ export function LifeMap({state,mutate,goals,now,actions}:{state:State;mutate:Mut
  const popVision=pop?.kind==='edit'?visions.find(v=>v.id===pop.id):undefined,popGoal=pop?.kind==='pick'?goals.find(g=>g.id===pop.goalId):undefined;
  const openAdd=(area:string,when:string,anchor:HTMLElement|null)=>setPop({kind:'add',area,when,anchor});
  const onAddHere=(area:string,anchor:HTMLElement)=>year?actions.onAddGoal(anchor,area):openAdd(area,horizon.id,anchor);
+ const onName=(id:string,side?:1|-1,anchor?:HTMLElement|null)=>{if(emptyHere&&anchor){openAdd(id,horizon.id,anchor);return;}setSheet(id,side);};
  return <div ref={root} className={`lm ${phone?'is-phone':''}`}>
   <HorizonSwitch horizons={horizons} current={horizon.id} onPick={pickHorizon} onManage={anchor=>setPop({kind:'horizons',anchor})}/>
   {firstRun&&<FirstAsk areas={areas} now={now} onAdd={actions.onFirstGoal}/>}
-  {phone?<PhoneMap state={state} areas={areas} goals={goals} horizon={horizon} now={now} sheet={sheet} actions={actions} onArea={setSheet} onSwipe={step}
+  {phone?<PhoneMap state={state} areas={areas} goals={goals} horizon={horizon} now={now} sheet={sheet} actions={actions} bare={bare} addOnName={emptyHere} onArea={onName} onSwipe={step}
    onVision={(v,anchor)=>setPop({kind:'edit',id:v.id,anchor})} onAdd={onAddHere}/>
-  :<MindMap state={state} mutate={mutate} areas={areas} goals={goals} horizon={horizon} focusArea={sheet} now={now} width={rootW} sheetOpen={!!sheet} actions={actions}
-   onArea={(id,side)=>setSheet(id,side)} onVision={(v,anchor)=>setPop({kind:'edit',id:v.id,anchor})} onAdd={onAddHere} onSwipe={step}/>}
+  :<MindMap state={state} mutate={mutate} areas={areas} goals={goals} horizon={horizon} focusArea={sheet} now={now} width={rootW} sheetOpen={!!sheet} actions={actions} bare={bare} addOnName={emptyHere}
+   onArea={onName} onVision={(v,anchor)=>setPop({kind:'edit',id:v.id,anchor})} onAdd={onAddHere} onSwipe={step}/>}
   <div className="lm-under">
-   {emptyHere&&<p className="lm-hint">Nothing {horizonPhrase(horizon)} yet. Tap <b>+ Add</b> on any branch and write it as if it’s already true: “I own my home.”</p>}
+   {emptyHere&&<p className="lm-hint">Nothing {horizonPhrase(horizon)} yet. Tap an area’s name and write it as if it’s already true: “I own my home.”</p>}
    {unassigned>0&&!phone&&<div className="lm-under-tray">{tray()}</div>}
    <button type="button" className="text-button lm-edit-areas" onClick={e=>setPop({kind:'areas',anchor:e.currentTarget})}>Edit areas</button>
   </div>
@@ -188,25 +194,29 @@ function wrapEven(text:string,room:number,measure:(t:string)=>number){const long
 function joinFit(parts:string[],room:number,measure:(t:string)=>number){const out:string[]=[];for(const p of parts){const last=out[out.length-1];if(last&&measure(`${last} · ${p}`)<=room)out[out.length-1]=`${last} · ${p}`;else out.push(p);}return out;}
 
 // Two text scales, both above the readability floor: 20px words on the map, and 22px once it has over 1000px of height.
-// Next steps sit one step down (18px / 20px); the line under a goal is 15px sans in full ink.
+// Next steps sit one step down (18px / 20px), "+ Add" and "+ First step" are 16px / 18px sans, and the line under a
+// goal is 16px sans in full ink. This table is the one source for those sizes: the canvas measures with it and the
+// CSS reads the same numbers from custom properties on .mm, so a label box is always as wide as the words it holds.
 type Scale='m'|'l';
-const FONTS:Record<Scale,{vision:string;goal:string;step:string;name:string;nameSize:number;row:number;stepRow:number;gap:number}>={
- m:{vision:`500 20px ${SERIF}`,goal:`650 20px ${SERIF}`,step:`500 18px ${SERIF}`,name:`600 24px ${HAND}`,nameSize:24,row:24,stepRow:22,gap:COARSE?16:12},
- l:{vision:`500 22px ${SERIF}`,goal:`650 22px ${SERIF}`,step:`500 20px ${SERIF}`,name:`600 28px ${HAND}`,nameSize:28,row:27,stepRow:24,gap:COARSE?18:16}};
+const SIZES:Record<Scale,{word:number;row:number;step:number;stepRow:number;chip:number;name:number;when:number;gap:number;maxRoom:number}>={
+ m:{word:20,row:24,step:18,stepRow:22,chip:16,name:24,when:22,gap:COARSE?16:12,maxRoom:320},
+ l:{word:22,row:27,step:20,stepRow:24,chip:18,name:28,when:25,gap:COARSE?18:16,maxRoom:420}};
+const fontsOf=(z:Scale)=>{const S=SIZES[z];return {...S,vision:`500 ${S.word}px ${SERIF}`,goal:`650 ${S.word}px ${SERIF}`,stepFont:`500 ${S.step}px ${SERIF}`,chipFont:`600 ${S.chip}px ${SANS}`,nameFont:`600 ${S.name}px ${HAND}`,nameSize:S.name};};
+const FONTS={m:fontsOf('m'),l:fontsOf('l')};
 const META_ROW=19,DO_ROW=30,ADD_ROW=30;
 
-function MindMap({state,mutate,areas,goals,horizon,focusArea,now,width,sheetOpen,actions,onArea,onVision,onAdd,onSwipe}:{state:State;mutate:Mutate;areas:LifeArea[];goals:PlanGoal[];horizon:LifeHorizon;focusArea:string;now:string;width:number;sheetOpen:boolean;actions:GoalActions;
- onArea:(id:string,side?:1|-1)=>void;onVision:(v:Vision,anchor:HTMLElement)=>void;onAdd:(area:string,anchor:HTMLElement)=>void;onSwipe:(by:number)=>void}){
+function MindMap({state,mutate,areas,goals,horizon,focusArea,now,width,sheetOpen,actions,bare,addOnName,onArea,onVision,onAdd,onSwipe}:{state:State;mutate:Mutate;areas:LifeArea[];goals:PlanGoal[];horizon:LifeHorizon;focusArea:string;now:string;width:number;sheetOpen:boolean;actions:GoalActions;bare:boolean;addOnName:boolean;
+ onArea:(id:string,side?:1|-1,anchor?:HTMLElement|null)=>void;onVision:(v:Vision,anchor:HTMLElement)=>void;onAdd:(area:string,anchor:HTMLElement)=>void;onSwipe:(by:number)=>void}){
  const wrap=useRef<HTMLDivElement>(null),height=useFillHeight(wrap,460,1400),fi=areas.findIndex(a=>a.id===focusArea);
  useSwipe(wrap,onSwipe);
  const scale:Scale=height>1000&&width>1300?'l':'m',FT=FONTS[scale];
- const mName=useMeasure(FT.name),nameWs=areas.map(a=>Math.ceil(mName.measure(a.name.toUpperCase()))+2);
+ const mName=useMeasure(FT.nameFont),nameWs=areas.map(a=>Math.ceil(mName.measure(a.name.toUpperCase()))+2);
  // "Me" is the largest thing on the map, always in the middle.
  const cloudW=Math.round(Math.max(220,Math.min(scale==='l'?380:330,width*.21)));
  // On a wide window the branches grow longer, so the map spreads to fill it instead of sitting small in the middle.
- const opts={width,height,mode:'both' as const,cloudW,branchLen:Math.round(Math.max(26,Math.min(200,(width-1100)*.16+32))),twig:scale==='l'?26:20,stagger:5,tail:22,nameGap:8};
+ const opts={width,height,mode:'both' as const,cloudW,branchLen:Math.round(Math.max(26,Math.min(200,(width-1100)*.16+32))),twig:scale==='l'?26:20,stagger:5,tail:22,nameGap:8,maxRoom:FT.maxRoom};
  const sizes=mindSizes(opts,nameWs);
- const mV=useMeasure(FT.vision),mG=useMeasure(FT.goal),mSt=useMeasure(FT.step),mS=useMeasure(F.small),mC=useMeasure(F.chip);
+ const mV=useMeasure(FT.vision),mG=useMeasure(FT.goal),mSt=useMeasure(FT.stepFont),mS=useMeasure(F.small),mC=useMeasure(FT.chipFont),mSky=useMeasure(F.sky);
  const year=horizon.id==='year',doWord=actions.evening?'Do tomorrow':'Do today';
  const rows=useMemo(()=>areas.map((a,i)=>{const room=Math.max(130,sizes.rooms[i]??sizes.room),out:MRow[]=[],G=FT.gap;
   const addRow=(t:string)=>out.push({key:`${a.id}-add`,kind:'add',horizon:0,lines:[t],w:mC.measure(t)+12,base:ADD_ROW,h:ADD_ROW+G});
@@ -218,15 +228,15 @@ function MindMap({state,mutate,areas,goals,horizon,focusArea,now,width,sheetOpen
     if(nx){const tag=stepTag(state,nx,now),sl=wrapEven(`Next: ${nx.text}`,room-20,mSt.measure),b=sl.length*FT.stepRow+3,foot=isQueued(tag)?tag:`${doWord}${tag?` · ${tag}`:''}`;
      out.push({key:`${g.id}-next`,kind:'step',horizon:3,lines:sl,w:Math.max(...sl.map(mSt.measure),mS.measure(foot)+28),base:b,h:b+DO_ROW+G,g,st:nx,tag,n});}
     else if(!g.steps.length){const t='+ First step';out.push({key:`${g.id}-first`,kind:'addstep',horizon:3,lines:[t],w:mC.measure(t)+12,base:ADD_ROW,h:ADD_ROW+G,g,n});}});
-   if(actions.canAdd)addRow('+ Add a goal');}
+   if(actions.canAdd&&!bare)addRow('+ Add');}
   else{const vs=visionsAt(state,a.id,horizon.id),shown=vs.length>4?vs.slice(0,3):vs;
    shown.forEach(v=>{const lines=wrapEven(v.text,room,mV.measure),base=lines.length*FT.row+3;out.push({key:v.id,kind:'vision',horizon:0,lines,w:Math.max(...lines.map(mV.measure)),base,h:base+G,v});});
    if(vs.length>4){const t=`+${vs.length-3} more`;out.push({key:`${a.id}-more`,kind:'more',horizon:0,lines:[t],w:mC.measure(t)+8,base:ADD_ROW,h:ADD_ROW+G,count:vs.length-3});}
-   // Every branch ends in an invitation for this horizon, never a bare stub.
-   else addRow('+ Add');}
+   // Once this horizon has something on it, every branch ends in a short invitation for it.
+   else if(!bare)addRow('+ Add');}
   return out;}),
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  [state,goals,areas,now,horizon.id,sizes.rooms.join(),scale,actions.canAdd,doWord,mV.v,mG.v,mSt.v,mS.v,mC.v]);
+  [state,goals,areas,now,horizon.id,sizes.rooms.join(),scale,actions.canAdd,bare,doWord,mV.v,mG.v,mSt.v,mS.v,mC.v]);
  const L=useMemo(()=>mindLayout(rows.map((r,i)=>({rows:r.map(x=>({h:x.h,base:x.base,w:x.w,horizon:x.horizon})),minH:58,nameW:nameWs[i]})),opts),
   // eslint-disable-next-line react-hooks/exhaustive-deps
   [rows,width,height,nameWs.join(),cloudW,scale]);
@@ -241,7 +251,14 @@ function MindMap({state,mutate,areas,goals,horizon,focusArea,now,width,sheetOpen
  }),[L,fi,w0,areas.map(a=>a.id).join()]);
  const twigPath=(t:{p0:Pt;c1:Pt;c2:Pt;p3:Pt})=>`M${t.p0[0].toFixed(1)} ${t.p0[1].toFixed(1)} C${t.c1[0].toFixed(1)} ${t.c1[1].toFixed(1)} ${t.c2[0].toFixed(1)} ${t.c2[1].toFixed(1)} ${t.p3[0].toFixed(1)} ${t.p3[1].toFixed(1)}`;
  const meSize=Math.round(Math.max(40,Math.min(scale==='l'?66:56,L.cloud.h*.36)));
- return <div ref={wrap} className={`mm scale-${scale} ${fi>=0?'has-focus':''} ${sheetOpen?'sheet-open':''}`} style={{height:L.height}}>
+ // Who you're becoming, under "Me": broken into lines that follow the cloud's curve, so no word crosses its edge.
+ // The heading above it is "Me" (line-height .95), the horizon (1.15) and the 2px gaps between them (.mm-centre).
+ const skyText=state.settings.identity?.trim()||SKY_EMPTY,showSky=L.cloud.h>=170;
+ const sky=useMemo(()=>showSky?ellipseLines(skyText,mSky.measure,{w:L.cloud.w,h:L.cloud.h,head:meSize*.95+FT.when*1.15+6,lineH:20,minH:44,maxLines:3}):null,
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  [skyText,showSky,L.cloud.w,L.cloud.h,meSize,FT.when,mSky.v]);
+ const vars={height:L.height,'--mm-fs':`${FT.word}px`,'--mm-lh':`${FT.row}px`,'--mm-step-fs':`${FT.step}px`,'--mm-step-lh':`${FT.stepRow}px`,'--mm-chip-fs':`${FT.chip}px`,'--mm-when-fs':`${FT.when}px`} as React.CSSProperties;
+ return <div ref={wrap} className={`mm scale-${scale} ${fi>=0?'has-focus':''} ${sheetOpen?'sheet-open':''}`} style={vars}>
   <svg className="mm-svg" width={L.width} height={L.height} aria-hidden="true">
    {L.branches.map((b,i)=><g key={areas[i].id} className={`mm-area ${i===fi?'focused':''}`} style={{'--c':ink(i)} as React.CSSProperties}>
     <path className="mm-spine" d={spinePath(b)}/>
@@ -254,13 +271,13 @@ function MindMap({state,mutate,areas,goals,horizon,focusArea,now,width,sheetOpen
   </svg>
   <div className="mm-centre" style={{left:L.cloud.cx-L.cloud.w/2+26,top:L.cloud.cy-L.cloud.h/2+14,width:L.cloud.w-52,height:L.cloud.h-28,'--mm-me':`${meSize}px`} as React.CSSProperties}>
    <span className="mm-me">Me</span><span className="mm-when">{horizonPhrase(horizon)}</span>
-   {L.cloud.h>=170&&<SkyLine state={state} mutate={mutate} className="mm-sky"/>}
+   {showSky&&<SkyLine state={state} mutate={mutate} className="mm-sky" lines={sky?.lines}/>}
   </div>
   {L.branches.map((b,i)=>{const a=areas[i],Icon=AREA_ICON[a.id]??AreaOther,n=b.name,nameH=Math.max(44,FT.nameSize+20),nameTop=n.y-7-nameH,iconX=n.x+b.side*(n.w/2)-b.side*12;
    return <Fragment key={a.id}>
    {/* The name is written level along its branch, just above the stroke. The whole name is the button. */}
    <button type="button" className={`mm-name ${i===fi?'focused':''}`} data-area={i} style={{left:n.x-n.w/2-10,top:nameTop,width:n.w+20,height:nameH,fontSize:FT.nameSize,'--c':ink(i)} as React.CSSProperties}
-    aria-pressed={i===fi} aria-label={`${a.name}: open every horizon`} onClick={()=>onArea(a.id,b.side)}><span>{a.name.toUpperCase()}</span></button>
+    aria-pressed={addOnName?undefined:i===fi} aria-label={addOnName?`Add to ${a.name}, ${horizonPhrase(horizon)}`:`${a.name}: open every horizon`} onClick={e=>onArea(a.id,b.side,e.currentTarget)}><span>{a.name.toUpperCase()}</span></button>
    <span className={`mm-icon ${i%2?'tilt-l':'tilt-r'}`} style={{left:iconX-13,top:n.y+9,'--c':ink(i)} as React.CSSProperties} aria-hidden="true"><Icon size={scale==='l'?30:26}/></span>
    {rows[i].map((r,j)=>{const t=b.twigs[j];if(!t)return null;const right=b.side===1,style={left:right?t.x+3:t.x-t.len+3,top:t.top,width:t.len-6,'--c':ink(i)} as React.CSSProperties,cls=`mm-row ${r.kind==='step'?'nextstep':r.kind} ${right?'side-r':'side-l'}`;
     if(r.kind==='goal'&&r.g)return <button key={r.key} type="button" className={cls} style={style} data-goal={r.g.id} onClick={()=>onArea(a.id,b.side)} aria-label={`Goal ${r.n}: ${r.g.text}. ${r.meta?.join(', ')}. Open ${a.name}`}>
@@ -285,8 +302,8 @@ function MindMap({state,mutate,areas,goals,horizon,focusArea,now,width,sheetOpen
 // The phone's map: "Me" in the middle with this horizon, one short branch per area with its name and how many ideas
 // it holds here. Below it, one block per area with this horizon's words - on "This year", each goal with its next step
 // and "Do today" - and the same "+ Add" the big map has. The area's name opens its sheet.
-function PhoneMap({state,areas,goals,horizon,now,sheet,actions,onArea,onSwipe,onVision,onAdd}:{state:State;areas:LifeArea[];goals:PlanGoal[];horizon:LifeHorizon;now:string;sheet:string;actions:GoalActions;
- onArea:(id:string)=>void;onSwipe:(by:number)=>void;onVision:(v:Vision,anchor:HTMLElement)=>void;onAdd:(area:string,anchor:HTMLElement)=>void}){
+function PhoneMap({state,areas,goals,horizon,now,sheet,actions,bare,addOnName,onArea,onSwipe,onVision,onAdd}:{state:State;areas:LifeArea[];goals:PlanGoal[];horizon:LifeHorizon;now:string;sheet:string;actions:GoalActions;bare:boolean;addOnName:boolean;
+ onArea:(id:string,side?:1|-1,anchor?:HTMLElement|null)=>void;onSwipe:(by:number)=>void;onVision:(v:Vision,anchor:HTMLElement)=>void;onAdd:(area:string,anchor:HTMLElement)=>void}){
  const wrap=useRef<HTMLDivElement>(null),w=useWidth(wrap,358),mN=useMeasure(F.miniName),fi=areas.findIndex(a=>a.id===sheet),year=horizon.id==='year';
  const doWord=actions.evening?'Do tomorrow':'Do today';
  useSwipe(wrap,onSwipe);
@@ -307,12 +324,12 @@ function PhoneMap({state,areas,goals,horizon,now,sheet,actions,onArea,onSwipe,on
     </svg>
     <span className="mm-mini-me" style={{left:L.cloud.cx-L.cloud.w/2,top:L.cloud.cy-L.cloud.h/2,width:L.cloud.w,height:L.cloud.h}} aria-hidden="true"><b>Me</b><small className="mm-when">{horizonPhrase(horizon)}</small></span>
     {L.branches.map((b,i)=><button key={areas[i].id} type="button" className={`mm-mini-name ${b.side===1?'side-r':'side-l'}`} style={{left:b.name.x-b.name.w/2-6,top:b.name.y-36,width:b.name.w+12,'--c':ink(i)} as React.CSSProperties}
-     aria-pressed={i===fi} aria-label={`${areas[i].name}: ${plural(counts[i],year?'goal':'idea')} ${horizonPhrase(horizon)}. Open`} onClick={()=>onArea(areas[i].id)}>{areas[i].name}{counts[i]>0&&<small>{counts[i]}</small>}</button>)}
+     aria-pressed={addOnName?undefined:i===fi} aria-label={addOnName?`Add to ${areas[i].name}, ${horizonPhrase(horizon)}`:`${areas[i].name}: ${plural(counts[i],year?'goal':'idea')} ${horizonPhrase(horizon)}. Open`} onClick={e=>onArea(areas[i].id,undefined,e.currentTarget)}>{areas[i].name}{counts[i]>0&&<small>{counts[i]}</small>}</button>)}
    </div>
   </div>
   <ul className="lm-pareas">{areas.map((a,i)=>{const mine=year?goalsIn(state,a.id):[],vs=year?[]:visionsAt(state,a.id,horizon.id);
    return <li key={a.id} className="lm-parea" style={{'--c':ink(i)} as React.CSSProperties}>
-    <button type="button" className="lm-phead" onClick={()=>onArea(a.id)} aria-label={`${a.name}: open every horizon`}><span className="lm-area-name">{a.name}</span><ChevronRight size={18}/></button>
+    <button type="button" className="lm-phead" onClick={e=>onArea(a.id,undefined,e.currentTarget)} aria-label={addOnName?`Add to ${a.name}, ${horizonPhrase(horizon)}`:`${a.name}: open every horizon`}><span className="lm-area-name">{a.name}</span>{addOnName?<Plus size={18}/>:<ChevronRight size={18}/>}</button>
     <div className="lm-pitems">
      {mine.map(g=>{const n=goals.indexOf(g)+1,m=goalMeta(g,now),nx=nextStep(g),tag=nx?stepTag(state,nx,now):'';
       return <div key={g.id} className="lm-pgoal" data-goal={g.id}>
@@ -323,7 +340,7 @@ function PhoneMap({state,areas,goals,horizon,now,sheet,actions,onArea,onSwipe,on
        :!g.steps.length&&<button type="button" className="text-button lm-add" onClick={e=>actions.onAddStep(g,e.currentTarget)}><span aria-hidden="true">+</span> First step</button>}
       </div>;})}
      {vs.map(v=><button key={v.id} type="button" className="lm-pvision" onClick={e=>onVision(v,e.currentTarget)} aria-label={`${v.text}. Edit`}>{v.text}</button>)}
-     {(!year||actions.canAdd)&&<button type="button" className="text-button lm-add" onClick={e=>onAdd(a.id,e.currentTarget)} aria-label={year?`Add a goal for ${a.name}, this year`:`Add to ${a.name}, ${horizonPhrase(horizon)}`}><span aria-hidden="true">+</span> {year?'Add a goal':'Add'}</button>}
+     {!bare&&(!year||actions.canAdd)&&<button type="button" className="text-button lm-add" onClick={e=>onAdd(a.id,e.currentTarget)} aria-label={year?`Add a goal for ${a.name}, this year`:`Add to ${a.name}, ${horizonPhrase(horizon)}`}><span aria-hidden="true">+</span> {year?'Add a goal':'Add'}</button>}
     </div>
    </li>;})}</ul>
  </div>;
