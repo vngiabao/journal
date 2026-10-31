@@ -64,7 +64,7 @@ export function TodayList({state,mutate,now,closed=false,training=false}:{state:
  const remove=(id:string)=>mutate(s=>{const t=(s.todos??[]).find(x=>x.id===id);if(t?.routine){t.dismissed=true;return;}s.todos=(s.todos??[]).filter(x=>x.id!==id);},'todo remove');
  // The frog leads the page on its own card; the list follows. After the day is closed, only an eaten frog stays up.
  const frogBlock=frog&&(!closed||frog.done)?<FrogCard frog={frog} mutate={mutate} now={now} onFocus={()=>setFocus(true)}/>
-  :!closed&&new Date().getHours()<17&&rest.some(x=>!x.done&&!x.routine&&!x.auto)?<div className="frog-pick"><FrogGlyph/><div><p><b>Pick today’s frog.</b> The task you’d most like to put off. You’ll do it first.</p><div className="frog-choices">{rest.filter(x=>!x.done&&!x.routine&&!x.auto&&x.priority!=='D'&&x.priority!=='E').map(x=><button key={x.id} type="button" className="frog-choice" aria-label={`Make “${x.text}” my frog`} onClick={()=>makeFrog(x.id)}>{x.text}</button>)}</div></div></div>:null;
+  :!closed&&new Date().getHours()<17&&rest.some(x=>!x.done&&!x.routine&&!x.auto)?<div className="frog-pick"><FrogGlyph/><div><p><b>Pick today’s frog.</b> The task you’d most like to put off. You’ll do it first.</p><div className="frog-choices">{rest.filter(x=>!x.done&&!x.routine&&!x.auto&&x.priority!=='D'&&x.priority!=='E').sort((a,b)=>priorityRank(a)-priorityRank(b)).slice(0,3).map(x=><button key={x.id} type="button" className="frog-choice" aria-label={`Make “${x.text}” my frog`} onClick={()=>makeFrog(x.id)}>{x.text}</button>)}</div></div></div>:null;
  return <>{frogBlock}<section ref={card} className={`today-list ${closed?'is-closed':''}`} aria-labelledby="today-list-title">
   {/* One slim band: the title and a quiet count. The day's line lives beside the list, so the list starts high. */}
   <header className="tl-head tl-slim">
@@ -80,7 +80,7 @@ export function TodayList({state,mutate,now,closed=false,training=false}:{state:
    <div role="status" className="abc-live">{nudge&&<p className="abc-nudge">{nudge}</p>}</div>
    {ordered.length?<><ul className="todo-list big">{visible.map(t=><TodoItem key={t.id} t={t} quiet={closed} onToggle={toggle} onRemove={remove} onPriority={p=>setPriority(t.id,p)}/>)}</ul>
    {(hidden>0||(showAll&&undone.length>8))&&<div className="list-folds">{hidden>0&&<button type="button" className="text-button" onClick={()=>setShowAll(true)}>Also today ({hidden})</button>}{showAll&&undone.length>8&&<button type="button" className="text-button" onClick={()=>setShowAll(false)}>Show fewer</button>}</div>}</>:!frog&&!closed&&<p className="tl-empty">Nothing on the list yet. What would make today a good day?</p>}
-   {stillUp>0&&<p className="tl-open"><Sun size={18}/>{stillUp} still open - the morning will ask about {stillUp===1?'it':'them'}.</p>}
+   {stillUp>0&&<p className="tl-open"><Sun size={18}/>{stillUp} still open - {stillUp===1?'it’ll':'they’ll'} be waiting in the morning.</p>}
    {focus&&frog&&<FrogFocus frog={frog} mutate={mutate} onClose={()=>setFocus(false)}/>}
    {settled.length>0&&<p className="tl-settled"><Check size={16}/>Settled tonight: {[again&&`${again} written for tomorrow`,dropped&&`${dropped} let go`].filter(Boolean).join(', ')}.</p>}
    {later.length>0&&<button type="button" className="text-button later-toggle" aria-expanded={showLater} onClick={()=>setShowLater(!showLater)}>{showLater?'Hide tomorrow':`Tomorrow (${later.length})`}</button>}

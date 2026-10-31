@@ -27,7 +27,7 @@ const REST_AFTER=45_000,SLEEP_AFTER=150_000;
 // field, and any words, buttons or pictures along the bottom edge. If there is no room left on the floor, he steps out
 // of view until there is. While a Bond milestone is on screen he waits off stage, so there is only ever one Bond cheering.
 const FIELDS='input:not([type=checkbox]):not([type=radio]),textarea,select,[contenteditable="true"]';
-const AVOID=`.ritual-card,.frog-card,.today-list,.training,.bingo-card,.goal-tile,.table-scroll,.sidebar,.bond-strip,${FIELDS}`;
+const AVOID=`.ritual-card,.frog-card,.today-list,.training,.bingo-card,.goal-tile,.table-scroll,.daily-ticks,.promises,.today-quote,.ritual-note,.bond-line,.sidebar,.bond-strip,${FIELDS}`;
 // His speech bubble must not sit over a field, the sidebar, the cards he walks around (it rides higher than he does),
 // or any words, controls or pictures.
 const BUBBLE_AVOID=`.ritual-card,.frog-card,.sidebar,.bond-strip,${FIELDS}`;

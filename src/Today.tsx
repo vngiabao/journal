@@ -9,7 +9,7 @@ import {GoalControls,type Mutate} from './GoalControls';
 import {TodayList,MorningQuote} from './Todo';
 import {DailyTicks} from './Guide';
 import {TrainingCard} from './TrainingCard';
-import {needsWorkoutTask,ensureWorkoutTask,dayPlan,isTrainingDay} from './training';
+import {needsWorkoutTask,ensureWorkoutTask,dayPlan,isTrainingDay,gymGoal} from './training';
 import {BondJourney} from './bond';
 import {RitualCard,RitualNote} from './ritual/Ritual';
 import {activeRitual} from './ritual/rules';
@@ -80,7 +80,9 @@ function Promises({state,mutate,now,go,active,closed=false}:{state:State;mutate:
    <p className="promises-calm">{onTrack.length?<>On track: {onTrack.join(' · ')}</>:'Your week’s promises pick up again tomorrow.'}</p>
    <button className="text-button section-link" onClick={()=>go('Reboot Board')}>All {state.goals.length} commitments <ArrowRight size={16}/></button>
   </section>;}
- const row=(g:Goal,meta:string)=><li key={g.id} className={`promise ${dayState(g,state.logs,now)}`}><div className="promise-text"><strong>{g.pinned&&<Pin size={14} className="promise-pin"/>}{goalName(g,state)}</strong><small>{meta}</small></div><GoalControls g={g} state={state} date={now} mutate={mutate} quick/></li>;
+ // On a gym day the training card logs the gym promise, so its row here shows progress only: one place to tick.
+ const gym=dayPlan(state,now).kind==='gym'?gymGoal(state):undefined,logsFromCard=(g:Goal)=>g.id===gym?.id;
+ const row=(g:Goal,meta:string)=><li key={g.id} className={`promise ${dayState(g,state.logs,now)}`}><div className="promise-text"><strong>{g.pinned&&<Pin size={14} className="promise-pin"/>}{goalName(g,state)}</strong><small>{meta}{logsFromCard(g)?' · ticks itself when you finish the session':''}</small></div>{!logsFromCard(g)&&<GoalControls g={g} state={state} date={now} mutate={mutate} quick/>}</li>;
  return <section className="promises" aria-labelledby="promises-title">
   <div className="section-title"><h2 id="promises-title">This week</h2><span className="count-note">{daysLeft} {daysLeft===1?'day':'days'} left</span></div>
   <ul className="promise-list">{weekly.map(g=>{const st=stats(g,state.logs,now),c=criteriaAt(g,now);

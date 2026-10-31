@@ -173,7 +173,7 @@
 #main .today-doing{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(340px,1fr);gap:var(--s-6);align-items:start}
 #main .today-do,#main .today-side{display:flex;flex-direction:column;gap:var(--s-5);min-width:0}
 #main .today-do .today-list{margin:0}
-#main .ritual-note{display:flex;align-items:center;flex-wrap:wrap;gap:var(--s-3);margin:0;padding:var(--s-4) var(--s-5);background:var(--sheet);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow-1);font-size:var(--fs-ui);line-height:1.4;color:var(--ink-soft)}
+#main .ritual-note{max-width:none;display:flex;align-items:center;flex-wrap:wrap;gap:var(--s-3);margin:0;padding:var(--s-4) var(--s-5);background:var(--sheet);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow-1);font-size:var(--fs-ui);line-height:1.4;color:var(--ink-soft)}
 #main .ritual-note>svg{flex:none;color:var(--green)}
 #main .ritual-note span{flex:1 1 200px}
 #main .ritual-note b{font:500 21px var(--serif);color:var(--ink)}
